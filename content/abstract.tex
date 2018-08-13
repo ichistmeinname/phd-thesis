@@ -1,0 +1,75 @@
+% !TEX root = ../my-thesis.tex
+%
+\begingroup
+\let\cleardoublepage\clearpage
+
+\pdfbookmark[0]{Abstract}{Abstract}
+\selectlanguage{english}
+\chapter*{Abstract}
+\label{sec:abstract}
+This thesis investigates effectful declarative programming with an
+emphasise on non-determinism as an effect.
+
+On the one hand, we are interested in developing applications using
+non-determinism as underlying implementation idea.
+One application that we discuss in this work is a library for
+probabilistic programming developed in the functional logic language
+Curry.
+The key idea of the implementation is exploiting the interplay of
+non-determinism and non-strictness that Curry employs.
+Due to this combination even a naive implementation has advantages
+over an implementation using lists to model non-determinism.
+
+On the other hand, we present an idea to apply formal reasoning on
+effectful declarative programming languages.
+In order to start with simple effects, we focus on modelling a
+functional subset first.
+That is, the effects of interest are totality and partiality.
+We then observe that the general scheme to model these two effects can
+be generalised to capture a wide range of effects.
+Obviously, the next step is to apply the idea for modelling
+non-determinism.
+More precisely, we model the non-determinism of Curry: that is,
+non-strict non-determinism with call-time-choice.
+
+At the end, we combine both worlds and show first efforts to formally
+reason about properties of the probabilistic programming library.
+
+\selectlanguage{ngerman}
+\chapter*{Abstrakt (deutsch)}
+\label{sec:abstract-diff}
+
+Diese Arbeit besch\"aftigt sich mit der deklarativen
+Programmierung mit Effekten und legt dabei besonderen Fokus auf
+Nichtdeterminismus als Effekt.
+
+Einerseits m\"ochten wir Anwendungen entwicklen, dessen
+zugrundeliegende Implementierunsidee auf Nichtdeterminismus basiert.
+Als beispielhafte Anwendung werden wir dabei \"uber eine Bibliothek zur
+probabilistischen Programmierung diskutieren, die in der funktional logischen
+Programmiersprache implementiert wurde.
+Der Kern der Implementierung nutzt dabei die Kombination von
+Nichtstriktheit und Nichtdeterminismus, die Curry unterliegen,
+gewinnbringend aus.
+Die entstandene naive Implementierung hat dadurch Vorteile geben\"uber
+einer Implementierung, die den Nichtdeterminismus durch Listen repr\"asentiert.
+
+Andererseits m\"ochten wir eine M\"oglichkeit schaffen, \"uber die
+Programme, die wir in den effektbehafteten deklarativen
+Programmiersprachen entwickelt haben, in einem formalen Rahmen zu
+argumentieren.
+Dabei fangen wir mit einfachen der Teilmenge der rein funktionalen
+Effekten, das hei\ss{}t, wir interessieren uns zun\"achst f\"ur
+Totalit\"at und Partialit\"at von Programmen.
+Die zugrundeliegende Idee zur Modellierung dieser zwei Effekte kann
+dann auch f\"ur weitere Effekte genutzt werden.
+Als nat\"urlichen n\"achsten Schritt betrachten wir den Effekte, der
+bei der Sprache Curry zus\"atzlich hinzukommt: nicht-strikter
+Nichtdeterminismus mit \emph{Call-Time-Choice} Semantik.
+
+Zu guter Letzt verbinden wir diese beiden Interessen und verwenden die
+Modellierung von Curry, um Eigenschaften der Bibliothek zur
+probabilistischen Programmierung zur formulieren und deren Validit\"at
+zu pr\"ufen.
+
+\endgroup
