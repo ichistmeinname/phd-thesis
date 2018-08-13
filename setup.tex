@@ -1,0 +1,76 @@
+% !TEX root = thesis.tex
+
+
+% **************************************************
+% Files' Character Encoding
+% **************************************************
+\PassOptionsToPackage{utf8}{inputenc}
+\usepackage{inputenc}
+
+
+% **************************************************
+% Information and Commands for Reuse
+% **************************************************
+\newcommand{\thesisTitle}{Effectful Programming in
+Declarative Languages with an Emphasis on Non-Determinism:
+Applications and Formal Reasoning}
+\newcommand{\thesisName}{Sandra Dylus}
+\newcommand{\thesisSubject}{PhD Thesis}
+\newcommand{\thesisDate}{July, 2019}
+\newcommand{\thesisVersion}{First Draft}
+
+\newcommand{\thesisFirstReviewer}{Prof. Dr. Michael Hanus}
+\newcommand{\thesisFirstReviewerUniversity}{Kiel University}
+\newcommand{\thesisFirstReviewerDepartment}{Department of Programming
+Languages and Compiler Construction}
+
+\newcommand{\thesisSecondReviewer}{John Doe}
+\newcommand{\thesisSecondReviewerUniversity}{Very Cool University}
+\newcommand{\thesisSecondReviewerDepartment}{Department of Weird Stuff}
+
+\newcommand{\thesisFirstSupervisor}{\thesisFirstReviewer}
+\newcommand{\thesisSecondSupervisor}{John Smith}
+
+\newcommand{\thesisUniversity}{Kiel University}
+\newcommand{\thesisUniversityDepartment}{Department of Programming
+Languages and Compiler Construction}
+\newcommand{\thesisUniversityInstitute}{Institute for Computer Science}
+\newcommand{\thesisUniversityGroup}{Faculty of Engineering}
+
+
+% **************************************************
+% Debug LaTeX Information
+% **************************************************
+%\listfiles
+
+
+% **************************************************
+% Load and Configure Packages
+% **************************************************
+\usepackage[ngerman,english]{babel} % babel system, adjust the language of the content
+\PassOptionsToPackage{% setup clean thesis style
+    figuresep=colon,%
+    sansserif=false,%
+    hangfigurecaption=false,%
+    hangsection=true,%
+    hangsubsection=true,%
+    colorize=full,%
+    colortheme=bluemagenta,%
+    bibsys=bibtex,%
+    bibfile=thesis,%
+    bibstyle=alphabetic,%
+    wrapfooter=false,%
+}{cleanthesis}
+\usepackage{cleanthesis}
+
+\hypersetup{% setup the hyperref-package options
+    pdftitle={\thesisTitle},    %   - title (PDF meta)
+    pdfsubject={\thesisSubject},%   - subject (PDF meta)
+    pdfauthor={\thesisName},    %   - author (PDF meta)
+    plainpages=false,           %   -
+    colorlinks=false,           %   - colorize links?
+    pdfborder={0 0 0},          %   -
+    breaklinks=true,            %   - allow line break inside links
+    bookmarksnumbered=true,     %
+    bookmarksopen=true          %
+}
