@@ -1,0 +1,25 @@
+\section{What is Probabilistic Programming}
+
+\section{An Overview of the Library}
+\subsection{Modeling Distributions}
+\subsection{Querying Distributions}
+
+\section{The Functional Logic Heart of the Library}
+\subsection{Call-Time-Choice}
+\subsection{Non-strict Non-determinism}
+\subsection{Exploit Non-strictness in the Definition of bind}
+
+\section{Restrictions}
+
+\subsection{Non-deterministic Events}
+\subsection{Partial Functions}
+
+\section{Related Work}
+
+\section{Case Study}
+
+\subsection{Bayesian Network}
+\subsection{Random Strings}
+
+\section{Future Work and Conclusion}
+\section{Final Remarks}
