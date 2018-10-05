@@ -1,0 +1,64 @@
+* Benchmark comparison
+** WebPPL
+*** Method: Enumerate
+
+m-067:WebPPL sad$ echo 5; time ./node_modules/.bin/webppl node_modules/webppl/examples/replicateDie.wppl 
+5
+Marginal:
+    false : 0.9998713991769547
+    true : 0.00012860082304526745
+
+real	0m1.894s
+user	0m2.060s
+sys	0m0.104s
+m-067:WebPPL sad$ echo 6; time ./node_modules/.bin/webppl node_modules/webppl/examples/replicateDie.wppl 
+6
+Marginal:
+    false : 0.9999785665294926
+    true : 0.000021433470507544844
+
+real	0m3.910s
+user	0m3.989s
+sys	0m0.146s
+m-067:WebPPL sad$ echo 7; time ./node_modules/.bin/webppl node_modules/webppl/examples/replicateDie.wppl 
+7
+Marginal:
+    false : 0.9999964277549155
+    true : 0.0000035722450845908338
+
+real	0m19.798s
+user	0m19.738s
+sys	0m0.301s
+m-067:WebPPL sad$ echo 8; time ./node_modules/.bin/webppl node_modules/webppl/examples/replicateDie.wppl 
+8
+Marginal:
+    false : 0.9999994046258193
+    true : 5.953741807650915e-7
+
+real	2m38.014s
+user	2m34.688s
+sys	0m0.972s
+
+*** Method: rejection (and other sampling-based methods) --- fairly imprecise; even with a sampling number of 15.000; default is 100
+
+** ProbLog
+m-067:ProbLog sad$ time problog replicateDie.pl 
+allRepSix(3):	0.0046296296
+
+real	0m0.588s
+user	0m0.506s
+sys	0m0.077s
+m-067:ProbLog sad$ time problog replicateDie.pl 
+allRepSix(4):	0.00077160494
+
+real	0m11.294s
+user	0m10.568s
+sys	0m0.175s
+m-067:ProbLog sad$ time problog replicateDie.pl 
+allRepSix(5):	0.00012860082
+
+real	5m40.099s
+user	5m33.654s
+sys	0m1.566s
+
+** Venture has only sampling-based inference methods 
