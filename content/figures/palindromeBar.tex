@@ -1,0 +1,102 @@
+\begin{tikzpicture}
+  \begin{semilogyaxis}[
+    height=6cm,
+    width=14cm,
+    ybar=0pt,
+    bar width=0.2cm,
+    axis y line = left,
+    xlabel = {\footnotesize{length of string}},
+    ylabel = {\footnotesize{time in ms}},
+    xmajorgrids=true,
+    grid style={dashed},
+    xticklabel style = { font = \footnotesize },
+    xtick = {2.5,7.5,...,50},
+    xticklabels = {5,10,...,40},
+    xmin=2.5,
+    x tick label as interval,
+    axis x line* = bottom,
+    enlarge y limits  = 0.02,
+    axis on top,
+    legend cell align = {left},
+    legend style={
+      at={(0.5,-0.3)},
+      anchor=north,
+      legend columns=3,
+      cells = {align = left},
+      /tikz/every even column/.append style={column sep=0.5cm}}
+  ]
+
+  ]
+  % Curry
+  \addplot+[curry]
+    coordinates {
+      (35,851000)
+      (30,15530)
+      (25,2819)
+      (20,310.7)
+      (15,60.96)
+      (10,28.33)
+      (5,24.81)
+    };
+
+  % ProbLog
+  \addplot+[probLog]
+    coordinates {
+      (10,62350)
+      (5,307.9)
+    };
+
+  % WebPPL
+  \addplot+[webPPL]
+    coordinates {
+      (20,152800)
+      (15,4230)
+      (10,1697)
+      (5,1727) 
+    };
+
+  % Curry (fast)
+  \addplot+[curry,  postaction={ pattern=north east
+    lines, pattern color = white}]
+    coordinates {
+      (40,508500)
+      (35,30510)
+      (30,6342)
+      (25,720.8)
+      (20,144.3)  
+      (15,36.37)
+      (10,23.99)
+      (5,24)
+    };
+
+  % ProbLog (fast)
+  \addplot+[probLog,  postaction={ pattern=north east
+    lines, pattern color = white}]
+    coordinates {
+      (40,874000)
+      (35,42880)
+      (30,13730)
+      (25,2309)
+      (20,1293)
+      (15,361.3)
+      (10,265.1)
+      (5,159.8)
+    };
+
+  % WebPPL (fast)
+  \addplot+[webPPL,  postaction={ pattern=north east
+    lines, pattern color = white}]
+    coordinates {
+      (40,109300)
+      (35,15360)
+      (30,3892)
+      (25,2237)
+      (20,1745)
+      (15,1610)
+      (10,1586)
+      (5,1556)
+    };
+
+  \legend{Curry, ProbLog, WebPPL, Curry (fast), ProbLog (fast), WebPPL (fast)}
+  \end{semilogyaxis}
+\end{tikzpicture}

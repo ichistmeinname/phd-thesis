@@ -13,13 +13,278 @@
 
 \subsection{Non-deterministic Events}
 \subsection{Partial Functions}
+\subsection{Monad Laws}
+
+When we comply with the restrictions we have discussed above, the operators |(>>>=)| and |certainly| allow us to formulate probabilistic programs as one would expect.
+However, there is one obvious question that we did not answer.
+We did not check whether the operator |(>>>=)| together with |certainly| actually forms a monad as the name of the operator suggests.
+That is, we have to check whether the following three laws hold for all distributions |d| and all values |a|, |f|, and |g| of appropriate types.
+
+\begin{itemize}
+\item[(1)] |d >>>= certainly == d|
+\item[(2)] |certainly a >>>= f == f a|
+\item[(3)] |(d >>>= f) >>>= g == d >>>= (\x -> f x >>>= g)|
+\end{itemize}
+
+In the previous section we have already observed that the equality stated in (1) does not necessary hold, depending on our notion of equality.
+For example, we have seen that there is a context that is able to distinguish the left-hand from the right-hand side.
+For instance, while the expression
+\[
+|(\(Dist _ _) -> True) coin|
+\]
+yields two results, the expression
+\[
+|(\(Dist _ _) -> True) (coin >>>= certainly)|
+\]
+yields only one.
+Most Curry semantics are based on sets and not on multisets.
+In this form of semantics the two sides of the equality would be the same.
+Furthermore, in a multiset semantics the user still could not observe the difference between the two expressions because the user does not have access to the |Dist|-constructor.
+
+In order to discuss the validity of the monad laws more rigorously, we apply equational reasoning to check where the monad laws might fail.
+Let |d :: Dist tau| then we reason as follows.
+\begin{spec}
+d >>>= certainly
+== {- Definition of |(>>>=)| -}
+let  Dist x p = d
+     Dist y q = certainly x
+in Dist y (p *. q)
+== {- Definition of |certainly| -}
+let  Dist x p = d
+     Dist y q = Dist x 1.0
+in Dist y (p *. q)
+== {- Inlining of |Dist y q = Dist x 1.0| -}
+let Dist x p = d in Dist x (p *. 1.0)
+== {- Definition of |(*.)| -}
+let Dist x p = d in Dist x p
+=?
+d
+\end{spec}
+The equality |let Dist x p = d in Dist x p == d| does not hold in general.
+For instance, we have |let Dist x p = failed in Dist x p == Dist failed failed|. That is the left hand side is more defined then the right hand side if |d = failed|.
+
+The equation also fails if the value contains nondeterminism.
+For example, in the case |d == Dist (True ? False) (frac 1 2)|, we have
+\begin{spec}
+let Dist x p = Dist (True ? False) (frac 1 2) in Dist x p
+==
+Dist True (frac 1 2) ? Dist False (frac 1 2)
+\end{spec}
+that is, the non-determinism is pulled to the outside.
+
+For the second monad law we reason as follows for all |a :: tau1| and all |f :: Dist tau2|.
+\begin{spec}
+certainly a >>>= f
+== {- Definition of |(>>>=)| -}
+let  Dist x p = certainly a
+     Dist y q = f x
+in Dist y (p *. q)
+== {- Definition of |certainly| -}
+let  Dist x p = Dist a 1.0
+     Dist y q = f x
+in Dist y (p *. q)
+==
+let Dist y q = f a in Dist y (1.0 *. q)
+== {- Definition of |(*.)| -}
+let Dist y q = f a in Dist y q
+=?
+f a
+\end{spec}
+Here we observe the same restrictions as before, namely, |f| may not yield |failed| for any argument |a| as the equation would fail in this case.
+In the same manner |f| may not yield a distribution whose event is non-deterministic.
+
+In order to complete the discussion of the monad laws, we finally consider the associativity of |(>>>=)|.
+For all |d :: Dist tau1|, |f :: tau1 -> Dist tau2|, and |g :: tau2 -> Dist tau3| we reason as follows.
+\begin{spec}
+(d >>>= f) >>>= g
+== {- Definition of |(>>>=)| -}
+let  Dist x1 p1 = d >>>= f
+     Dist y1 q1 = g x1
+in Dist y1 (p1 *. q1)
+== {- Definition of |(>>>=)| -}
+let  Dist x1 p1 =  let  Dist x2 p2 = d
+                        Dist y2 q2 = f x2
+                   in Dist y2 (p2 *. q2)
+     Dist y1 q1 = g x1
+in Dist y1 (p1 *. q1)
+== {- Simplifying nested |let|-expressions -}
+let  Dist x2 p2 = d
+     Dist y2 q2 = f x2
+     Dist x1 p1 = Dist y2 (p2 *. q2)
+     Dist y1 q1 = g x1
+in Dist y1 (p1 *. q1)
+== {- Inlining |Dist x1 p1 = Dist y2 (p2 *. q2)| -}
+let  Dist x2 p2 = d
+     Dist y2 q2 = f x2
+     Dist y1 q1 = g y2
+in Dist y1 ((p2 *. q2) *. q1)
+== {- Renaming of |y2| and |q2| -}
+let  Dist x2 p2 = d
+     Dist x1 p1 = f x2
+     Dist y1 q1 = g x1
+in Dist y1 ((p2 *. p1) *. q1)
+== {- Associativity of |(*.)| -}
+let  Dist x2 p2 = d
+     Dist x1 p1 = f x2
+     Dist y1 q1 = g x1
+in Dist y1 (p2 *. (p1 *. q1))
+== {- Adding local definition for |Dist y1 (p1 *. q1)| -}
+let  Dist x2 p2 = d
+     Dist x1 p1 = f x2
+     Dist y1 q1 = g x1
+     Dist y2 q2 = Dist y1 (p1 *. q1)
+in Dist y2 (p2 *. q2)
+== {- Using nested |let|-expressions -}
+let  Dist x2 p2 = d
+     Dist y2 q2 =  let  Dist x1 p1 = f x2
+                        Dist y1 q1 = g x1
+                   in Dist y1 (p1 *. q1)
+in Dist y2 (p2 *. q2)
+== {- Definition of |(>>>=)| -}
+let  Dist x2 p2 = d
+     Dist y2 q2 = f x2 >>>= g
+in Dist y2 (p2 *. q2)
+== {- Definition of |(>>>=)| -}
+d >>>= (\x -> f x >>>= g)
+\end{spec}
+This reasoning shows that associativity actually holds without any restrictions.
 
 \section{Related Work}
 
 \section{Case Study}
 
 \subsection{Bayesian Network}
+
+As mentioned in the beginning, Bayesian networks are a popular example for probabilistic programming.
+Since each node in a Bayesian network corresponds to a function that yields a probability, the implementation of a Bayesian network fits perfectly in the setting of a functional language.
+In the following we will implement the example shown in \autoref{fig:bayes}.
+For each node of the graph we will define a function that yields a distribution.
+In the example each node performs a binary decision: it either rains or not, the sprinkler is activated or deactivated and the grass is either wet or not.
+Thus, the return type of all three functions is |Dist Bool|.
+Since all functions yield boolean distributions we define a combinator |bernoulli :: Probability -> Dist Bool|\footnote{In some languages and libraries this combinator is named |flip|.}.
+The function |bernoulli| yields |True| with the probability given as the first argument and |False| with the complementary probability.
+
+> bernoulli :: Probability -> Dist Bool
+> bernoulli p = enum [True,False] [p, 1 -. p]
+
+
+Now we can start with the simplest function: the node representing rain depends on no other variable in the graph, that is, has no input arguments, and yields |True| with a probability of \SI{20}{\percent} and |False| with a probability of \SI{80}{\percent}, respectively, according to the graph.
+
+> raining :: Dist Bool
+> raining = bernoulli 0.2
+
+The nodes representing the sprinkler and the grass depend on other variables; the sprinkler depends on the rain, and the grass on the sprinkler as well as the rain.
+That is, the function |sprinklerOn| takes one, and the function |grassWet| two arguments according to the graph representation.
+
+% \noindent\begin{minipage}[t]{0.48\textwidth}
+
+> sprinklerOn :: Bool -> Dist Bool
+> sprinklerOn  False  =  bernoulli 0.4
+> sprinklerOn  True   =  bernoulli 0.01
+
+% \end{minipage}
+% \begin{minipage}[t]{0.48\textwidth}
+
+> grassWet :: Bool -> Bool -> Dist Bool
+> grassWet  False  False  =  bernoulli 0.0
+> grassWet  False  True   =  bernoulli 0.8
+> grassWet  True   False  =  bernoulli 0.9
+> grassWet  True   True   =  bernoulli 0.99
+
+% \end{minipage}
+
+Notice that the implementation is merely a copy of the table presented in \autoref{fig:bayes}.
+Next we want to define some queries on top of our network.
+The model needs to be used in a certain way: the output of the function |raining| is a parameter for |sprinklerOn| and both are arguments of |grassWet|.
+In order to query on this model more easily, we define a record data type where each field represents a variable of the model.
+
+> data GrassModel = Model { isRaining :: Bool, isSprinklerOn :: Bool, isGrassWet :: Bool}
+
+Now we define a distribution that yields a |GrassModel| using the functions |raining|, |sprinklerOn|, and |grassWet| accordingly.
+
+> grassModel :: Dist GrassModel
+> grassModel =  raining        >>>= \r ->
+>               sprinklerOn r  >>>= \s ->
+>               grassWet s r   >>>= \g ->
+>               certainly (Model r s g)
+
+
+Let us now perform the first query to check if our model is correct.
+We can ask the model for the probability of wet grass given that it is raining.
+Remember that we perform queries on the model by using the operator |(??)|, which expects a predicate as first argument.
+We use a conjunction to check that it is raining and the grass is wet.
+
+> grassWetWhenRain :: Probability
+> grassWetWhenRain = (\m -> isRaining m && isGrassWet m) ?? grassModel
+
+\begin{spec}
+repl> grassWetWhenRain
+0.16038
+\end{spec}
+The probability for wet grass given that it is raining is \SI{16.04}{\percent}.
+If we reexamine the graph once again, we can see that this probability cannot be easily read off the graph.
+
+The query above answers a question that follows the dependency flow: we want to know something about |grassWet| depending on one of its arguments, |raining|.
+However, we can also ask questions about |raining| depending on |grassWet|.
+For example, what is the probability that it is raining given that the grass is wet?
+In order to answer this question it is not enough to query our model as above.
+The question corresponds to a conditional probability, that is, we need to compute the probability of the conjunction of the events and divide it by the probability of the given condition.
+For the query in question, the conjunction of events corresponds to the probability that it is raining and that the grass is wet --- i.e., the query we performed above.
+The divisor is the probability that the grass is wet, without considering any other side-conditions.
+
+\begin{spec}
+repl> grassWetWhenRain /. (isGrassWet ?? grassModel)
+0.35768768
+\end{spec}
+
+Since it is quite common to calculate conditional probabilities --- and we will need it again later --- we define some combinators for calculating conditional probabilities.
+The first convenience function checks for a list of predicates, if all predicates hold for the given distribution.
+
+> allProb :: [a -> Bool] -> Dist a -> Probability
+> allProb ps dx = (\x -> all (\p -> p x) ps) ?? dx
+
+
+Based on |allProb| we then define a function |condProb| that implements a conditional probability based on two lists of predicates: the first list of predicates describes the probability we are actually interested in, the second list gives the side-conditions that should apply to the query.
+
+> condProb :: [a -> Bool] -> [a -> Bool] -> Dist a -> Probability
+> condProb ps1 ps2 dx = allProb (ps1 ++ ps2) dx /. allProb ps2 dx
+
+Note that we pass the concatenation of the predicates to |allProb|, which resembles the conjunction of these predicates.
+As an example, in the case of the query above we calculate the probability that it is raining with the side-condition that we already know that the grass is wet as follows.
+
+\begin{spec}
+repl> condProb [isRaining] [isGrassWet] grassModel
+0.35768768
+\end{spec}
+
+The combinator |condProb| and its usage resembles the formula that is used in probability theory; the conditional probability would be expressed as $P( \mathit{Raining}=\mathit{True} || \mathit{GrassWet}=\mathit{True} )$.
+The lists of predicates correspond to the listing of variables and their bindings.
+For example, the predicate |isRaining| corresponds to $\mathit{Raining}=\mathit{True}$.
+
+
 \subsection{Random Strings}
+
+\subsection{Performance Comparisons}
+
+\todo{more examples for bayes}
+\begin{figure}
+\input{content/figures/BayesBar}
+\caption{Comparisons of Running Times for Bayesian Reasoning Examples}
+\label{fig:bayesBar}
+\end{figure}
+
+\begin{figure}
+\input{content/figures/diceBarAll}
+\caption{Getting Only Sixes When Rolling $n$ Dice}
+\label{fig:dice}
+ \end{figure}
+
+\begin{figure}[ht]
+\input{content/figures/palindromeBar}
+\caption{Palindrome Computation for a String of Length $n$}
+\label{fig:palindromeBar}
+\end{figure}
+
 
 \section{Future Work and Conclusion}
 \section{Final Remarks}
