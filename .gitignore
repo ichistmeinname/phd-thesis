@@ -1,5 +1,13 @@
 # Created by https://www.gitignore.io/api/coq,macos,latex,haskell
 
+thesis.tex
+
+### Curry ###
+
+.curry/
+content/chapter/.curry
+*/Curry_Main_Goal.*
+
 ### Coq ###
 .*.aux
 *.a

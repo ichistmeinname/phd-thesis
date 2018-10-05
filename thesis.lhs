@@ -21,10 +21,13 @@
 % **************************************************
 \input{setup}
 
+%include polycode.fmt
+%include forall.fmt
+%include greek.fmt
+
 % Overwrite rule for parindent
 \setlength{\parindent}{1em}
-
-
+\setlength{\mathindent}{0.15cm}
 
 % **************************************************
 % Document CONTENT
@@ -73,9 +76,9 @@
 \label{ch:dp}
 %\input{content/chapter/preliminaries}
 
-\chapter{Probabilistic Functional Logic Programming}
+\chapter{A Library for Probabilistic Functional Logic Programming}
 \label{ch:pflp}
-\input{content/chapter/pflp}
+%include content/chapter/pflp.lcurry
 
 \chapter{Formal Reasoning About Effectful Programs with Non-Strictness}
 \label{ch:reasoning} 
@@ -101,7 +104,7 @@
 \setlength{\biblabelsep}{0pt}
 \setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
 \printbibliography[nottype=online]
-\printbibliography[heading=subbibliography,title={Webpages},type=online,prefixnumbers={@}]
+\printbibliography[heading=subbibliography,title={Webpages}]
 }
 \cleardoublepage
 

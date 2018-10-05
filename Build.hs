@@ -16,14 +16,22 @@ main = shakeArgs shakeOptions $ do
 
              
     "dist/thesis.pdf" %> \_ -> do
-      files <- getDirectoryFiles (content </> chapter) ["//*.lcurry", "//*.v", "//*.lhs"]
+      files <- getDirectoryFiles (content </> chapter) ["//*.lhs", "//*.lcurry", "//*.v"]
+      files2 <- getDirectoryFiles (content </> "figures") ["//*.tex"]
       putNormal (show files)
-      need ("thesis.tex" : map (\ch -> content </> chapter </> ch)
+      need ("thesis.lhs" : map (\ch -> content </> "figures" </> ch) files2
+                        ++ map (\ch -> content </> chapter </> ch)
                                ("introduction" <.> "tex" : "conclusion" <.> "tex" : files))
       cmd_ "pdflatex" "-output-directory" "dist" "thesis.tex"
 
-    "content/chapter/*.lcurry" %> \out -> do
+    "thesis.lhs" %> \out -> do
       cmd_ "lhs2tex" out "-o" (out -<.> "tex")
+
+    "content/figures/*.tex" %> \_ -> cmd_ "touch" "thesis.lhs"
+    "content/chapter/*.lcurry" %> \_ -> cmd_ "touch" "thesis.lhs"
+
+--    "content/chapter/*.lcurry" %> \out -> do
+--      cmd_ "lhs2tex" out "-o" (out -<.> "tex")
 
     "content/chapter/*.v" %> \out -> do
       let fileName = takeFileName out
