@@ -9,7 +9,6 @@
     chapterprefix=true,     % prefix for chapter marks
     11pt,                   % font size
     headings=normal,        % size of headings
-    bibliography=totoc,     % include bib in toc
     listof=totoc,           % include listof entries in toc
     titlepage=on,           % own page for each title page
     captions=tableabove,    % display table captions above the float env
@@ -24,6 +23,21 @@
 %include polycode.fmt
 %include forall.fmt
 %include greek.fmt
+
+%format not = "not"
+%format >>>= = "\mathbin{>\!\!\!>\!\!\!>\mkern-6.7mu=}"
+%format >>>=! = "\mathbin{>\!\!\!>\!\!\!>\mkern-6.7mu=!}"
+%format Values a = "\{"a"\}"
+%format frac x y = "\frac{"x"}{"y"}"
+%format (frac x y) = "\frac{"x"}{"y"}"
+%format repl = "\lambda\mkern-3mu"
+%format =? = "\stackrel{?}{\equiv}"
+%format tau1
+%format tau2
+%format tau3
+
+\def\commentbegin{\quad\{\ }
+\def\commentend{\}}
 
 % Overwrite rule for parindent
 \setlength{\parindent}{1em}
