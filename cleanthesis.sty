@@ -282,21 +282,22 @@
 ]{csquotes}
 %
 \RequirePackage[					% use biblatex for bibliography
-	backend=\cthesis@bibsys,		% 	- use biber backend (bibtex replacement) or bibtex
-	style=\cthesis@bibstyle,		% 	- use alphabetic (or numeric) bib style
-	natbib=true,					% 	- allow natbib commands
-	hyperref=true,					% 	- activate hyperref support
-	backref=true,					% 	- activate backrefs
-	isbn=false,						% 	- don't show isbn tags
-	url=false,						% 	- don't show url tags
-	doi=false,						% 	- don't show doi tags
-	urldate=long,					% 	- display type for dates
-	maxnames=3,%
-	minnames=1,%
-	maxbibnames=5,%
-	minbibnames=3,%
-	maxcitenames=2,%
-	mincitenames=1%
+        backend=\cthesis@bibsys,		% 	- use biber backend (bibtex replacement) or bibtex
+        style=\cthesis@bibstyle,		% 	- use alphabetic (or numeric) bib style
+        natbib=true,					% 	- allow natbib commands
+        hyperref=true,					% 	- activate hyperref support
+        backref=true,					% 	- activate backrefs
+        isbn=false,						% 	- don't show isbn tags
+        url=false,						% 	- don't show url tags
+        doi=false,						% 	- don't show doi tags
+        urldate=long,					% 	- display type for dates
+        autopunct=true,
+        maxnames=3,%
+        minnames=1,%
+        maxbibnames=5,%
+        minbibnames=3,%
+        maxcitenames=2,%
+        mincitenames=1%
 ]{biblatex}
 \bibliography{\cthesis@bibfile}
 \DefineBibliographyStrings{ngerman}{%
