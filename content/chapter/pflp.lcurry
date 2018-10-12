@@ -1,99 +1,1025 @@
+This chapter presents \emph{PFLP}, a library providing a domain specific language for probabilistic programming in the functional logic programming language Curry~\cite{antoy2010functional}.
+PFLP makes heavy use of functional logic programming concepts and shows that this paradigm is well-suited for implementing a library for probabilistic programming.
+In fact, there is a close connection between probabilistic programming and functional logic programming.
+For example, non-deterministic choice and probabilistic choice are similar concepts.
+Furthermore, the concept of call-time choice as known from functional logic programming coincides with (stochastic) memoization (\citet{deraedt2013probabilistic}) in the area of probabilistic programming.
+We are not the first to observe this close connection between functional logic programming and probabilistic programming.
+For example,~\citet{fischer2009purely} present a library for modeling functional logic programs in the functional language Haskell.
+As they state, by extending their approach to weighted non-determinism we can model a probabilistic programming language.
+
+Besides a lightweight implementation of a library for probabilistic programming in a functional logic programming language, this chapter makes the following observations.
+\begin{itemize}
+\item We investigate the interplay of probabilistic programming with the features of a functional logic programming language.
+For example, we show how call-time choice and non-determinism interplay with probabilistic choice.
+\item We discuss how we utilize functional logic features to improve the implementation of probabilistic combinators.
+\item We present an implementation of probability distributions using non-determinism in combination with non-strict probabilistic combinators can be more efficient than an implementation using lists.
+\item We illustrate that the combination of non-determinism and non-strict\-ness with respect to distributions has to be handled with care.
+More precisely, it is important to enforce a certain degree of
+strictness in order to guarantee correct results.
+\item In contrast to the conference version of the paper we discuss
+  the usage of partial functions in combination with library functions in more detail, reason about laws for
+two operations of the library, and present performance comparisons
+between our library, ProbLog and WebPPL.
+\item Finally, this paper aims at fostering the exchange between the community of probabilistic programming and of functional logic programming.
+That is, while the connection exists for a long time, there has not been much exchange between the communities.
+We would like to take this paper as a starting point to bring these paradigms closer together.
+Thus, this paper introduces the concepts of both, the functional logic and probabilistic programming, paradigms.
+\end{itemize}
+
+Please note that the current state of our library cannot compete against full-blown probabilistic languages or mature libraries for probabilistic programming as it is missing features like sampling.
+Nevertheless, the library is a good showcase for languages with built-in non-determinism, because the functional logic approach can be superior to the functional approach using lists.
+Furthermore, we want to emphasize that this paper uses non-determinism as an implementation technique to develop a library for probabilistic programming.
+That is, we are not mainly concerned with the interaction of non-determinism and probabilism as, for example, discussed in the work of \citet{varacca2006distributing} and multiple others.
+The library we develop in this paper does not combine both effects, but provides combinators for probabilistic programming by leveraging Curry's built-in non-strict non-determinism.
+
 \section{What is Probabilistic Programming}
 
+The probabilistic programming paradigm allows the succinct definition of probabilistic processes and other applications based on probability distributions, for example, Bayesian networks as used in machine learning.
+A Bayesian network is a visual, graph-based representation for a set of random variables and their dependencies.
+One of the \emph{hello world}-examples of Bayesian networks is the influence of rain and a sprinkler on wet grass.
+\autoref{fig:bayes} shows an instance of this example, the concrete probabilities differ between publications.
+A node in the graph represents a random variable, a directed edge between two nodes represents a conditional dependency.
+Each node is annotated with a probability function represented as a table.
+The input values are on the left side of the table and the right side of the table describes the possible output and the corresponding probability.
+The input values of the function correspond to the incoming edges of that node.
+For example, the node for sprinkler depends on rain, thus, the sprinkler node has an incoming edge that originates from the rain node.
+The input parameter rain appears directly in the table that describes the probability function for sprinkler.
+For the example in \autoref{fig:bayes} the interpretation of the graph reads as follows: it rains with a probability of \SI{20}{\percent}; depending on the rain, the probability for an activated sprinkler is \SI{40}{\percent} and \SI{1}{\percent}, respectively; depending on both these factors, the grass can be observed as wet with a probability of \SI{0}{\percent}, \SI{80}{\percent}, \SI{90}{\percent} or \SI{99}{\percent}.
+The network can answer the following exemplary questions.
+
+\begin{itemize}
+\item What is the probability that it is raining?
+\item What is the probability that the grass is wet, given that it is raining?
+\item What is the probability that the sprinkler is on, given that the grass is wet?
+\end{itemize}
+
+\begin{figure}
+\begin{tikzpicture}[
+  node distance=1cm and 0cm,
+  mynode/.style={draw,rectangle,thick,text width=2cm,align=center}
+]
+\node[mynode] (sp) {Sprinkler on};
+\node[mynode,below right=of sp] (gw) {Grass wet};
+\node[mynode,above right=of gw] (ra) {Raining};
+\path (ra) edge[-latex,thick] (sp)
+(sp) edge[-latex,thick,bend right=35] (gw)
+(gw) edge[latex-,thick,bend right=35] (ra);
+\node[left=0.5cm of sp]
+{
+\begin{tabular}{cM{2}M{2}}
+& \multicolumn{2}{c}{Sprinkler on} \\
+Raining & \multicolumn{1}{c}{T} & \multicolumn{1}{c}{F} \\
+\cmidrule(r){1-2}\cmidrule(l){2-3}
+F & 0.4 & 0.6 \\
+T & 0.01 & 0.99
+\end{tabular}
+};
+\node[right=0.5cm of ra]
+{
+\begin{tabular}{M{1}M{1}}
+\multicolumn{2}{c}{Raining} \\
+\multicolumn{1}{c}{T} & \multicolumn{1}{c}{F} \\
+\cmidrule{1-2}
+0.2 & 0.8
+\end{tabular}
+};
+\node[below=0.5cm of gw]
+{
+\begin{tabular}{ccM{2}M{2}}
+& & \multicolumn{2}{c}{Grass wet} \\
+Sprinkler on & Raining & \multicolumn{1}{c}{T} & \multicolumn{1}{c}{F} \\
+\cmidrule(r){1-4}
+F & F & 0.0 & 1.0 \\
+F & T & 0.8 & 0.2 \\
+T & F & 0.9 & 0.1 \\
+T & T & 0.99 & 0.01
+\end{tabular}
+};
+\end{tikzpicture}
+\caption{A simple Bayesian network}
+\label{fig:bayes}
+\end{figure}
+
+The general idea of probabilistic programming has been quite successful.
+There are a variety of probabilistic programming languages supporting all kinds of programming paradigms.
+For example, the programming languages Church~\cite{goodman2008church}
+and Anglican~\cite{wood2014new} are based on the functional
+programming language Scheme, ProbLog~\cite{kimmig2011implementation} is an
+extension of the logic programming language Prolog, Probabilistic
+C~\cite{paige2014compilation} is based on the imperative language C,
+and WebPPL~\cite{goodman2014design}, the successor of Church, is embedded in a functional subset of JavaScript.
+Besides full-blown languages there are also embedded domain specific languages that implement probabilistic programming as a library.
+For example, FACTORIE~\cite{mccallum2009factorie} is a library for the hybrid programming language Scala and \citet{erwig2006functional} present a library for the functional programming language Haskell.
+We recommend the survey by \citet{gordon2014probabilistic} about the current state of probabilistic programming for further information.
+
 \section{An Overview of the Library}
+\label{sec:idea}
+
+In this section we discuss the core of the PFLP library\footnote{We provide the code for the library at \url{https://github.com/finnteegen/pflp}.}.
+The implementation is based on a Haskell library for probabilistic
+programming presented by \citet{erwig2006functional}.
+We will not present the whole PFLP library, but only core functions.
+The paper at hand is a literate Curry file. We use the Curry compiler KiCS2\footnote{We use version \verb+0.6.0+ of KiCS2 and the source is found at \url{https://www-ps.informatik.uni-kiel.de/kics2/}.} by \citet{brassel2011kics2} for all code examples.
+
+%if False
+
+> import Float
+> import Integer
+> import qualified Findall as FA
+> import FiniteMap (fmToList, addListToFM_C, emptyFM)
+
+> frac :: Int -> Int -> Float
+> frac n m = i2f n /. i2f m
+
+> infixl 1 >>>=
+> infixr 1 ??
+
+%endif
+
 \subsection{Modeling Distributions}
+One key ingredient of probabilistic programming is the definition of distributions.
+A distribution consists of pairs of elementary events and their probability.
+We model probabilities as |Float| and distributions as a combination of an elementary event and the corresponding probability.
+
+> type Probability = Float
+> data Dist a = Dist a Probability
+
+
+In a functional language like Haskell, the canonical way to define distributions uses lists.
+Here, we use Curry's built-in non-determinism as an alternative for lists to model distributions with more than one event-probability pair.
+As an example, we define a fair coin, where |True| represents heads and |False| represents tails, as follows.\footnote{Here and in the following we write probabilities as fractions for readability.}
+
+> coin :: Dist Bool
+> coin = (Dist True (frac 1 2)) ? (Dist False (frac 1 2))
+
+
+In Curry the |(?)|-operator non-deterministically chooses between two given arguments.
+Non-determinism is not reflected in the type system, that is, a non-deter\-mi\-nistic choice has type |a -> a -> a|.
+Such non-deterministic computations introduced by |(?)| describe two individual computation branches; one for the left argument und one for the right argument of |(?)|.
+
+We could also define |coin| in Prolog-style by giving two rules for coin.
+
+\begin{spec}
+coin :: Dist Bool
+coin = Dist True (frac 1 2)
+coin = Dist False (frac 1 2)
+\end{spec}
+
+Both implementations can be used interchangeably since the |(?)|-operator is defined in the Prolog-style using two rules as well.
+
+\begin{spec}
+(?) :: a -> a -> a
+x ? y = x
+x ? y = y
+\end{spec}
+
+Printing an expression in the REPL\footnote{We visualize the interactions with the REPL using |repl>| as prompt.} evaluates the non-deterministic computations, thus, yields one result for each branch as shown in the following examples.
+
+\begin{minipage}{0.48\textwidth}
+\begin{spec}
+repl> 1 ? 2
+1
+2
+\end{spec}
+\end{minipage}
+\begin{minipage}{0.48\textwidth}
+\begin{spec}
+repl> coin
+Dist True 0.5
+Dist False 0.5
+\end{spec}
+\end{minipage}
+
+The REPL computes the values using a breadth-first-search strategy to visualize the results.
+Due to the search strategy, we observe different outputs when changing the order of arguments to |(?)|.
+However, as Curry's semantics is set-based (\citet{christiansen2011adequate}) the order of the results does not matter.
+
+It is cumbersome to define distributions explicitly as in the case of |coin|.
+Hence, we define helper functions for constructing distributions\footnote{The definitions of predefined Curry functions like |foldr| are listed in \ref{appendix:functions}.}.
+Given a list of events and probabilities, |enum| creates a distribution by folding these pairs non-de\-ter\-min\-istically with a helper function |member|.\footnote{We shorten the implementation of |enum| for presentation purposes; actually, |enum| only allows valid distributions, e.g., that the given probabilities sum up to |1.0|.}
+
+> member :: [a] -> a
+> member xs = foldr (?) failed xs
+>
+> enum :: [a] -> [Probability] -> Dist a
+> enum vs ps = member (zipWith Dist vs ps)
+
+In Curry the constant |failed| is a silent failure that behaves as neutral element with respect to |(?)|. %
+That is, the expression |True ? failed| is equivalent to |True|. %
+Hence, the function |member| takes a list and yields a non-deterministic choice of all elements of the list.
+
+As a short-cut, we define a function that yields a |uniform| distribution given a list of events as well as a function |certainly|, which yields a distribution with a single event
+of probability one.
+
+> uniform :: [a] -> Dist a
+> uniform xs = let len = length xs in enum xs (repeat (frac 1 len))
+>
+> certainly :: a -> Dist a
+> certainly x = Dist x 1.0
+
+The function |repeat| yields a list that contains the given value infinitely often.
+Because of Curry's laziness, it is sufficient if one of the arguments of |enum| is a finite list because |zipWith| stops when one of its arguments is empty.
+We can then refactor the definition of |coin| using |uniform| as follows.
+
+\begin{spec}
+coin :: Dist Bool
+coin = uniform [True,False]
+\end{spec}
+In general, the library hides the constructor |Dist|, that is, the user has to define distributions by using the combinators provided by the library.
+
+The library provides additional functions to combine and manipulate distributions.
+In order to work with dependent distributions, the operator |(>>>=)| applies a function that yields a distribution to each event of a given distribution and multiplies the corresponding probabilities.\footnote{Due to the lack of overloading in Curry, operations on |Float| have a (floating) point suffix, e.g. |(*.)|, whereas operations on |Int| use the common operation names.}
+
+> (>>>=) :: Dist a -> (a -> Dist b) -> Dist b
+> d >>>= f =  let  Dist x p = d
+>                  Dist y q = f x
+>             in Dist y (p *. q)
+
+Intuitively, we have to apply the function |f| to each event of the distribution |d| and combine the resulting distributions into a single distribution.
+In a Haskell implementation, we would use a list comprehension to define this function.
+In the Curry implementation, we model distributions as non-deterministic computations, thus, the above rule describes the behavior of the function for an arbitrary pair of the first distribution and an arbitrary pair of the second distribution, that is, the result of |f|.
+
+Using the operator |(>>>=)| we can, for example, define a distribution that models flipping two coins.
+The events of this distribution are pairs whose first component is the result of the first coin flip and whose second component is the result of the second coin flip.
+
+> independentCoins :: Dist (Bool,Bool)
+> independentCoins = coin >>>= (\c1 -> coin >>>= (\c2 -> certainly (c1,c2)))
+
+In contrast to the example |independentCoins| we can also use the operator |(>>>=)| to combine two distributions where we choose the second distribution on basis of the result of the first.
+For example, we can define a distribution that models flipping two coins, but in this case we only flip a second coin if the first coins yield heads.
+
+> dependentCoins :: Dist Bool
+> dependentCoins = coin >>>= (\c -> if c then coin else certainly c)
+
+
+The implementation of |(>>>=)| via |let|-bindings seems a bit tedious, however, it is important that we define |(>>>=)| as it is.
+The canonical implementation performs pattern matching on the first argument but uses a |let|-binding for the result of |f|.
+That is, it is strict in the first argument but non-strict in the application of |f|, the second argument.
+For now it is sufficient to note --- and keep in mind --- that there is a difference between pattern matching and using |let|-bindings.
+In order to understand this difference, let us consider the following implementation of |fromJustToList| and an alternative implementation |fromJustToListLet|.
+
+> fromJustToList :: Maybe a -> [a]
+> fromJustToList (Just x) = x : []
+
+> fromJustToListLet :: Maybe a -> [a]
+> fromJustToListLet mx = let Just x = mx in x : []
+
+
+The second implementation, |fromJustToListLet|, is less strict, because it yields a list constructor, |(:)|, without evaluating its argument first.
+That is, we can observe the difference when passing |failed| and checking if the resulting list is empty or not.
+
+\begin{spec}
+repl> null (fromJustToList failed)
+failed
+
+repl> null (fromJustToListLet failed)
+False
+\end{spec}
+
+Due to the pattern matching in the definition of |fromJustToList| the argument |failed| needs to be evaluated and, thus, the function |null| propagates |failed| as return value.
+The definition of |fromJustToListLet| postpones the evaluation of its argument to the left-hand side, i.e., the argument needs to be evaluated only if the computation demands the value |x| explicitly.
+The function |null| does not demand the evaluation of |x|, because it only checks the surrounding list constructor.
+
+> null :: [a] -> Bool
+> null []       = True
+> null (_ : _)  = False
+
+The same strictness property as for |fromJustToList| holds for a definition via explicitly pattern matching using |case ... of|.
+In particular, pattern matching of the left hand-side of a rule desugars to case expressions on the right-hand side.
+
+> fromJustToListCase :: Maybe a -> [a]
+> fromJustToListCase mx = case mx of
+>                             Just x -> [x]
+
+\begin{spec}
+repl> null (fromJustToListCase failed)
+failed
+\end{spec}
+
+We discuss the implementation of |(>>>=)| in more detail later.
+For now, it is sufficient to keep in mind that |(>>>=)| yields a |Dist|-constructor without evaluating any of its arguments.
+In contrast, a definition using pattern matching or a case expression needs to evaluate its argument first, thus, is more strict.
+
+For independent distributions we provide the function |joinWith| that combines two distributions with respect to a given function.
+We implement |joinWith| by means of |(>>>=)|.
+
+> joinWith :: (a -> b -> c) -> Dist a -> Dist b -> Dist c
+> joinWith f d1 d2 =  d1 >>>= (\ x -> d2 >>>= (\ y -> certainly (f x y)))
+
+In a monadic setting this function is sometimes called |liftM2|.
+Here, we use the same nomenclature as \citet{erwig2006functional}.
+
+As an example of combining multiple distinct distributions, we define a function that flips a coin $n$ times.
+
+> flipCoin :: Int -> Dist [Bool]
+> flipCoin n  | n == 0     = certainly []
+>             | otherwise  = joinWith (:) coin (flipCoin (n-1))
+
+When we run the example of flipping two coins in the REPL of KiCS2, we get four events.
+
+\begin{spec}
+repl> flipCoin 2
+Dist [True,True] 0.25
+Dist [True,False] 0.25
+Dist [False,True] 0.25
+Dist [False,False] 0.25
+\end{spec}
+
+In the example above, |coin| is a non-deterministic operation, namely, |coin = (Dist True (frac 1 2)) ? (Dist  False (frac 1 2))|.
+Applying |joinWith| to |coin| and |coin| combines all possible results of two coin tosses.
+
 \subsection{Querying Distributions}
+With a handful of building blocks to define distributions available, we now want to query the distribution, that is, calculate the probability of certain events.
+We provide an operator |(??) :: (a -> Bool) -> Dist a -> Probability| --- which we will define shortly --- to extract the probability of an event.
+The event is specified as a predicate, passed as first argument.
+The operator filters events that satisfy the given predicate and computes the sum of the probabilities of the remaining elementary events.
+It is straightforward to implement this kind of filter function on distributions in Curry.
+
+> filterDist :: (a -> Bool) -> Dist a -> Dist a
+> filterDist p (Dist evnt prb) | p evnt = Dist evnt prb
+
+
+The implementation of |filterDist| is a partial identity on the event-probability pairs.
+Every event that satisfies the predicate is part of the resulting distribution.
+The function fails for event-probability pairs that do not satisfy the predicate.
+The definition is equivalent to the following version using an |if|-|then|-|else|-expression instead of guard-syntax.
+
+\begin{spec}
+filterDist p (Dist evnt prb) = if p evnt then Dist x prb else failed
+\end{spec}
+
+Querying a distribution, i.e., summing up all probabilities that satisfy a predicate, is a more advanced task in the functional logic approach.
+Remember that we represent a distribution by chaining all event-probability pairs with |(?)|, thus, constructing non-deterministic computations.
+These non-deterministic computations introduce individual branches of computations that cannot interact with each other. %
+In order to compute the total probability of a distribution, we have to merge these distinct branches. %
+Such a merge is possible by the encapsulation of non-deterministic computations. %
+Similar to the \emph{findall} construct of the logic language Prolog, in Curry we encapsulate a non-deterministic computation by using a primitive called |allValues|\footnote{We use an abstract view of the result of an encapsulation to emphasize that the order of encapsulated results does not matter. In practice, we can, for example, use the function |allValues :: a -> [a]| defined in the library |Findall|.}. %
+The function |allValues| operates on a polymorphic --- and potentially non-deterministic --- value and yields a multiset of all non-deterministic values. %
+
+> allValues :: a -> Values a
+
+%if False
+
+> type Values a = [a]
+> allValues x = FA.allValues x
+
+> foldValues :: (a -> a -> a) -> a -> Values a -> a
+> foldValues = foldr
+
+> mapValues :: (a -> b) -> Values a -> Values b
+> mapValues = map
+
+%endif
+
+In order to work with encapsulated values, Curry provides the following two functions to fold and map the resulting multiset.
+
+\begin{spec}
+foldValues :: (a -> a -> a) -> a -> Values a -> a
+mapValues :: (a -> b) -> Values a -> Values b
+\end{spec}
+
+
+We do not discuss the implementation details behind |allValues| here.
+It is sufficient to know that, as a library developer, we can employ this function to encapsulate
+non-deterministic values and use these values in further computations.
+However, due to non-transparent behavior in combination with sharing as discussed by \citet{brassel2004encapsulating}, a user of the library should not use |allValues| at all. In a nutshell, inner-most and outer-most evaluation strategies may cause different results when combining sharing and encapsulation.
+
+With this encapsulation mechanism at hand, we can define the extraction operator |(??)| as follows. %
+
+> prob :: Dist a -> Probability
+> prob (Dist _ p) = p
+>
+> (??) :: (a -> Bool) -> Dist a -> Probability
+> (??) p dist = foldValues (+.) 0.0 (allValues (prob (filterDist p dist)))
+
+First we filter the elementary events by some predicate and project to the probabilities only.
+Afterwards we encapsulate the remaining probabilities and sum them up.
+As an example for the use of |(??)|, we may flip four coins and calculate the probability of at least two heads --- that is, the list contains at least two |True| values.
+
+\begin{spec}
+repl> (\coins -> length (filter id cons) >= 2) ?? (flipCoin 4)
+0.6875
+\end{spec}
+
+In order to check the result, we calculate the probability by hand.
+Since there are more events that satisfy the predicate than events that do not, we sum up the probabilities of the events that do not satisfy the predicate and calculate the complementary probability.
+There is one event where all coins show tails and four events where one of the coins shows heads and all other show tails.
+
+\begin{align*}
+  & 1 - (~P(Tails) \cdot P(Tails) \cdot P(Tails) \cdot P(Tails) \\
+         &~~~~~~+ 4 \cdot P(Heads) \cdot P(Tails) \cdot P(Tails) \cdot P(Tails))\\
+=~ & 1 - (0.5 \cdot 0.5 \cdot 0.5 \cdot 0.5 + 4 \cdot 0.5 \cdot 0.5 \cdot 0.5 \cdot 0.5)\\
+=~ & 1 - (0.0625 + 0.25)\\
+=~ & 1 - 0.3125\\
+=~ & 0.6875
+\end{align*}
 
 \section{The Functional Logic Heart of the Library}
+\label{sec:details}
+
+Up to now, we have discussed a simple library for probabilistic programming that uses non-determinism to represent distributions.
+In this chapter we will see that we can highly benefit from Curry-like non-determinism with respect to performance when we compare PFLP's implementation with a list-based implementation.
+More precisely, when we query a distribution with a predicate that does not evaluate its argument completely, we can possibly prune large parts of the search space.
+Before we discuss the details of the combination of non-strictness and non-determinism, we discuss aspects of sharing non-deterministic choices.
+Finally, we discuss details about the implementation of |(>>>=)|-operator.
+
 \subsection{Call-Time-Choice}
+
+By default Curry uses call-time choice, that is, variables denote single deterministic choices.
+When we bind a variable to a non-deterministic computation, one value is chosen and all occurrences of the variable denote the same deterministic choice.
+Often call-time choice is what you are looking for.
+For example, the definition of |filterDist| makes use of call-time choice.
+\begin{spec}
+filterDist :: (a -> Bool) -> Dist a -> Dist a
+filterDist p (Dist evnt prb) | p evnt = Dist evnt prb
+\end{spec}
+The variables |evnt| and |prb| on the right-hand side correspond to a single deterministic choice for the input distribution, namely, the one that satisfies the predicate and not the non-deterministic computation that was initially passed as second argument to |filterDist|.
+
+Almost as often run-time choice is what you are looking for and call-time choice gets in your way; probabilistic programming is no exception.
+For example, let us reconsider flipping a coin $n$ times.
+We parametrize the function |flipCoin| over the given distribution and define the following generalized function.
+\begin{spec}
+replicateDist :: Int -> Dist a -> Dist [a]
+replicateDist n d  | n == 0     = certainly []
+                   | otherwise  = joinWith (:) d (replicateDist (n-1) d)
+\end{spec}
+
+Here, we again use guard syntax in order to distinguish several cases depending on the boolean expression.
+When we use this function to flip a coin twice, the result is not what we intended. %
+\begin{spec}
+repl> replicateDist 2 coin
+Dist [True,True] 0.25
+Dist [False,False] 0.25
+\end{spec}
+Because |replicateDist| shares the variable |d|, we only perform a choice once and replicate deterministic choices.
+In contrast, top-level nullary functions like |coin| are evaluated every time, thus, exhibit run-time choice, which is the reason why the previously shown |flipCoin| behaves properly.
+
+In order to implement |replicateDist| correctly, we have to enforce run-time choice.
+We introduce the following type synonym and function to model and work with values with run-time choice behavior.
+
+> type RT a = () -> a
+>
+> pick :: RT a -> a
+> pick rt = rt ()
+
+We can now use the type |RT| to hide the non-determinism on the right-hand side of a function arrow.
+This way, |pick| explicitly triggers the evaluation of |rt|, performing a new choice for every element of the result list.
+
+> replicateDist :: Int -> RT (Dist a) -> Dist [a]
+> replicateDist n rt  | n == 0     = certainly []
+>                     | otherwise  = joinWith (:) (pick rt) (replicateDist (n-1) rt)
+
+
+In order to use |replicateDist| with |coin|, we have to construct a value of type |RT (Dist Bool)|.
+However, we cannot provide a function to construct a value of type |RT| that behaves as intended.
+Such a function would share a deterministic choice and non-de\-ter\-min\-istically yield two functions, instead of one function that yields a non-deterministic computation.
+The only way to construct a value of type |RT| is to explicitly use a lambda abstraction.
+
+\begin{spec}
+repl> replicateDist 2 (\() -> coin)
+Dist [True,True] 0.25
+Dist [True,False] 0.25
+Dist [False,True] 0.25
+Dist [False,False] 0.25
+\end{spec}
+
+Instead of relying on call-time choice as default behavior, we could model |Dist| as a function and make run-time choice the default in PFLP.
+In this case, to get call-time choice we would have to use a special construct provided by the library --- as it is the case in many probabilistic programming libraries, e.g., \emph{mem} in WebPPL (\citet{goodman2014design}).
+
+On the other hand, ProbLog uses a similar concept to call-time choice, namely, stochastic memoization, which reuses already computed results.
+That is, predicates that are associated with probabilities become part of the memoized result.
+A ProbLog version of |replicateDist| looks as follows.
+
+\begin{verbatim}
+0.5::coin(tt).
+0.5::coin(ff).
+
+replicateCoin(0,_,[]).
+replicateCoin(N,Dist,[X|Xs]) :-
+  N > 0, call(Dist,X), M is N - 1, replicateCoin(M,Dist,Xs).
+\end{verbatim}
+
+When we query |replicateDist(2,coin,Xs)| we get the following results.
+
+\begin{verbatim}
+replicateCoin(2,coin,[ff, ff]): 0.5
+replicateCoin(2,coin,[ff, tt]): 0.25
+replicateCoin(2,coin,[tt, ff]): 0.25
+replicateCoin(2,coin,[tt, tt]): 0.5
+\end{verbatim}
+
+We observe that if we flip the same side two times, the resulting probability is not as expected. ProbLog memoizes the results of a predicate call --- in this case |coin(tt)| and |coin(ff)|, respectively.
+If a coin was already flipped with `tt` and a probability of $\frac{1}{2}$, then all further coin flips that result in `tt` have probability $1$.
+Due to stochastic memoization the coin is not flipped a second time, but is identified as the same coin as before.
+Thus, stochastic memoization as used in ProbLog is similar to the extension of tabling in Prolog systems, but adapted to the setting of probabilistic programming that extends predicates with probabilities.
+Similar to our usage of |RT| to mimic run-time choice in Curry, we can use a so-called trial identifier, which is basically an additional argument, to circumvent memoization for a predicate like coin in ProbLog.
+The difference to |RT| is that the trial identifier needs to be different for each call to the predicate in order to force re-evaluation.
+
+In the end, we have decided to go with the current modeling based on call-time choice, because the alternative would work against the spirit of the Curry programming language.
+
+There is a long history of discussions about the pros and cons of call-time choice and run-time choice.
+It is common knowledge in probabilistic programming~(\citet{deraedt2013probabilistic}) that, in order to model stochastic automata or probabilistic grammars, memoization --- that is, call-time choice --- has to be avoided.
+Similarly,~\citet{antoy2005evaluation} observes that you need run-time choice to elegantly model regular expressions in the context of functional logic programming languages.
+Then again, probabilistic languages need a concept like memoization in order to use a single value drawn from a distribution multiple times.
+
 \subsection{Non-strict Non-determinism}
-\subsection{Exploit Non-strictness in the Definition of bind}
+\label{ssec:nonstrict}
+
+This section illustrates the benefits from the combination of non-strictness and non-determinism with respect to performance.
+More precisely, in a setting that uses Curry-like non-determinism, non-strictness can prevent non-determinism from being \enquote{spawned}.
+Let us consider calculating the probability for throwing only sixes when throwing |n| dice.
+First we define a uniform die as follows.
+
+> data Side = One | Two | Three | Four | Five | Six
+>
+> die :: Dist Side
+> die = uniform [One,Two,Three,Four,Five,Six]
+
+
+We define the following query by means of the combinators introduced so far.
+The function |all| simply checks that all elements of a list satisfy a given predicate; it is defined by means of the boolean conjunction |(&&)|.
+
+> allSix :: Int -> Probability
+> allSix n = (all (==Six)) ?? (replicateDist n (\() -> die))
+
+
+\autoref{tab:allSix} compares running times\footnote{All benchmarks were executed on a Linux machine with an Intel Core i7-6500U (2.50 GHz) and 8 GiB RAM running Fedora 25. We used the Glasgow Haskell Compiler (version \verb+8.0.2+, option \verb+-O2+) and set the search strategy in KiCS2 to depth-first.} of this query for different numbers of dice.
+The row labeled \enquote{Curry ND} lists the running times for an implementation that uses the operator |(>>>=)|.
+The row \enquote{Curry List} shows the numbers for a list-based implementation in Curry, which is a literal translation of the library by \citeauthor{erwig2006functional}.
+The row labeled \enquote{Curry ND!} uses an operator |(>>>=!)| instead, which we will discuss shortly.
+Finally, we compare our implementation to the original list-based implementation, which the row labeled \enquote{Haskell List} refers to.
+The table states the running times in milliseconds of a compiled executable for each benchmark as a mean of three runs. Cells marked with \enquote{--} take more than one minute.
+
+\begin{table*}[h]\centering
+\begin{tabular}{@@{}lrrrrrrrrr}
+\toprule
+\# of dice & 5 & 6 & 7 & 8 & 9 & 10 & 100 & 200 & 300\\
+\midrule
+Curry ND       & $<$\num{1} & $<$\num{1} & $<$\num{1} & $<$\num{1} & $<$\num{1} & $<$\num{1} & \num{48} & \num{231} & \num{547} \\
+Curry List     & \num{2} & \num{13} & \num{72} & \num{419} & \num{2554} & \num{15394} & -- & -- & -- \\
+Curry ND!      & \num{52} & \num{409} & \num{2568} & \num{16382} & -- & -- & -- & -- & -- \\
+Haskell List   & \num{1} & \num{5} & \num{30} & \num{210} & \num{1415} & \num{6538} & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\caption{Overview of running times for the query |allSix n|}
+\label{tab:allSix}
+\end{table*}
+
+Obviously, the example above is a little contrived.
+While the query is exponential in both list versions, it is linear in the non-deterministic setting\footnote{Non-determinism causes significant overhead for KiCS2, thus, \enquote{Curry ND} does not show linear development, but we measured a linear running time using PAKCS~\cite{hanus2017pakcs}.}.
+In order to illustrate the behavior of the example above, we consider the following application for an arbitrary distribution |dist| of type |Dist [Side]|.
+\begin{spec}
+filterDist (all (==Six)) (joinWith (:) (Dist One (frac 1 6)) dist)
+\end{spec}
+
+This application yields an empty distribution without evaluating the distribution |dist|.
+The clou here is that |joinWith| yields a |Dist|-constructor without inspecting its arguments.
+When we demand the event of the resulting |Dist|, |joinWith| has to evaluate only its first argument to see that the predicate |all (==Six)| yields |False|.
+The evaluation of the expression fails without inspecting the second argument of |joinWith|.
+\autoref{fig:eval} illustrates the evaluation in more detail.
+
+\begin{figure}[t]
+\centering
+\begin{spec}
+filterDist (all (== Six)) (joinWith (:) (Dist One (frac 1 6)) dist)
+== {- Definition of |joinWith| -}
+filterDist  (all (==Six))
+            (Dist One (frac 1 6) >>>= (\ x -> dist >>>= (\ xs -> certainly (x:xs))))
+== {- Definition of |(>>>=)| (twice) -}
+filterDist  (all (==Six))
+            (  let  Dist x p = Dist One (frac 1 6)
+                    Dist xs q = dist
+                    Dist ys r = certainly (x:xs)
+               in  Dist ys (p *. (q *. r))
+== {- Definition of |filterDist| -}
+let  Dist x p = Dist One (frac 1 6)
+     Dist xs q = dist
+     Dist ys r = certainly (x:xs)
+in if all (==Six) ys then Dist ys (p *. (q *. r)) else failed
+== {- Definition of |certainly| -}
+let  Dist x p = Dist One (frac 1 6)
+     Dist xs q = dist
+in if all (==Six) (x:xs) then Dist (x:xs) (p *. (q *. 1.0)) else failed
+== {- Definition of |all| -}
+let  Dist x p = Dist One (frac 1 6)
+     Dist xs q = dist
+in if x==Six && all (==Six) xs then Dist (x:xs) (p *. (q *. 1.0)) else failed
+== {- Definition of |(==)| and |(&&)| -}
+let  Dist x p = Dist One (frac 1 6)
+     Dist xs q = d
+in if False then Dist (x:xs) (p *. (q *. 1.0)) else failed
+== {- Definition of |if-then-else| -}
+failed
+\end{spec}
+\caption{Simplified evaluation illustrating non-strict non-determinism}
+\label{fig:eval}
+\end{figure}
+
+In case of the example |allSix|, all non-deterministic branches that contain a value different from |Six| fail fast due to the non-strictness.
+Thus, the number of evaluation steps is linear in the number of rolled dice.
+
+We can only benefit from the combination of non-strictness and non-deter\-mi\-nism if we define |(>>>=)| with care.
+Let us take a look at a strict variant of |(>>>=)| and discuss its consequences.
+
+> (>>>=!) :: Dist a -> (a -> Dist b) -> Dist b
+> Dist x p >>>=! f = case  f x of
+>                          Dist y q -> Dist y (p *. q)
+
+This implementation is strict in its first argument as well as in the result of the function application.
+When we use |(>>>=!)| to implement the |allSix| example, we lose the benefit of Curry-like non-determinism.
+The row in \autoref{fig:eval} labeled \enquote{Curry ND!} shows the running times when using |(>>>=!)| instead of |(>>>=)|.
+As |(>>>=!)| is strict, the function |joinWith| has to evaluate both its arguments to yield a result.
+\autoref{fig:evalstrict} shows how the formerly unneeded distribution |dist| now has to be evaluated in order to yield a value.
+More precisely, using |(>>>=!)| causes a complete evaluation of |dist|.
+
+\begin{figure}[t]
+\centering
+\begin{spec}
+filterDist (all (==Six)) (joinWith (:) (Dist One (frac 1 6)) dist)
+== {- Definition of |joinWith| -}
+filterDist  (all (==Six))
+            (Dist One (frac 1 6) >>>=! (\ x -> dist >>>=! (\ xs -> certainly (x:xs))))
+== {- Definition of |(>>>=!)| -}
+filterDist  (all (==Six))
+            (case  (\ x -> dist >>>=! (\ xs -> certainly (x:xs))) One of
+                   Dist y q -> Dist y ((frac 1 6) *. q))
+== {- Evaluation of the scrutinee -}
+filterDist  (all (==Six))
+            (case  dist >>>=! (\ xs -> certainly (One:xs)) of
+                   Dist y q -> Dist y ((frac 1 6) *. q))
+== {- Evaluation of |dist| as demanded by the definition of |(>>>=!)| -}
+...
+\end{spec}
+\caption{Simplified evaluation illustrating strict non-determinism}
+\label{fig:evalstrict}
+\end{figure}
+
+Please note that an implementation that is similar to |(>>>=)| is \emph{not} possible in a list-based implementation.
+The following definition of |concatMap| is usually used to define the bind operator for lists.
+
+> concatMap :: (a -> [b]) -> [a] -> [b]
+> concatMap f  []      = []
+> concatMap f  (x:xs)  = f x ++ concatMap f xs
+
+The strict behaviour follows from the definition via pattern matching on the list argument.
+In contrast to |(>>>=!)| there is, however, no other implementation that is less strict.
+The pattern matching is inevitable due to the two possible constructors, |[]| and |(:)|, for lists.
+As a consequence, a list-based implementation has to traverse the entire distribution before we can evaluate the predicate |all (== Six)|.
+The consequence is that the running times of \enquote{Haskell List} in \autoref{fig:eval} cannot compete with \enquote{Curry ND} when the number of dice increases.
+
+Intuitively, we expect similar running times for \enquote{Curry ND!} and \enquote{Curry List} as the bind operator for lists has to evaluate its second argument as well -- similar to |(>>>=!)|.
+However, the observed running times do not have the expected resemblance.
+\enquote{Curry ND!} heavily relies on non-deter\-mi\-nis\-tic computations, which causes significant overhead for KiCS2.
+We do not investigate these differences here but propose it as a direction for future research.
+
+Obviously, turning an exponential problem into a linear one is like getting only sixes when throwing dice.
+In most cases we are not that lucky.
+For example, consider the following query for throwing |n| dice that are either five or six.
+
+> allFiveOrSix :: Int -> Probability
+> allFiveOrSix n = (all (\s -> s==Five || s==Six)) ?? (replicateDist n (\() -> die))
+
+
+\autoref{tab:allFiveOrSix} lists the running times of this query for different numbers of dice with respect to the four different implementations.
+
+\begin{table*}[h]\centering
+\begin{tabular}{@@{}lrrrrrr}
+\toprule
+\# of dice & 5 & 6 & 7 & 8 & 9 & 10\\
+\midrule
+Curry ND       & \num{4} & \num{7} & \num{15} & \num{34} & \num{76} & \num{163} \\
+Curry List     & \num{2} & \num{13} & \num{84} & \num{489} & \num{2869} & \num{16989} \\
+Curry ND!      & \num{49} & \num{382} & \num{2483} & \num{15562} & -- & -- \\
+Haskell List   & \num{2} & \num{5} & \num{31} & \num{219} & \num{1423} & \num{6670} \\
+\bottomrule
+\end{tabular}
+\caption{Overview of running times of the query |allFiveOrSix n|}
+\label{tab:allFiveOrSix}
+\end{table*}
+As we can see from the running times, this query is exponential in all implementations.
+Nevertheless, the running time of the non-strict, non-deterministic implementation is much better because we only have to consider two sides --- six and five --- while we have to consider all sides in the list implementations and the non-deterministic, strict implementation.
+That is, while the base of the complexity is two in the case of the non-deterministic, non-strict implementation, it is six in all the other cases.
+As we have observed in the other examples before, we get an overhead in the case of the strict non-determinism compared to the list implementation due to the heavy usage of non-deterministic computations.
+
+\subsection{Leveraging Non-strictness}
+In this section we discuss our design choices concerning the implementation of the bind operator.
+We illustrate that we have to be careful about non-strictness, because we do not want to lose non-deterministic results.
+Most importantly, the final implementation ensures that users cannot misuse the library if they stick to one simple rule.
+
+First, we revisit the definition of |(>>>=)| introduced in~\autoref{sec:idea}.
+
+\begin{spec}
+(>>>=) :: Dist a -> (a -> Dist b) -> Dist b
+d >>>= f =  let  Dist x p = d
+                 Dist y q = f x
+            in Dist y (p *. q)
+\end{spec}
+We can observe two facts about this definition.
+First, the definition yields a |Dist|-constructor without matching any argument.
+Second, if neither the event nor the probability of the final distribution is evaluated, the application of the function |f| is not evaluated either.
+
+We can observe these properties with some exemplary usages of |(>>>=)|.
+As a reference, we see that pattern matching the |Dist|-constructor of |coin| triggers the non-determinism and yields two results.
+\begin{spec}
+repl> (\(Dist _ _) -> True) coin
+True
+True
+\end{spec}
+In contrast, distributions resulting from an application of |(>>>=)| behave differently.
+This time, pattern matching on the |Dist|-constructor does not trigger any non-determinism.
+\begin{spec}
+repl> (\(Dist _ _) -> True) (certainly () >>>= (\ _ -> coin))
+True
+
+repl> (\(Dist _ _) -> True) (coin >>>= certainly)
+True
+\end{spec}
+We observe that the last two examples yield a single result, because the |(>>>=)|-operator changes the position of the non-determinism.
+That is, the non-de\-ter\-min\-ism does not reside at the same level as the |Dist|-constructor, but in the arguments of |Dist|.
+Therefore, we have to be sure to trigger all non-determinism when we compute probabilities.
+Not evaluating non-determinism might lead to false results when we sum up probabilities.
+Hence, non-strictness is a crucial property for positive pruning effects, but has to be used carefully.
+
+Consider the following example usage of |(>>>=)|, which is an inlined version of |joinWith| applied to the boolean conjunction |(&&)|.
+
+\begin{spec}
+repl> (\(Dist x _) -> x) (coin >>>= (\x -> coin >>>= (\y -> certainly (x && y))))
+False
+True
+False
+\end{spec}
+We lose one expected result from the distribution, because |(&&)| is non-strict in its second argument in case the first argument is |False|.
+When the first |coin| evaluates to |False|, |(>>>=)| ignores the second coin and yields |False| straightaway.
+In this case, the non-determinism of the second |coin| is not triggered and we get only three instead of four results.
+The non-strictness of |(&&)| has no consequences when using |(>>>=!)|, because the operator evaluates both arguments and, thus, triggers the non-determinism.
+
+As we have seen above, when using the non-strict operator |(&&)|, one of the results gets lost.
+However, when we sum up probabilities, we do not want events to get lost.
+For example, when we compute the total probability of a distribution, the result should always be |1.0|.
+However, the query above has only three results and every event has a probability of |0.25|, resulting in a total probability of |0.75|.
+
+Here is the good news.
+While events can get lost when passing non-strict functions to |(>>>=)|, probabilities never get lost.
+For example, consider the following application.
+
+\begin{spec}
+repl> (\(Dist _ p) -> p) (coin >>>= (\x -> coin >>>= (\y -> certainly (x && y))))
+0.25
+0.25
+0.25
+0.25
+\end{spec}
+
+Since multiplication is strict, if we demand the resulting probability, the operator |(>>>=)| has to evaluate the |Dist|-constructor and its probability.
+That is, no values get lost if we evaluate the resulting probability.
+Fortunately, the query operation |(??)| calculates the total probability of the filtered distributions, thus, evaluates the probability as the following example shows.
+
+\begin{spec}
+repl> not ?? (coin >>>= (\x -> coin >>>= (\y -> certainly (x && y))))
+0.75
+\end{spec}
+We calculate the probability of the event |False| and while there where only two |False| events, the total probability is still |0.75|, i.e., three times |0.25|.
+
+All in all, in order to benefit from non-strictness, all operations have to use the right amount of strictness, not too much and not too little.
+For this reason PFLP does not provide the |Dist|-constructor nor the corresponding projection functions to the user.
+With this restriction, the library guarantees that no relevant probabilities get lost with respect to non-strictness.
 
 \section{Restrictions}
 
 \subsection{Non-deterministic Events}
+
+We assume that all events passed to library functions are deterministic, that is, the library does not support non-deterministic events within distributions.
+In order to illustrate why this restriction is crucial, we consider an example that breaks this rule.
+
+Curry provides free variables, that is, expressions that non-deterministically evaluate to every possible value of its type.
+When we revisit the definition of a die, we might be tempted to use a free variable instead of explicitly enumerating all values of type |Side|.
+
+We can define a free variable of type |Side| as follows.
+
+> side :: Side
+> side = unknown
+
+This free variable evaluates as follows.
+\begin{spec}
+repl> side
+One
+Two
+Three
+Four
+Five
+Six
+\end{spec}
+With this information in mind consider the following alternative definition of a die, which is much more concise than explicitly listing all constructors of |Dist|.
+
+> die2 :: Dist Side
+> die2 = enum [side] [frac 1 6]
+
+We just use a free variable --- the constant |side| --- and pass the probability of each event as second parameter.
+Now, let us consider the following query.
+
+\begin{spec}
+repl> (const True) ?? die2
+0.16666667
+\end{spec}
+
+The result of this query is |(frac 1 6)| and not |1.0| as expected.
+Consider \autoref{fig:unknown} for a step-by-step evaluation of this expression in order to understand better what is going on.
+This example illustrates that probabilities can get lost if we do not use the right amount of strictness.
+The predicate |const True| does not touch the event at all, thus does not trigger |side| to actually evaluate to all the constructors of |Side|.
+Then, the definition of |(??)| directly projects to the probability of |die2| and throws away all non-determinism left in |Dist side (frac 1 6)|.
+Therefore, we lose probabilities we would like to sum up.
+
+\begin{figure}
+\begin{spec}
+ (const True) ?? die2
+== {- definition of |(??)| -}
+ foldValues (+.) 0.0 (allValues (prob (filterDist (const True) die2)))
+== {- definition of |die2| -}
+ foldValues (+.) 0.0 (allValues (prob (filterDist (const True) (enum [side] [frac 1 6]))))
+== {- definition of |enum| -}
+ foldValues (+.) 0.0 (allValues (prob (filterDist (const True) (Dist side (frac 1 6)))))
+== {- definition of |filterDist| -}
+ foldValues (+.) 0.0 (allValues (prob (if const True side then Dist side (frac 1 6) else failed)))
+== {- definition of |const| -}
+ foldValues (+.) 0.0 (allValues (prob (if True then Dist side (frac 1 6) else failed)))
+== {- evaluate |if-then-else| -}
+ foldValues (+.) 0.0 (allValues (prob (Dist side (frac 1 6))))
+== {- definition of |prob| -}
+ foldValues (+.) 0.0 (allValues (frac 1 6))
+== {- definition of |allValues| -}
+ foldValues (+.) 0.0 {frac 1 6}
+== {- definition of |foldValues| -}
+ frac 1 6
+\end{spec}
+\caption{Evaluation of a distribution that contains a free variable that is not demanded}
+\label{fig:unknown}
+\end{figure}
+
+As a consequence for PFLP, non-deterministic events within a distribution are not allowed.
+If users of the library stick to this rule, it is not possible to misuse the operations and lose non-deterministic results due to non-strictness.
+
 \subsection{Partial Functions}
+Besides not using non-determinism for events, users have to follow another restriction.
+When using the bind operator |(>>>=)|, the second argument is a function of type |a -> Dist b|, that is, constructs a new distribution.
+As we have discussed before distributions need to sum up to a probability of $1.0$, and the distributions we create via |(>>>=)| are no exception.
+This restriction is violated if we use partial functions as second argument of |(>>>=)|.
+Recall the definition |coin| that describes a uniform distribution of type |Bool|, and consider the function |partialPattern| that depends on |coin|, but maps |False| to |failed|.
+
+> partialPattern :: Dist Bool
+> partialPattern = coin >>>= (\b -> case  b of
+>                                           True   ->  certainly True
+>                                           False  ->  failed)
+
+
+Due to the partial pattern matching in |partialPattern|, the resulting distribution does not sum up to $1.0$ anymore, thus, violates the rule for a valid distribution.
+By performing a query with the predicate |const True| we can observe this property.
+
+\begin{spec}
+repl > (const True) ?? partialPattern
+0.5
+\end{spec}
+
+We only allow to filter distributions when a probability is computed using |(??)|, but not in any other situation.
+In the current implementation this restriction on functions when using |(>>>=)| is neither statically nor dynamically enforced, but a coding convention that users should keep in mind and follow when working with the library.
+When this restriction is strictly followed, the user has the guarantee that the library works as expected.
+
 \subsection{Monad Laws}
+\label{ssec:monad}
 
 When we comply with the restrictions we have discussed above, the operators |(>>>=)| and |certainly| allow us to formulate probabilistic programs as one would expect.
-However, there is one obvious question that we did not answer.
+However, there is one obvious question that we did not answer yet.
 We did not check whether the operator |(>>>=)| together with |certainly| actually forms a monad as the name of the operator suggests.
-That is, we have to check whether the following three laws hold for all distributions |d| and all values |a|, |f|, and |g| of appropriate types.
+That is, we have to check whether the following three laws hold for all distributions |d| and all values |x|, |f|, and |g| of appropriate types.
 
 \begin{itemize}
-\item[(1)] |d >>>= certainly == d|
-\item[(2)] |certainly a >>>= f == f a|
-\item[(3)] |(d >>>= f) >>>= g == d >>>= (\x -> f x >>>= g)|
+\item |d >>>= certainly == d|
+\item |certainly x >>>= f == f x|
+\item |(d >>>= f) >>>= g == d >>>= (\y -> f y >>>= g)|
 \end{itemize}
 
-In the previous section we have already observed that the equality stated in (1) does not necessary hold, depending on our notion of equality.
+In the previous section we have already observed that the equality stated in \ref{item:law1} does not necessary hold, depending on our notion of equality.
 For example, we have seen that there is a context that is able to distinguish the left-hand from the right-hand side.
 For instance, while the expression
 \[
 |(\(Dist _ _) -> True) coin|
 \]
-yields two results, the expression
+yields |True| twice, the expression
 \[
 |(\(Dist _ _) -> True) (coin >>>= certainly)|
 \]
-yields only one.
-Most Curry semantics are based on sets and not on multisets.
-In this form of semantics the two sides of the equality would be the same.
-Furthermore, in a multiset semantics the user still could not observe the difference between the two expressions because the user does not have access to the |Dist|-constructor.
+yields |True| only once.
+As most Curry semantics are based on sets --- and not on multisets, the two sides of the equality would be the same.
+Notwithstanding, in a multiset semantics the user could still not observe the difference between the two expressions because she does not have access to the |Dist|-constructor.
+The user cannot pattern match on a |Dist|-constructor, but only use the combinator |(??)| to calculate the probability of a given distribution or compute the whole distribution by displaying it via the REPL.
+By displaying a distribution via the REPL we compute the normal form of the given expression.
+So, in the example above, the user cannot observe that these two expressions behave differently.
+
+In the following we will reason about an equality with respect to multisets and in the context of |(??)|, but also keep the restrictions imposed on a user of the library in mind: distributions need to add up to |1.0| and events may not be non-deterministic.
+That is, we will discuss the laws above with the following modifications for all distributions |d|, and all values |x|, |p|, |f|, and |g| of appropriate types.
+
+\begin{enumerate}[ref=(\arabic*),label=(\arabic*)]
+\item \label{item:law1} |p ?? (d >>>= certainly) == p ?? d|
+\item \label{item:law2} |p ?? (certainly x >>>= f) == p ?? (f x)|
+\item \label{item:law3} |p ?? ((d >>>= f) >>>= g)) == p ?? (d >>>= (\y -> f y >>>= g))|
+\end{enumerate}
+
+The context |(??)| mimics the behaviour the user can observe.
+Intuitively, when considering an equality in the context of |(p ?? dist)| for a given distribution |dist| and a predicate |p|, we pull the non-determinism in the probability component of the distribution to the top-level.
+The event component may not need to be evaluated depending on the predicate |p|.
+Without considering equality in the context of |(??)| we could not use non-determinism at all as the expressions above exemplify.
+Querying the distribution on both sides using, for example, |const True|, however, yields the same probability.
+
+\begin{spec}
+(const True) ?? coin
+==
+1.0
+==
+(const True) ?? (coin >>>= certainly)
+\end{spec}
+
+The same holds for all other predicates of type |Bool -> Bool|, namely |not|, |const False| and |id|.
+In the following we will use |const True| as representative predicate since it is does not need to evaluate its the event component of the distribution, thus, it is as non-strict as possible.
 
 In order to discuss the validity of the monad laws more rigorously, we apply equational reasoning to check where the monad laws might fail.
-Let |d :: Dist tau| then we reason as follows.
+Let |d :: Dist tau| and |p :: tau -> Bool| then we reason as follows.
 \begin{spec}
-d >>>= certainly
+p ?? (d >>>= certainly)
 == {- Definition of |(>>>=)| -}
-let  Dist x p = d
-     Dist y q = certainly x
-in Dist y (p *. q)
+p ??   (let  Dist evnt1 p = d
+             Dist evnt2 q = certainly evnt1
+        in Dist evnt2 (p *. q))
 == {- Definition of |certainly| -}
-let  Dist x p = d
-     Dist y q = Dist x 1.0
-in Dist y (p *. q)
-== {- Inlining of |Dist y q = Dist x 1.0| -}
-let Dist x p = d in Dist x (p *. 1.0)
+p ??   (let  Dist evnt1 p = d
+             Dist evnt2 q = Dist evnt1 1.0
+        in Dist evnt2 (p *. q))
+== {- Inlining of |Dist evnt2 q = Dist evnt1 1.0| -}
+p ?? (let Dist evnt1 p = d in Dist evnt1 (p *. 1.0))
 == {- Definition of |(*.)| -}
-let Dist x p = d in Dist x p
+p ?? (let Dist evnt1 p = d in Dist evnt1 p)
 =?
-d
+p ?? d
 \end{spec}
-The equality |let Dist x p = d in Dist x p == d| does not hold in general.
-For instance, we have |let Dist x p = failed in Dist x p == Dist failed failed|. That is the left hand side is more defined then the right hand side if |d = failed|.
+The equality |let Dist evnt1 p = d in Dist evnt1 p == d| does not hold in general.
+For instance, we have |let Dist evnt1 p = failed in Dist evnt1 p == Dist failed failed|.
+That is the left hand side is more defined then the right hand side if |d = failed|.
+In the context of querying using |const True|, however, both sides are indeed equal.
 
-The equation also fails if the value contains nondeterminism.
-For example, in the case |d == Dist (True ? False) (frac 1 2)|, we have
 \begin{spec}
-let Dist x p = Dist (True ? False) (frac 1 2) in Dist x p
+(const True) ?? failed
 ==
-Dist True (frac 1 2) ? Dist False (frac 1 2)
+0.0
+==
+(const True) ?? (Dist failed failed)
 \end{spec}
-that is, the non-determinism is pulled to the outside.
 
-For the second monad law we reason as follows for all |a :: tau1| and all |f :: Dist tau2|.
+The second case we need to consider is that the event contains non-determinism.
+For example, in case |d == Dist (True ? False) (frac 1 2)|, we reason as follows.
+
 \begin{spec}
-certainly a >>>= f
+(const True) ?? (let Dist evnt1 p = Dist (True ? False) (frac 1 2) in Dist evnt1 p)
+==
+(const True) ?? ((Dist True (frac 1 2)) ? (Dist False (frac 1 2)))
+==
+1.0
+/=
+0.5
+==
+(const True) ?? (Dist (True ? False) (frac 1 2))
+\end{spec}
+That is, the non-determinism is pulled to the outside in case of the left side of the equation but not on the right side.
+
+In the end, we do not need to worry about both cases as they violate the imposed restrictions.
+The value |failed| as well as |True ? False| are non-deterministic and, thus, not allowed as events within distributions.
+Furthermore, |failed| is also not a valid distributions as it does not add up to |1.0|.
+That is, as long as users obey this restriction, the first monad law \ref{item:law1} holds.
+As an interesting side note, we observe that it may not be necessary to restrict users from using |failed| as an event.
+However, we do not discuss this weakening here, but consider a more detailed analysis of the necessary restrictions of the library as future work.
+
+For the second monad law \ref{item:law2} we reason as follows for all |x :: tau1|, all |p :: tau2 -> Bool|, and all |f :: tau1 -> Dist tau2|.
+\begin{spec}
+p ?? (certainly x >>>= f)
 == {- Definition of |(>>>=)| -}
-let  Dist x p = certainly a
-     Dist y q = f x
-in Dist y (p *. q)
+p ??  (let  Dist evnt1 p = certainly x
+            Dist evnt2 q = f evnt1
+       in Dist evnt2 (p *. q))
 == {- Definition of |certainly| -}
-let  Dist x p = Dist a 1.0
-     Dist y q = f x
-in Dist y (p *. q)
+p ??  (let  Dist evnt1 p = Dist x 1.0
+            Dist evnt2 q = f evnt1
+       in Dist evnt2 (p *. q))
 ==
-let Dist y q = f a in Dist y (1.0 *. q)
+p ?? (let Dist evnt2 q = f x in Dist evnt2 (1.0 *. q))
 == {- Definition of |(*.)| -}
-let Dist y q = f a in Dist y q
+p ?? (let Dist evnt2 q = f x in Dist evnt2 q)
 =?
-f a
+p ?? (f x)
 \end{spec}
-Here we observe the same restrictions as before, namely, |f| may not yield |failed| for any argument |a| as the equation would fail in this case.
+Here we observe the same restrictions as before, namely, |f| may not yield |failed| for any argument |x| as the equation would fail in this case.
 In the same manner |f| may not yield a distribution whose event is non-deterministic.
+Once again, both cases cannot occur when the user obeys the restrictions.
+In the first case, |failed| is not a valid distribution, so |f| may not yield |failed| anyway.
+Secondly, non-deterministic events are not allowed, so we expect |f| not to yield a distribution with non-deterministic events.
 
-In order to complete the discussion of the monad laws, we finally consider the associativity of |(>>>=)|.
+In order to complete the discussion of the monad laws, we finally consider the associativity of |(>>>=)| \ref{item:law3}.
 For all |d :: Dist tau1|, |f :: tau1 -> Dist tau2|, and |g :: tau2 -> Dist tau3| we reason as follows.
 \begin{spec}
 (d >>>= f) >>>= g
@@ -151,7 +1077,43 @@ This reasoning shows that associativity actually holds without any restrictions.
 
 \section{Related Work}
 
+The approach of this paper is based on the work by \citet{erwig2006functional}, who introduce a Haskell library that represents distributions as lists of event-probability pairs. %
+Their library also provides a simple sampling mechanism to perform inference on distributions.
+Inference algorithms come into play because common examples in probabilistic programming have an exponential growth and it is not feasible to compute the whole distribution.
+Similarly, \citet{scibior2015practical} present a more efficient implementation using a DSL in Haskell.
+They represent distributions as a free monad and inference algorithms as an interpretation of the monadic structure.
+Thanks to this interpretation, the approach is competitive to full-blown probabilistic programming languages with respect to performance.
+PFLP provides functions to sample from distributions as well.
+However, in this work we focus on modeling distributions and do not discuss any sampling mechanism.
+In particular, as future work we plan to investigate whether we can benefit from the improved performance as presented here in the case of sampling.
+Furthermore, a more detailed investigation of the performance of non-determinism in comparison to a list model is a topic for another paper.
+
+The benefit with respect to the combination of non-strictness and non-de\-ter\-min\-ism is similar to the benefit of property-based testing using Curry-like non-determinism in Haskell (\citet{runciman2008smallcheck}) and Curry (\citet{christiansen2008easycheck}).
+In property-based testing, sometimes we want to generate test cases that satisfy a precondition.
+With Curry-like non-determinism the precondition can prune the search space early, while a list-based implementation has to generate all test cases and filter them afterwards.
+Both applications, probabilistic programming and property-based testing, are examples, where built-in non-determinism outperforms list-based approaches as introduced by \citet{wadler1985replace}.
+In comparison to property-based testing, here, we observe that we can even add a kind of monadic layer on top of the non-determinism that computes additional information and still preserve the demand driven behavior.
+However, the additional information has to be evaluated strictly --- as it is the case for probabilities, otherwise we might lose non-deterministic results.
+
+There are other more elaborated approaches to implement a library for probabilistic programming.
+For example, \citet{kiselyov2009embedded} extend their library for probabilistic programming in OCAML with a construct for lazy evaluation to achieve similar positive effects.
+However, they use lazy evaluation for a concrete application based on importance sampling.
+Due to the combination of non-strictness and non-determinism, we can efficiently calculate the total probability of the resulting distribution without utilizing sampling.
+
 \section{Case Study}
+\label{sec:applications}
+
+After presenting the basic combinators of the library and motivating
+the advantages of modelling distributions using non-determinism, we
+will implement some exemplary applications.
+We reimplement examples that have been characterized as challenging
+for probabilistic logic programming by
+\citet{nampally2015constraintbased}, who use the example to discuss
+the expressiveness of probabilistic logic programming and its cost
+with respect to performance.
+The examples focus on properties of random strings and their probabilities.
+Furthermore, we show benchmarks of these examples and compare them with the probabilistic languages ProbLog (\citet{kimmig2011implementation}) and WebPPL (\citet{goodman2014design}).
+These comparisions confirm the advantages of non-strict non-determinism with respect to performance.
 
 \subsection{Bayesian Network}
 
@@ -263,28 +1225,231 @@ For example, the predicate |isRaining| corresponds to $\mathit{Raining}=\mathit{
 
 
 \subsection{Random Strings}
+In order to compare our library with other approaches for
+probabilistic programming we reimplement two examples about random
+strings that have also been implemented in ProbLog, this
+implementation can be found online\footnote{\url{https://dtai.cs.kuleuven.be/problog/tutorial/various/04_nampally.html}}.
+We generate random strings of a fixed length over the alphabet $\{a,b\}$ and calculate the probability that this string a) is a palindrome and b) contains the subsequence $bb$.
+
+First we define a distribution that picks a character uniformly from the alphabet $\{a,b\}$.
+
+> pickChar :: Dist Char
+> pickChar = uniform ['a','b']
+
+Based on |pickChar| we define a distribution that generates a random string of length |n|, that is, picks a random char |n| times.
+We reuse |replicateDist| to define this distribution.
+
+> randomString :: Int -> Dist String
+> randomString n = replicateDist n (\ () -> pickChar)
+
+
+In order to compute the probability that a random string is a palindrome and contains a subsequence $bb$, respectively, we define predicates that test these properties for a given string.
+A string is a palindrome, if it reads the same forwards and backwards.
+The following predicate, thus, checks if the reverse of a given string is equal to the original string.
+
+%if False
+
+> reverse :: [a] -> [a]
+> reverse xs = rev xs []
+>  where rev ys acc = case ys of
+>                          [] -> acc
+>                          (z:zs) -> rev zs (z:acc)
+
+%endif
+
+> palindrome :: String -> Bool
+> palindrome str = str == reverse str
+
+The predicate that checks if a string contains two consecutive $b$s can be easily defined via pattern matching.
+
+> consecutiveBs :: String -> Bool
+> consecutiveBs bs = case  bs of
+>                  []                  -> False
+>                  ('b'  : 'b' : _  )  -> True
+>                  (_    : bs       )  -> consecutiveBs bs
+
+
+Now we are ready to perform some queries.
+What is the probability that a random string of length |5| is a palindrome?
+
+\begin{spec}
+repl> palindrome ?? (randomString 5)
+0.25
+\end{spec}
+
+\noindent What is the probability that a random string of length |10| contains two consecutive $b$s?
+\begin{spec}
+repl> consecutiveBs ?? (randomString 10)
+0.859375
+\end{spec}
+
+In general the above definitions of |palindrome| and |consecutiveBs| are quite naive and, thus, inefficient because all strings of the given length have to be enumerated explicitly.
+Due to the inefficiency, the ProbLog homepage introduces a more efficient version for both problems.
+In the following, we will discuss the alternative implementation to compute the probability for a palindrome only.
+This more efficient version has arguments for the index of the front and back position, picks characters for both ends and then moves the position towards the middle.
+That is, instead of naively generating the whole string of length $n$, this version checks each pair of front and back position first and fails straightaway, if they do not match.
+If the characters do match, the approach continues by moving both
+indices towards each other.
+In Curry an implementation of this idea looks as follows.
+
+> palindromeEfficient :: Int -> Dist (Bool, String)
+> palindromeEfficient n = palindrome' 1 n
+>
+> palindrome' :: Int -> Int -> Dist (Bool,String)
+> palindrome' n1 n2  | n1 == n2   = pickChar >>>= (\ c -> certainly (True,[c]))
+>                    | n1 > n2    = certainly (True, [])
+>                    | otherwise  =  pickChar >>>= \c1 ->
+>                                    pickChar >>>= \c2 ->
+>                                    palindrome' (n1+1) (n2-1) >>>= \ (b,cs) ->
+>                                    certainly (c1 == c2 && b, c1 : cs ++ [c2])
+
+
+The interesting insight here is that, thanks to the combination of
+non-determinism and non-strictness, the evaluation of the first query
+based on |palindrome| behaves similar to the efficient variant in ProbLog.
+At first, it seems that the query performs poorly, because the predicate |palindrome| needs to evaluate the whole list due to the usage of |reverse|.
+The good news is, however, that the non-determinism is only spawned if we evaluate the elements of that list, and the elements still evaluate non-strictly, when explicitly triggered by |(==)|.
+More precisely, because of the combination of |reverse| and |(==)|, the evaluation starts by checking the first and last characters of a string and only continues to check more characters, and spawn more non-determinism, if they match.
+If these characters do not match, the evaluation fails directly and does not need to check any more characters.
+In a nutshell, when using PFLP, we get a version competitive with efficient implementations although
+we used a naive generate and test approach.
+
+Last but not least, we want to emphasize that the restrictions with respect to using non-determinism discussed in \autoref{sec:details} did not affect the reimplementation of these examples.
+As the examples shown here are not the only examples that we implemented with our library, we are confident that the restrictions do not have consequences for the programmability regarding common applications of probabilistic programming.
+
+\subsection{Secret Santa}
 
 \subsection{Performance Comparisons}
 
-\todo{more examples for bayes}
-\begin{figure}
-\input{content/figures/BayesBar}
-\caption{Comparisons of Running Times for Bayesian Reasoning Examples}
-\label{fig:bayesBar}
-\end{figure}
+Up to now, the only performance comparisons we discussed were for
+different implementations of our library in Curry and Haskell.
+These comparisons showed the advantage of using non-strict
+non-determinism concepts in combination with the right amount of
+laziness for the implementation of the library.
+Next we want to take a look at the comparison with the full-blown
+probabilistic programming languages ProbLog and WebPPL.
+ProbLog is a probabilistic extension of Prolog that is implemented in
+Python.
+WebPPL is the successor of Church; in contrast to Church it is not
+implemented in Scheme but in JavaScript.
+
+In order to try to measure the execution of the programs only, we
+precompiled the executable for the Curry programs.
+As Python is an interpreted language, a similar preparation was not
+available for ProbLog.
+However, we used ProbLog as library in order to call the Python
+interpreter directly.
+ProbLog is mainly implemented in Python, which allows users to
+import ProbLog as a Python package.\footnote{\url{https://dtai.cs.kuleuven.be/problog/tutorial/advanced/01_python_interface.html}}
+For WebPPL, we used \textit{node.js} to run the JavaScript program as a
+terminal application.
+All of the following running times are the mean of $1000$ runs
+as calculated by the Haskell tool
+bench\footnote{\url{https://hackage.haskell.org/package/bench}} that
+we use to run the benchmarks.
+
+We compare the running times based on the two examples we already
+discussed: the dice rolling example presented in
+\autoref{ssec:nonstrict} and all examples from the previous section.
+
+\paragraph{Dice Rolling}
+As discussed before, non-strict non-determinism performs pretty
+well for the dice rolling example, as a great deal of the search space
+is pruned early.
+That is, \autoref{fig:dice} shows an impressive
+advantage of our Curry library in comparison with ProbLog and
+WebPPL.
+The x-axis represents the number of rolled dice and we present
+the time in milliseconds in logarithmic scale on the y-axis.
 
 \begin{figure}
 \input{content/figures/diceBarAll}
-\caption{Getting Only Sixes When Rolling $n$ Dice}
+\caption{Getting only sixes when rolling $n$ dice}
 \label{fig:dice}
  \end{figure}
 
-\begin{figure}[ht]
+In order to demonstrate that our library outperforms ProbLog and WebPPL
+by several orders of magnitude for this example, we also run the Curry
+implementation for bigger values of $n$ that eventually had the same
+running time as the last tested value for the other languages.
+The right part of \autoref{fig:dice} shows the running times for $25$ to $5000$ dice.
+We can see that our library can compute the probability for
+getting only sixes for $2500$ dice in roughly the same time as ProbLog
+for $5$ dice.
+The running times for WebPPL seem very bad in the beginning, but
+after a few throws it becomes obvious that there is a constant overhead.
+Nevertheless, whereas WebPPL computes the probability for $8$ dice,
+our library can compute the probability for $2500$ dice in roughly the same
+time.
+
+\paragraph{Bayes}
+\todo{more examples for bayes}
+\begin{figure}
+\input{content/figures/BayesBar}
+\caption{Comparisons of running times for bayesian reasoning examples}
+\label{fig:bayesBar}
+\end{figure}
+
+\paragraph{Palindrome}
+
+In order to back up the results of the previous example, \autoref{fig:palindromeBar} shows
+benchmarks for implementations of the naive and the efficient versions
+in Curry, ProbLog and WebPPL.
+The x-axis represents the length of the generated palindrome and, once again,
+we present the time in milliseconds in logarithmic scale on the y-axis.
+
+\begin{figure}
 \input{content/figures/palindromeBar}
-\caption{Palindrome Computation for a String of Length $n$}
+\caption{Palindrome computation for a string of length $n$}
 \label{fig:palindromeBar}
 \end{figure}
 
+The figure uses dashed bars for the efficient version of the algorithm and a solid filling for the naive algorithm.
+The naive algorithm scales pretty bad in ProbLog and WebPPL.
+The Curry version is still applicable up to $30$ as its running time is similar
+to all three efficient versions.
+Overall, the efficient versions all perform in a similar time range, but
+WebPPL shows a slight performance advantage for an increasing
+length of the string.
 
-\section{Future Work and Conclusion}
+\paragraph{Secret Santa}
+
+\todo{more examples for Secret Santa}
+\begin{figure}
+\input{content/figures/BayesBar}
+\caption{Comparisons of running times for the secret santa model}
+\label{fig:bayesBar}
+\end{figure}
+
+\section{Conclusion and Future Work}
+We have implemented a simple library for probabilistic programming in a functional logic programming language, namely Curry.
+Such a library proves to be a good fit for a functional logic language, because both paradigms share similar features.
+While other libraries need to reimplement features specific to probabilistic programming, we solely rely on core features of functional logic languages.
+
+The key idea of the library is to use non-determinism to model distributions.
+We discussed design choices as well as the disadvantages and advantages that result from this approach.
+In the end, the library provides non-strict probabilistic combinators in order to avoid spawning unnecessary non-deterministic computations.
+These non-strict combinators have benefits in terms of performance due to early pruning.
+Using combinators that are too strict leads to a loss of these performance benefits.
+Fortunately, the user does not have to worry about using the right amount of strictness as long as she only uses the provided combinators.
+There are, however, two restrictions, the user has to follow when using the library.
+If the user does not follow these restrictions, a program may behave unexpectedly, in particular, the usual monad laws do not hold.
+Events may not be non-deterministic and the second argument of |(>>>=)|-operator may not be partial.
+Considering these restrictions, we showed that the library obeys the expected monad laws.
+
+As future work, we see a high potential for performance improvements for the Curry compiler KiCS2.
+PFLP serves as a starting point for further studies of functional logic features in practical applications.
+For example, we would expect the running times of the strict implementation based on non-determinism to be approximately as efficient as a list-based implementation.
+However, as the numbers in \autoref{sec:details} show, the list approach is considerably faster.
+
+The library's design does not support the use of non-determinism in events or probabilities of a distribution.
+In case of deeper non-determinism, we have to be careful to trigger all non-determinism when querying a distribution as shown in \autoref{sec:details}.
+Hence, the extension of the library with an interface using non-determinism on the user's side is an idea worth studying.
+
+Last but not least, we see an opportunity to apply ideas and solutions of the functional logic paradigm in probabilistic programming.
+For instance,~\citet{christiansen2010free} investigate free theorems for functional logic programs.
+As their work considers non-determinism and sharing, adapting it to probabilistic programming should be easy.
+As another example,~\citet{brassel2009technique} presents a debugger for Curry that works well with non-determinism.
+Hence, it should be possible to reuse these ideas in the setting of probabilistic programming as well.
+
 \section{Final Remarks}
