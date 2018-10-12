@@ -1,5 +1,7 @@
 % !TEX root = thesis.tex
 
+\DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\mathtt}
+
 
 \usepackage{
   siunitx,
@@ -11,25 +13,17 @@
 \pgfplotsset{compat=newest}
 \usetikzlibrary{patterns}
 
+% important for Bayesian Network graphics
+\newcolumntype{M}[1]{D{.}{.}{1.#1}}
+\usepackage{dcolumn}
+
+% align-environment
+\usepackage{amsmath}
+
+
 \colorlet{curry}{orange!70!white}
 \colorlet{probLog}{violet!70!white}
 \colorlet{webPPL}{blue!70!black}
-
-%format not = "not"
-%format >>>= = "\mathbin{>\!\!\!>\!\!\!>\mkern-6.7mu=}"
-%format >>>=! = "\mathbin{>\!\!\!>\!\!\!>\mkern-6.7mu=!}"
-%format Values a = "\{"a"\}"
-%format frac x y = "\frac{"x"}{"y"}"
-%format (frac x y) = "\frac{"x"}{"y"}"
-%format repl = "\lambda\mkern-3mu"
-%format =? = "\stackrel{?}{\equiv}"
-%format tau1
-%format tau2
-%format tau3
-
-
-\def\commentbegin{\quad\{\ }
-\def\commentend{\}}
 
 
 % **************************************************
@@ -89,7 +83,7 @@ Languages and Compiler Construction}
     colortheme=bluemagenta,%
     bibsys=bibtex,%
     bibfile=thesis,%
-    bibstyle=alphabetic,%
+    bibstyle=authoryear,%
     wrapfooter=false,%
 }{cleanthesis}
 \usepackage{cleanthesis}
