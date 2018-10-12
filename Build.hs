@@ -3,32 +3,33 @@ import Development.Shake.Command
 import Development.Shake.FilePath
 import Development.Shake.Util
 
+dist :: FilePath
+dist = "dist"
+
 main :: IO ()
 main = shakeArgs shakeOptions $ do
-    want ["dist/thesis.pdf"]
+    want [dist </> "thesis.pdf", dist </> "thesis.bib", "thesis.lhs",
+                             "thesis.bib"]
 
     phony "clean" $ do
-        putNormal "Remove *.aux"
-        cmd_ "remove dist/*.aux"
+      putNormal "Remove *.aux"
+      cmd_ "remove" (dist </> "*.aux")
 
     let content = "content"
         chapter = "chapter"
 
-             
-    "dist/thesis.pdf" %> \_ -> do
-      files <- getDirectoryFiles (content </> chapter) ["//*.lhs", "//*.lcurry", "//*.v"]
-      files2 <- getDirectoryFiles (content </> "figures") ["//*.tex"]
-      putNormal (show files)
-      need ("thesis.lhs" : map (\ch -> content </> "figures" </> ch) files2
-                        ++ map (\ch -> content </> chapter </> ch)
-                               ("introduction" <.> "tex" : "conclusion" <.> "tex" : files))
-      cmd_ "pdflatex" "-output-directory" "dist" "thesis.tex"
+    "dist/thesis.tex" %> \out -> do
+      cmd_ "lhs2tex" "thesis.lhs" "-o" out
 
-    "thesis.lhs" %> \out -> do
-      cmd_ "lhs2tex" out "-o" (out -<.> "tex")
+    "dist/thesis.bib" %> \out -> do
+      cmd_ "cp" "thesis.bib" out
 
-    "content/figures/*.tex" %> \_ -> cmd_ "touch" "thesis.lhs"
-    "content/chapter/*.lcurry" %> \_ -> cmd_ "touch" "thesis.lhs"
+    "thesis.bib" %> \_ -> do
+      need [dist </> "thesis.bib"]
+      cmd_ "touch" (dist </> "thesis.tex")
+
+    "content/figures/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
+    "content/chapter/*.lcurry" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
 
 --    "content/chapter/*.lcurry" %> \out -> do
 --      cmd_ "lhs2tex" out "-o" (out -<.> "tex")
@@ -36,3 +37,15 @@ main = shakeArgs shakeOptions $ do
     "content/chapter/*.v" %> \out -> do
       let fileName = takeFileName out
       cmd_ "coqdoc" fileName "--latex" "--no-preamble" "--parse-comments" "-o" (fileName -<.> "tex")
+
+    "dist/thesis.pdf" %> \_ -> do
+      files <- getDirectoryFiles (content </> chapter) ["//*.lhs", "//*.lcurry", "//*.v"]
+      files2 <- getDirectoryFiles (content </> "figures") ["//*.tex"]
+      putNormal (show files)
+      need (map (\ch -> content </> "figures" </> ch) files2
+            ++ map (\ch -> content </> chapter </> ch)
+                   ("introduction" <.> "tex" : "conclusion" <.> "tex"
+                                     : files))
+      need ["thesis.bib", dist </> "thesis.tex"]
+
+      cmd_ "pdflatex" "-output-directory" dist (dist </> "thesis.tex")
