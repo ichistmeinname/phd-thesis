@@ -1,0 +1,58 @@
+\section{Functional Logic Programming}
+
+As an example, we define a non-deterministic coin, where |True| represents heads and |False| represents tails, as follows.
+
+\begin{code}
+coin :: Bool
+coin = True ? False
+\end{code}
+
+In Curry the |(?)|-operator non-deterministically chooses between two given arguments.
+Non-determinism is not reflected in the type system, that is, a non-deter\-mi\-nistic choice has type |a -> a -> a|.
+Such non-deterministic computations introduced by |(?)| describe two individual computation branches; one for the left argument und one for the right argument of |(?)|.
+
+We could also define |coin| in Prolog-style by giving two rules for coin.
+
+\begin{spec}
+coin :: Dist Bool
+coin = True
+coin = False
+\end{spec}
+
+Both implementations can be used interchangeably since the |(?)|-operator is defined in the Prolog-style using two rules as well.
+
+\begin{spec}
+(?) :: a -> a -> a
+x ? y = x
+x ? y = y
+\end{spec}
+
+Printing an expression in the REPL\footnote{We visualize the interactions with the REPL using |repl>| as prompt.} evaluates the non-deterministic computations, thus, yields one result for each branch as shown in the following examples.
+
+\begin{minipage}{0.48\textwidth}
+\begin{spec}
+repl> 1 ? 2
+1
+2
+\end{spec}
+\end{minipage}
+\begin{minipage}{0.48\textwidth}
+\begin{spec}
+repl> coin
+True
+False
+\end{spec}
+\end{minipage}
+
+The REPL computes the values using a breadth-first-search strategy to visualize the results.
+Due to the search strategy, we observe different outputs when changing the order of arguments to |(?)|.
+However, as Curry's semantics is set-based (\citet{christiansen2011adequate}) the order of the results does not matter.
+
+\begin{spec}
+member :: [a] -> a
+member xs = foldr (?) failed xs
+\end{spec}
+
+In Curry the constant |failed| is a silent failure that behaves as neutral element with respect to |(?)|. %
+That is, the expression |True ? failed| is equivalent to |True|. %
+Hence, the function |member| takes a list and yields a non-deterministic choice of all elements of the list.
