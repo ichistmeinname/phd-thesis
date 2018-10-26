@@ -806,9 +806,9 @@ repl> (const True) ?? die2
 
 The result of this query is |(frac 1 6)| and not |1.0| as expected.
 Consider \autoref{fig:unknown} for a step-by-step evaluation of this expression in order to understand better what is going on.
-This example illustrates that probabilities can get lost if we do not use the right amount of strictness.
-The predicate |const True| does not touch the event at all, thus does not trigger |side| to actually evaluate to all the constructors of |Side|.
-Then, the definition of |(??)| directly projects to the probability of |die2| and throws away all non-determinism left in |Dist side (frac 1 6)|.
+This example illustrates that probabilities can get lost if we the predicate is not strict enough the pull all non-deterministic values to the outside.
+Here, the predicate |const True| does not touch the event at all, thus, does not trigger |side| to evaluate to all the constructors of |Side|.
+Instead the definition of |(??)| directly projects to the probability of |die2| and throws away all non-determinism left in |Dist side (frac 1 6)|.
 Therefore, we lose probabilities we would like to sum up.
 
 \begin{figure}
@@ -839,6 +839,76 @@ Therefore, we lose probabilities we would like to sum up.
 
 As a consequence for PFLP, non-deterministic events within a distribution are not allowed.
 If users of the library stick to this rule, it is not possible to misuse the operations and lose non-deterministic results due to non-strictness.
+
+One possible approach to overcome this problem is to evaluate the events of a distribution to normal form in order to trigger all the non-determinism that may occur.
+Changing the library definition accordingly, however, leads to a loss of the advantage with respect to non-strictness.
+The query |allSix|, for example, heavy relies on the fact that the event is only evaluated as far as needed by the predicate |all (== Six)|. 
+A strict evaluation of the event forces the evaluation of the whole list of dices before applying the predicate.
+In case of our exemplary evaluation with a distribution that only consists of the value |One| in its events, we currently can stop after evaluating the head of the list as the predicate already yields |False|.
+Using a strict evaluation for the events of a distribution, the whole lists needs to be evaluated and the non-strictness of the predicate does not play a role anymore.
+
+An alternative idea is to only adapt the strictness behaviour of |enum|.
+
+\begin{code}
+enum2 :: [a] -> [Probability] -> Dist a
+enum2 xs ps = member (zipWith mkDist xs ps)
+ where mkDist x p = (\y -> Dist y p) $## x
+\end{code}
+The operator |($##)| evaluates its second to normal form and instantiates free variables and applies its first argument, a function, to the resulting value. If we adapt our example above to use `enum2`, querying with a non-strict predicate does not result in an unexpected probability anymore.
+
+\begin{spec}
+repl> const True ?? enum2 [side] [frac 1 6]
+\end{spec}
+
+This approach works out fine, however, we also need to consider that users of the library might define a uniform distribution without using |enum2|.
+For example, \cite{gibbons2011just} define a uniform distribution using the monadic function |return| and a second primitive called |choice|.
+
+\begin{minted}{haskell}
+class Monad m => MonadProb m where
+  choice :: Prob -> m a -> m a -> m a
+
+uniformGibbons :: MonadProb m => [a] -> m a
+uniformGibbons [x] = return x
+uniformGibbons (x : xs) = choice (1 / length (x:xs))
+                                 (return x)
+                                 (uniformGibbons xs')
+\end{minted}
+
+In order to translate this definition for usage in our library, we need to define a primitive like |choice|.
+The basic idea behind `choice` is, given a probability $p$ as first argument, it associates the second argument with probability $p$ and the third argument with probability $1-p$.
+In other probabilistic languages this primitive is usually called |flip| or |bernoulli|.
+We can define this function using |enum2|.
+
+\begin{code}
+bernoulli :: Probability -> a -> a -> Dist a
+bernoulli p x y = enum2 [x,y] [p, 1.0 -. p]
+\end{code}
+
+We can then translate the above definition of \mintinline{haskell}{uniformGibbons} into our library using |bernoulli| as follows.
+
+\begin{code}
+uniform2 :: [a] -> Dist a
+uniform2 [x] = certainly x
+uniform2 (x : xs) =  uniform2 xs >>>= \ xs' ->
+                     bernoulli (1.0 /. (i2f (length (x:xs)))) x xs'
+\end{code}
+
+Since the only way to define |bernoulli| with our library is to use the predefined function |enum2|, the strictness adaption in the definition of |enum2| is enough to trigger the evaluation of free variables used as argument of |uniform2|.
+
+\begin{spec}
+repl> const True ?? uniform2 side
+1.0
+\end{spec}
+
+Alternatively, instead of providing the function |uniform :: [a] -> Dist a| as combinator in our library, we could instead provide a variant |uniformND :: a -> Dist a| that actually expects to be called with a non-deterministic argument.
+
+\begin{code}
+uniformND :: a -> Dist a
+uniformND evnts = uniform xs
+ where xs = allValues evnts
+\end{code}
+
+The function encapsulates the non-deterministic events and uses this list of events to build a uniform distribution using the function |uniform| that is then only used internally.
 
 \subsection{Partial Functions}
 Besides not using non-determinism for events, users have to follow another restriction.
