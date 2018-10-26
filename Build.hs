@@ -9,7 +9,7 @@ dist = "dist"
 main :: IO ()
 main = shakeArgs shakeOptions $ do
     want [dist </> "thesis.pdf", dist </> "thesis.bib", "thesis.lhs",
-                             "thesis.bib"]
+          "thesis.bib", "setup.tex"]
 
     phony "clean" $ do
       putNormal "Remove *.aux"
@@ -28,6 +28,7 @@ main = shakeArgs shakeOptions $ do
       need [dist </> "thesis.bib"]
       cmd_ "touch" (dist </> "thesis.tex")
 
+    "setup.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/figures/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/chapter/*.lcurry" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
 
@@ -41,11 +42,10 @@ main = shakeArgs shakeOptions $ do
     "dist/thesis.pdf" %> \_ -> do
       files <- getDirectoryFiles (content </> chapter) ["//*.lhs", "//*.lcurry", "//*.v"]
       files2 <- getDirectoryFiles (content </> "figures") ["//*.tex"]
-      putNormal (show files)
       need (map (\ch -> content </> "figures" </> ch) files2
             ++ map (\ch -> content </> chapter </> ch)
                    ("introduction" <.> "tex" : "conclusion" <.> "tex"
                                      : files))
       need ["thesis.bib", dist </> "thesis.tex"]
 
-      cmd_ "pdflatex" "-output-directory" dist (dist </> "thesis.tex")
+      cmd_ "pdflatex" "-shell-escape" "-output-directory" dist (dist </> "thesis.tex")
