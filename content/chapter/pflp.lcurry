@@ -314,11 +314,20 @@ The operator filters events that satisfy the given predicate and computes the su
 It is straightforward to implement the bare filter function on distributions in Curry.
 
 > filterDist :: (a -> Bool) -> Dist a -> Dist a
-> filterDist p d@(Dist evnt _) | p evnt = d
+> filterDist p d =  let Dist evnt prb = d
+>                   in if p evnt then Dist evnt prb else failed
 
 The implementation of |filterDist| is a partial identity on the event-probability pairs.
 Every event that satisfies the predicate is part of the resulting distribution.
 The function fails for event-probability pairs that do not satisfy the predicate.
+Similar to the definition of |(>>>=)| above, we use a let-binding on the right-hand side.
+In contrast, however, to the definition of |(>>>=)|, we cannot yield a |Dist|-constructor directly.
+That is, the usage of the |let|-binding does not affect the strictness in comparision to a definition via pattern matching.
+
+\begin{spec}
+filterDistPattern :: (a -> Bool) -> Dist a -> Dist a
+filterDistPattern p (Dist evnt prb) = if p evnt then Dist evnt prb else failed
+\end{spec}
 
 Querying a distribution, i.e., summing up all probabilities that satisfy a predicate, is a more advanced task in the functional logic approach.
 Remember that we represent a distribution by chaining all event-probability pairs with |(?)|, thus, constructing non-deterministic computations.
@@ -870,128 +879,139 @@ That is, we have to check whether the following three laws hold for all distribu
 \item |(d >>>= f) >>>= g == d >>>= (\y -> f y >>>= g)|
 \end{itemize}
 
-In the previous section we have already observed that the equality stated in \ref{item:law1} does not necessary hold, depending on our notion of equality.
+In the previous section we have already observed that the equality stated in \ref{item:law1} does not hold in general.
 For example, we have seen that there is a context that is able to distinguish the left-hand from the right-hand side.
 For instance, while the expression
 \[
-|(\(Dist _ _) -> True) coin|
+|(\(Dist x p) -> True) coin|
 \]
 yields |True| twice, the expression
 \[
-|(\(Dist _ _) -> True) (coin >>>= certainly)|
+|(\(Dist x p) -> True) (coin >>>= certainly)|
 \]
 yields |True| only once.
 As most Curry semantics are based on sets --- and not on multisets, the two sides of the equality would be the same.
 Notwithstanding, in a multiset semantics the user could still not observe the difference between the two expressions because she does not have access to the |Dist|-constructor.
-The user cannot pattern match on a |Dist|-constructor, but only use the combinator |(??)| to calculate the probability of a given distribution or compute the whole distribution by displaying it via the REPL.
-By displaying a distribution via the REPL we compute the normal form of the given expression.
-So, in the example above, the user cannot observe that these two expressions behave differently.
+The user cannot pattern match on a |Dist|-constructor, but only use the combinator |(??)| to inspect a distribution.
 
-In the following we will reason about an equality with respect to multisets and in the context of |(??)|, but also keep the restrictions imposed on a user of the library in mind: distributions need to add up to |1.0| and events may not be non-deterministic.
-That is, we will discuss the laws above with the following modifications for all distributions |d|, and all values |x|, |p|, |f|, and |g| of appropriate types.
+In order to discuss the validity of the monad laws more rigorously, we apply equational reasoning to check whether the monad laws might fail.
+
+\paragraph{The first monad law}
+Let |d :: Dist tau| then we reason as follows about the first monad law \ref{item:law1}.
+
+\begin{spec}
+d >>>= certainly
+== {- Definition of |(>>>=)| -}
+let  Dist x p = d
+     Dist y q = certainly x
+in Dist y (p *. q)
+== {- Definition of |certainly| -}
+let  Dist x p = d
+     Dist y q = Dist x 1.0
+in Dist y (p *. q)
+== {- Inlining of |Dist y q = Dist x 1.0| -}
+let Dist x p = d in Dist x (p *. 1.0)
+== {- Definition of |(*.)| -}
+let Dist x p = d in Dist x p
+=?
+d
+\end{spec}
+Does the last step hold in general? It looks good for the deterministic case with |d = Dist evnt prb|.
+
+\begin{spec}
+let Dist x p = Dist evnt prob in Dist x p
+==
+Dist evnt prb
+\end{spec}
+However, the equality |let Dist x p = d in Dist x p == d| does not hold in general.
+For instance let us consider the case |d = failed|.
+\begin{spec}
+let Dist x p = failed in Dist x p
+==
+Dist failed failed
+/=
+failed
+\end{spec}
+That is, the left-hand side is more defined then the right-hand side if |d = failed|.
+
+Because the user cannot access the |Dist| constructor she cannot observe this difference.
+The user can only compare two distributions by using the querying operator |(??)|.
+Therefore, in the following we will show that the monad laws hold if we consider a context of the form |pred ?? d| where |pred| is an arbitrary predicate.
+Recall that we defined the operator |(??)| as follows.
+
+\begin{spec}
+(??) :: (a -> Bool) -> Dist a -> Probability
+(??) pred d = foldValues (+.) 0.0 (allValues (prob (filterDist pred d)))
+\end{spec}
+
+Fortunately, the monad laws already hold if we consider the context |filterDist pred| for an arbitrary predicate |pred :: a -> Bool|.
+Therefore we will show that the following equalities hold for all distributions |d|, and all values |x|, |pred|, |f|, and |g| of appropriate types.
 
 \begin{enumerate}[ref=(\arabic*),label=(\arabic*)]
-\item \label{item:law1} |p ?? (d >>>= certainly) == p ?? d|
-\item \label{item:law2} |p ?? (certainly x >>>= f) == p ?? (f x)|
-\item \label{item:law3} |p ?? ((d >>>= f) >>>= g)) == p ?? (d >>>= (\y -> f y >>>= g))|
+\item \label{item:law1} |filterDist pred (d >>>= certainly) == filterDist pred d|
+\item \label{item:law2} |filterDist pred (certainly x >>>= f) == filterDist pred (f x)|
+\item \label{item:law3} |filterDist pred ((d >>>= f) >>>= g)) == filterDist pred (d >>>= (\y -> f y >>>= g))|
 \end{enumerate}
 
-The context |(??)| mimics the behaviour the user can observe.
-Intuitively, when considering an equality in the context of |(p ?? dist)| for a given distribution |dist| and a predicate |p|, we pull the non-determinism in the probability component of the distribution to the top-level.
-The event component may not need to be evaluated depending on the predicate |p|.
-Without considering equality in the context of |(??)| we could not use non-determinism at all as the expressions above exemplify.
-Querying the distribution on both sides using, for example, |const True|, however, yields the same probability.
+In the following we will first show that equation \ref{item:law1} holds.
+We reason as follows for all distributions |d :: Dist a| and predicates |pred :: a -> Bool|.
 
 \begin{spec}
-(const True) ?? coin
-==
-1.0
-==
-(const True) ?? (coin >>>= certainly)
+filterDist pred (d >>>= certainly)
+== {- Reasoning above -}
+filterDist pred (let Dist x p = d in Dist x p)
+== {- Definition of |filterDist| -}
+let Dist y q = (let Dist x p = d in Dist x p)
+in if (pred y) then (Dist y q) else failed
+== {- Inline |let|-declaration -}
+let Dist y q = d
+in if (pred y) then (Dist y q) else failed
+== {- Definition of |filterDist| -}
+filterDist pred d
 \end{spec}
 
-The same holds for all other predicates of type |Bool -> Bool|, namely |not|, |const False| and |id|.
-In the following we will use |const True| as representative predicate since it is does not need to evaluate its the event component of the distribution, thus, it is as non-strict as possible.
+The |(>>>=)|-operator defers the pattern matching to the right-hand side via a |let|-expression.
+This so-called lazy pattern matching causes the monad laws to not hold without any context.
+However, because |filterDist| introduces a lazy pattern matching via a |let|-expression as well, observing two distributions via |filterDist| hides the difference between the two sides of the equation.
 
-In order to discuss the validity of the monad laws more rigorously, we apply equational reasoning to check where the monad laws might fail.
-Let |d :: Dist tau| and |p :: tau -> Bool| then we reason as follows.
+\paragraph{The second monad law}
+For the second monad law \ref{item:law2} we reason as follows for all |x :: tau1|, and all |f :: tau1 -> Dist tau2|.
 \begin{spec}
-p ?? (d >>>= certainly)
+certainly x >>>= f
 == {- Definition of |(>>>=)| -}
-p ??   (let  Dist evnt1 p = d
-             Dist evnt2 q = certainly evnt1
-        in Dist evnt2 (p *. q))
+let  Dist y p = certainly x
+     Dist z q = f y
+in Dist z (p *. q))
 == {- Definition of |certainly| -}
-p ??   (let  Dist evnt1 p = d
-             Dist evnt2 q = Dist evnt1 1.0
-        in Dist evnt2 (p *. q))
-== {- Inlining of |Dist evnt2 q = Dist evnt1 1.0| -}
-p ?? (let Dist evnt1 p = d in Dist evnt1 (p *. 1.0))
+let  Dist y p = Dist x 1.0
+     Dist z q = f y
+in Dist z (p *. q))
+== {- Inlining of |Dist y p = Dist x 1.0| -}
+let Dist z q = f x in Dist z (1.0 *. q)
 == {- Definition of |(*.)| -}
-p ?? (let Dist evnt1 p = d in Dist evnt1 p)
+let Dist z q = f x in Dist z q
 =?
-p ?? d
+f x
 \end{spec}
-The equality |let Dist evnt1 p = d in Dist evnt1 p == d| does not hold in general.
-For instance, we have |let Dist evnt1 p = failed in Dist evnt1 p == Dist failed failed|.
-That is the left hand side is more defined then the right hand side if |d = failed|.
-In the context of querying using |const True|, however, both sides are indeed equal.
+
+Here we observe the same restrictions as before, for example, if |f| yields |failed| for any argument |x| the equality does not hold.
+Once again, we consider the context |filterDist pred| for all |pred :: tau2 -> Bool| to reason that the user cannot observe the difference.
 
 \begin{spec}
-(const True) ?? failed
-==
-0.0
-==
-(const True) ?? (Dist failed failed)
+filterDist pred (let Dist z q = f x in Dist z q)
+== {- Definition of |filterDist| -}
+let Dist x p = (let Dist z q = f x in Dist z q)
+in if (pred x) then (Dist x p) else failed
+== {- Inline |let|-declaration -}
+let Dist x p = f x
+in if (pred x) then (Dist x p) else failed
+== {- Definition of |filterDist| -}
+filterDist pred (f x)
 \end{spec}
 
-The second case we need to consider is that the event contains non-determinism.
-For example, in case |d == Dist (True ? False) (frac 1 2)|, we reason as follows.
+Fortunately, the second monad law holds as well in the context of |filterDist|.
 
-\begin{spec}
-(const True) ?? (let Dist evnt1 p = Dist (True ? False) (frac 1 2) in Dist evnt1 p)
-==
-(const True) ?? ((Dist True (frac 1 2)) ? (Dist False (frac 1 2)))
-==
-1.0
-/=
-0.5
-==
-(const True) ?? (Dist (True ? False) (frac 1 2))
-\end{spec}
-That is, the non-determinism is pulled to the outside in case of the left side of the equation but not on the right side.
-
-In the end, we do not need to worry about both cases as they violate the imposed restrictions.
-The value |failed| as well as |True ? False| are non-deterministic and, thus, not allowed as events within distributions.
-Furthermore, |failed| is also not a valid distributions as it does not add up to |1.0|.
-That is, as long as users obey this restriction, the first monad law \ref{item:law1} holds.
-As an interesting side note, we observe that it may not be necessary to restrict users from using |failed| as an event.
-However, we do not discuss this weakening here, but consider a more detailed analysis of the necessary restrictions of the library as future work.
-
-For the second monad law \ref{item:law2} we reason as follows for all |x :: tau1|, all |p :: tau2 -> Bool|, and all |f :: tau1 -> Dist tau2|.
-\begin{spec}
-p ?? (certainly x >>>= f)
-== {- Definition of |(>>>=)| -}
-p ??  (let  Dist evnt1 p = certainly x
-            Dist evnt2 q = f evnt1
-       in Dist evnt2 (p *. q))
-== {- Definition of |certainly| -}
-p ??  (let  Dist evnt1 p = Dist x 1.0
-            Dist evnt2 q = f evnt1
-       in Dist evnt2 (p *. q))
-==
-p ?? (let Dist evnt2 q = f x in Dist evnt2 (1.0 *. q))
-== {- Definition of |(*.)| -}
-p ?? (let Dist evnt2 q = f x in Dist evnt2 q)
-=?
-p ?? (f x)
-\end{spec}
-Here we observe the same restrictions as before, namely, |f| may not yield |failed| for any argument |x| as the equation would fail in this case.
-In the same manner |f| may not yield a distribution whose event is non-deterministic.
-Once again, both cases cannot occur when the user obeys the restrictions.
-In the first case, |failed| is not a valid distribution, so |f| may not yield |failed| anyway.
-Secondly, non-deterministic events are not allowed, so we expect |f| not to yield a distribution with non-deterministic events.
-
+\paragraph{The third monad law}
 In order to complete the discussion of the monad laws, we finally consider the associativity of |(>>>=)| \ref{item:law3}.
 For all |d :: Dist tau1|, |f :: tau1 -> Dist tau2|, and |g :: tau2 -> Dist tau3| we reason as follows.
 \begin{spec}
@@ -1046,7 +1066,9 @@ in Dist y2 (p2 *. q2)
 == {- Definition of |(>>>=)| -}
 d >>>= (\x -> f x >>>= g)
 \end{spec}
-This reasoning shows that associativity actually holds without any restrictions.
+This reasoning shows that the associativity law actually holds without any additional context.
+
+All in all, |certainly| and |(>>>=)| form a valid monad from the user's point of view.
 
 \section{Related Work}
 
