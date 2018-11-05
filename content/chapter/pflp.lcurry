@@ -1172,12 +1172,15 @@ Due to the combination of non-strictness and non-determinism, we can efficiently
 After presenting the basic combinators of the library and motivating
 the advantages of modelling distributions using non-determinism, we
 will implement some exemplary applications.
-We reimplement examples that have been characterized as challenging
+First of we start with an example already motivated in the introduction of this chapter: bayesian networks.
+We define a simple bayesian network and corresponding queries using our library.
+The second case study concerns examples that have been characterized as challenging
 for probabilistic logic programming by
 \citet{nampally2015constraintbased}, who use the example to discuss
 the expressiveness of probabilistic logic programming and its cost
 with respect to performance.
-The examples focus on properties of random strings and their probabilities.
+These examples focus on properties of random strings and their probabilities.
+In the third casy study we model the famous secret santa problem in three different versions using our library.
 Furthermore, we show benchmarks of these examples and compare them with the probabilistic languages ProbLog (\citet{kimmig2011implementation}) and WebPPL (\citet{goodman2014design}).
 These comparisions confirm the advantages of non-strict non-determinism with respect to performance.
 
@@ -1385,32 +1388,54 @@ As the examples shown here are not the only examples that we implemented with ou
 
 \subsection{Secret Santa}
 
-This example was motivated by an episode of \emph{Numberphile}\footnote{\url{https://youtu.be/5kC5k5QBqcc}} moderated by Dr. Hannah Fry.
+Most tutorials on probabilistic programming include an example that models the classical Monty Hall game to show the probabilities for several game scenarios.
+In this section we will take a look at another problem that probably most people have already heard of.
+We will model the preparation for a game of secret santa\footnote{This example was motivated by an episode of \emph{Numberphile} moderated by Dr. Hannah Fry. See online via \url{https://youtu.be/5kC5k5QBqcc}}.
+Secret santa is a famous western christmas tradition in which a group of people organise to exchange gifts.
+The main idea is that each person is randomly assigned to another person, these assignments declare who has to give a gift to whom.
+It should not be possible for a person to pick himself as gift receiver.
+As the assignments are usually drawn from a hat with names of all the participants on a piece of paper inside, these draws do not all end up in a valid game constellation.
+In this section we will take a look at the probability that the name picking phase yields an invalide game constellation.
 
- 
+We start by defining each person as an |Int| value and a |Hat| as merely a list of such |Person|s.
+
 > type Person = Int
 > type Hat = [Person]
 
-> data SecretSanta = FailedGame | Success [SantaArrangement]
-> data SantaArrangement = Arrangement { santa :: Person, person :: Person }
+As already noted, the assignment of each person to another person might yield a invalid game constellation, where one person draws herself.
+We incorporate these possible outcomes in a data type |SecretSanta| that represents an invalid game using |Failed| and a valid constellation using |Success|.
+Since we are interested in the assignments of each person the |Success|-constructor contains the list of |SantaAssignment|s as argument.
+
+> data SecretSanta = Failed | Success [SantaAssignment]
+> data SantaAssignment = Assignment { santa :: Person, person :: Person }
+
+A |SantaAssignment| always consists of a secret santa and a person receiving the gift.
+
+We define a game of secret santa as function that takes the number of participants as argument and yields a |Hat| with numbers |1| to the number of participants, if there are more than one participant.
 
 > santaGame :: Int -> Hat
 > santaGame n | n > 1 = [1..n]
 >             | otherwise = error "invalid game"
 
+It will hopefully come with no surprise that each person in the hat can be drawn with the same probability.
+Thus, we define |pickFromHat| to yield a uniform distribution for a given |Hat|.
+
 > pickFromHat :: Hat -> Dist Person
 > pickFromHat = uniform
 
-> -- yields an arrangement and the remaining persons if there are any persons to pick from;
-> -- the remaining persons are all given person without the one that was picked
-> pPicks :: Person -> Hat -> Dist (Maybe (SantaArrangement, [Person]))
+In order to make reasonable use of |pickFromHat|, we need a function that actually keeps track, which persons are still left in the hat after a pick.
+That is, we define |pPicks| that yields a distribution of a potentially |SantaAssignment| and the remaining hat with the list of persons.
+We pass a hat and the person that draws from the hat as arguments.
+As the hat might be empty, we wrap the result as an optional value, yielding |Nothing| for an empty hat.
+
+> pPicks :: Person -> Hat -> Dist (Maybe (SantaAssignment, [Person]))
 > pPicks _ [] = certainly Nothing
 > pPicks p ps@(_:_) =
 >   pickFromHat ps >>>= \p' ->
->   certainly (Just (Arrangement p p', delete p' ps))
+>   certainly (Just (Assignment p p', delete p' ps))
 
-> -- yields an arrangement for each player in the hat;
-> -- the pick cannot fail as there are as many players as persons in the hat
+Now, for a naive round of draws from the hat, we let each person draw from the hat without interference and all draws are only visible at the end when everybody already picked another person.
+
 > pickRound :: Hat -> Dist SecretSanta
 > pickRound [] = certainly FailedGame
 > pickRound xs@(_:_) = pickRound' xs xs [] >>>= \ arrs -> certainly (Success arrs)
@@ -1420,50 +1445,38 @@ This example was motivated by an episode of \emph{Numberphile}\footnote{\url{htt
 >     pPicks p hat >>>= \ (Just (arr,hat')) ->
 >     pickRound' ps hat' (arr:arrs)
 
-> -- yields an arrangement for each player in the hat;
-> -- for each player the hat is "cleaned", such that a player
-> -- cannot pick herself from the hat
-> pickRoundWOFailed :: Hat -> Dist SecretSanta
-> pickRoundWOFailed [] = certainly FailedGame
-> pickRoundWOFailed xs@(_:_) = pickRound' xs xs []
->  where
->   pickRound' []     _   arrs = certainly (Success arrs)
->   pickRound' (p:ps) hat arrs =
->     pPicks p (delete p hat) >>>= \ mArr ->
->     maybe (certainly FailedGame)
->           (\(arr,_) -> pickRound' ps (delete (person arr) hat) (arr:arrs))
->           mArr
-
-> -- yields a `SecretSanta` game without invalid picks, i.e.,
-> -- arrangements with invalid picks are transformed to `FailedGame`
-> normFailedGame :: SecretSanta -> SecretSanta
-> normFailedGame FailedGame = FailedGame
-> normFailedGame game@(Success arrs) | any isFailedArr arrs = FailedGame
->                                    | otherwise            = game
-
-> -- checks if a game is a `FailedGame`
-> isFailedGame :: SecretSanta -> Bool
-> isFailedGame game = case game of
->                       FailedGame -> True
->                       _ -> False
-
-> -- checks if an arrangement is invalid
-> isFailedArr :: SantaArrangement -> Bool
-> isFailedArr secret = santa secret == person secret
-
+We can try out our implementation for a small game with three people.
 
 > santa1 :: Dist SecretSanta
 > santa1 = pickRound (santaGame 3)
 
 \begin{spec}
 repl> santa1
-(Dist (Success [(Arrangement 3 3),(Arrangement 2 2),(Arrangement 1 1)]) 0.16666666666666666)
-(Dist (Success [(Arrangement 3 2),(Arrangement 2 3),(Arrangement 1 1)]) 0.16666666666666666)
-(Dist (Success [(Arrangement 3 3),(Arrangement 2 1),(Arrangement 1 2)]) 0.16666666666666666)
-(Dist (Success [(Arrangement 3 1),(Arrangement 2 3),(Arrangement 1 2)]) 0.16666666666666666)
-(Dist (Success [(Arrangement 3 2),(Arrangement 2 1),(Arrangement 1 3)]) 0.16666666666666666)
-(Dist (Success [(Arrangement 3 1),(Arrangement 2 2),(Arrangement 1 3)]) 0.16666666666666666)
+(Dist (Success [(Assignment 3 3),(Assignment 2 2),(Assignment 1 1)]) 0.16666666666666666)
+(Dist (Success [(Assignment 3 2),(Assignment 2 3),(Assignment 1 1)]) 0.16666666666666666)
+(Dist (Success [(Assignment 3 3),(Assignment 2 1),(Assignment 1 2)]) 0.16666666666666666)
+(Dist (Success [(Assignment 3 1),(Assignment 2 3),(Assignment 1 2)]) 0.16666666666666666)
+(Dist (Success [(Assignment 3 2),(Assignment 2 1),(Assignment 1 3)]) 0.16666666666666666)
+(Dist (Success [(Assignment 3 1),(Assignment 2 2),(Assignment 1 3)]) 0.16666666666666666)
 \end{spec}
+
+We can see that all games are marked as valid.
+If we take, however, a closer look at the assignments for each of the games, we see that there are multiple invalid assignments.
+This problem is not that surprising, because |pickRound| lets each person pick without interference, that is, we do not check if the pick is valid or not.
+As mentioned in the beginning, a pick is invalid if a person draws herself from the hat.
+
+> isFailedAssign :: SantaAssignment -> Bool
+> isFailedAssign secret = santa secret == person secret
+
+Using the predicate |isFailedAssign| we can normalise the result from |pickRound| in order to mark invalid games as such.
+That is, if any assignment of a |SecretSanta| game is invalid, the whole game failed.
+
+> normFailedGame :: SecretSanta -> SecretSanta
+> normFailedGame FailedGame = FailedGame
+> normFailedGame game@(Success arrs) | any isFailedAssign arrs = FailedGame
+>                                    | otherwise               = game
+
+We check our implementation once again using |normFailedGame| to mark invalid games.
 
 > santa1' :: Dist SecretSanta
 > santa1' = pickRound (santaGame 3) >>>= \game -> certainly (normFailedGame game)
@@ -1473,33 +1486,57 @@ repl> santa1'
 (Dist FailedGame 0.16666666666666666)
 (Dist FailedGame 0.16666666666666666)
 (Dist FailedGame 0.16666666666666666)
-(Dist (Success [(Arrangement 3 1),(Arrangement 2 3),(Arrangement 1 2)]) 0.16666666666666666)
-(Dist (Success [(Arrangement 3 2),(Arrangement 2 1),(Arrangement 1 3)]) 0.16666666666666666)
+(Dist (Success [(Assignment 3 1),(Assignment 2 3),(Assignment 1 2)]) 0.16666666666666666)
+(Dist (Success [(Assignment 3 2),(Assignment 2 1),(Assignment 1 3)]) 0.16666666666666666)
 (Dist FailedGame 0.16666666666666666)
 \end{spec}
+
+This result looks better. Next, we query for the probability that a game is invalid.
+
+> isFailedGame :: SecretSanta -> Bool
+> isFailedGame game = case game of
+>                       FailedGame -> True
+>                       _ -> False
+
+\begin{spec}
+repl> isFailedGame ?? santa1'
+0.6666666666666666
+\end{spec}
+
+Only a third of all game constellations are valid.
+That is, if every person picks from the hat before we check for invalid game constellations, every three games we need to do it all again from the beginning.
+There are usually two possible alternative procedures to avoid invalid game constellations.
+For the first alternative we check after each pick if this pick invalidates the game, i.e., if a person picked herself.
+There is, however, a problem with this alternative: there is no definite ending, a person could end up picking herself every time she tries again.
+A modified version of this idea is the second alternative.
+Instead of picking a new name after an invalid pick, we modify the hat before each pick such that invalid picks cannot happen in the first place.
+That is, if a person |p| picks from the hat, we (temporarily) delete this person from the hat and add it again before the next person picks.
+We do this for every person that picks from the hat.
+
+> pickRoundWOFailed :: Hat -> Dist SecretSanta
+> pickRoundWOFailed [] = certainly FailedGame
+> pickRoundWOFailed xs@(_:_) = pickRound' xs xs []
+ar>  where
+>   pickRound' []     _   assigns = certainly (Success assigns)
+>   pickRound' (p:ps) hat assigns =
+>     pPicks p (delete p hat) >>>= \ mAssign ->
+>     maybe (certainly FailedGame)
+>           (\(assign,_) -> pickRound' ps (delete (person assign) hat) (assign:assigns))
+>           mArr
+
+Note that for this solution to work it is crucial that |pPicks| can handle an empty hat as well.
+The only possible invalid game that could happen with this setup is that the last person might pick herself.
+In this case the hat only contains the name of this person, which will be deleted before the pick.
+Thus, the person tries to pick from an empty hat which leads to an invalid game.
+
+With this alternative picking procedure, we can reduce the amount of replays as only every fourth game will end in an invalid constellation.
 
 > santa2 :: Dist SecretSanta
 > santa2 = pickRoundWOFailed (santaGame 3)
 
 \begin{spec}
-repl> santa2
-(Dist FailedGame 0.25)
-(Dist (Success [(Arrangement 3 1),(Arrangement 2 3),(Arrangement 1 2)]) 0.25)
-(Dist (Success [(Arrangement 3 2),(Arrangement 2 1),(Arrangement 1 3)]) 0.5)
-\end{spec}
-
-> query :: Int -> (Hat -> Dist SecretSanta) -> Probability
-> query n pickFunc = isFailedGame ?? (pickFunc (santaGame n))
-
-\begin{spec}
-repl> query 3 pickRoundWOFailed
+repl> isFailedGame ?? santa2
 0.25
-
-repl> query 3 pickRound
-0.0
-
-repl> query 3 (\d -> pickRound d >>>= certainly . normFailedGame)
-0.6666666666666666
 \end{spec}
 
 \subsection{Performance Comparisons}
