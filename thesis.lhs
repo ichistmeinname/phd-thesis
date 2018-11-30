@@ -109,24 +109,18 @@
 % --------------------------
 % Back matter
 % --------------------------
-\appendix\cleardoublepage
-\input{content/appendix}
 %
 {%
 \setstretch{1.1}
 \renewcommand{\bibfont}{\normalfont\small}
 \setlength{\biblabelsep}{0pt}
 \setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
-\printbibliography[nottype=online]
-\printbibliography[heading=subbibliography,title={Webpages}]
+\printbibliography
 }
 \cleardoublepage
 
-\listoffigures
-\cleardoublepage
-
-\listoftables
-\cleardoublepage
+\appendix\cleardoublepage
+\input{content/appendix}
 
 % **************************************************
 % End of Document CONTENT

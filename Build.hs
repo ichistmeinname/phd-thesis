@@ -9,7 +9,7 @@ dist = "dist"
 main :: IO ()
 main = shakeArgs shakeOptions $ do
     want [dist </> "thesis.pdf", dist </> "thesis.bib", "thesis.lhs",
-          "thesis.bib", "setup.tex"]
+          "thesis.bib", "setup.tex", "content/appendix.tex"]
 
     phony "clean" $ do
       putNormal "Remove *.aux"
@@ -31,6 +31,7 @@ main = shakeArgs shakeOptions $ do
     "setup.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/figures/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/chapter/*.lcurry" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
+    "content/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
 
 --    "content/chapter/*.lcurry" %> \out -> do
 --      cmd_ "lhs2tex" out "-o" (out -<.> "tex")
