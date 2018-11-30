@@ -1404,7 +1404,7 @@ As already noted, the assignment of each person to another person might yield a 
 We incorporate these possible outcomes in a data type |SecretSanta| that represents an invalid game using |Failed| and a valid constellation using |Success|.
 Since we are interested in the assignments of each person the |Success|-constructor contains the list of |SantaAssignment|s as argument.
 
-> data SecretSanta = Failed | Success [SantaAssignment]
+> data SecretSanta = FailedGame | Success [SantaAssignment]
 > data SantaAssignment = Assignment { santa :: Person, person :: Person }
 
 A |SantaAssignment| always consists of a secret santa and a person receiving the gift.
@@ -1450,12 +1450,12 @@ We can try out our implementation for a small game with three people.
 
 \begin{spec}
 repl> santa1
-(Dist (Success [(Assignment 3 3),(Assignment 2 2),(Assignment 1 1)]) 0.16666666666666666)
-(Dist (Success [(Assignment 3 2),(Assignment 2 3),(Assignment 1 1)]) 0.16666666666666666)
-(Dist (Success [(Assignment 3 3),(Assignment 2 1),(Assignment 1 2)]) 0.16666666666666666)
-(Dist (Success [(Assignment 3 1),(Assignment 2 3),(Assignment 1 2)]) 0.16666666666666666)
-(Dist (Success [(Assignment 3 2),(Assignment 2 1),(Assignment 1 3)]) 0.16666666666666666)
-(Dist (Success [(Assignment 3 1),(Assignment 2 2),(Assignment 1 3)]) 0.16666666666666666)
+(Dist (Success [(Assignment 3 3),(Assignment 2 2),(Assignment 1 1)]) (frac 1 6))
+(Dist (Success [(Assignment 3 2),(Assignment 2 3),(Assignment 1 1)]) (frac 1 6))
+(Dist (Success [(Assignment 3 3),(Assignment 2 1),(Assignment 1 2)]) (frac 1 6))
+(Dist (Success [(Assignment 3 1),(Assignment 2 3),(Assignment 1 2)]) (frac 1 6))
+(Dist (Success [(Assignment 3 2),(Assignment 2 1),(Assignment 1 3)]) (frac 1 6))
+(Dist (Success [(Assignment 3 1),(Assignment 2 2),(Assignment 1 3)]) (frac 1 6))
 \end{spec}
 
 We can see that all games are marked as valid.
@@ -1471,8 +1471,8 @@ That is, if any assignment of a |SecretSanta| game is invalid, the whole game fa
 
 > normFailedGame :: SecretSanta -> SecretSanta
 > normFailedGame FailedGame = FailedGame
-> normFailedGame game@(Success arrs) | any isFailedAssign arrs = FailedGame
->                                    | otherwise               = game
+> normFailedGame game@(Success arrs)  | any isFailedAssign arrs  = FailedGame
+>                                     | otherwise                = game
 
 We check our implementation once again using |normFailedGame| to mark invalid games.
 
@@ -1481,24 +1481,23 @@ We check our implementation once again using |normFailedGame| to mark invalid ga
 
 \begin{spec}
 repl> santa1'
-(Dist FailedGame 0.16666666666666666)
-(Dist FailedGame 0.16666666666666666)
-(Dist FailedGame 0.16666666666666666)
-(Dist (Success [(Assignment 3 1),(Assignment 2 3),(Assignment 1 2)]) 0.16666666666666666)
-(Dist (Success [(Assignment 3 2),(Assignment 2 1),(Assignment 1 3)]) 0.16666666666666666)
-(Dist FailedGame 0.16666666666666666)
+(Dist FailedGame (frac 1 6))
+(Dist FailedGame (frac 1 6))
+(Dist FailedGame (frac 1 6))
+(Dist (Success [(Assignment 3 1),(Assignment 2 3),(Assignment 1 2)]) (frac 1 6))
+(Dist (Success [(Assignment 3 2),(Assignment 2 1),(Assignment 1 3)]) (frac 1 6))
+(Dist FailedGame (frac 1 6))
 \end{spec}
 
 This result looks better. Next, we query for the probability that a game is invalid.
 
 > isFailedGame :: SecretSanta -> Bool
-> isFailedGame game = case game of
->                       FailedGame -> True
->                       _ -> False
+> isFailedGame FailedGame    = True
+> isFailedGame (Success _ )  = False
 
 \begin{spec}
 repl> isFailedGame ?? santa1'
-0.6666666666666666
+frac 2 3
 \end{spec}
 
 Only a third of all game constellations are valid.
@@ -1514,13 +1513,13 @@ We do this for every person that picks from the hat.
 > pickRoundWOFailed :: Hat -> Dist SecretSanta
 > pickRoundWOFailed [] = certainly FailedGame
 > pickRoundWOFailed xs@(_:_) = pickRound' xs xs []
-ar>  where
+>  where
 >   pickRound' []     _   assigns = certainly (Success assigns)
 >   pickRound' (p:ps) hat assigns =
 >     pPicks p (delete p hat) >>>= \ mAssign ->
 >     maybe (certainly FailedGame)
->           (\(assign,_) -> pickRound' ps (delete (person assign) hat) (assign:assigns))
->           mArr
+>       (\(assign,_) -> pickRound' ps (delete (person assign) hat) (assign:assigns))
+>       mAssign
 
 Note that for this solution to work it is crucial that |pPicks| can handle an empty hat as well.
 The only possible invalid game that could happen with this setup is that the last person might pick herself.
@@ -1529,13 +1528,75 @@ Thus, the person tries to pick from an empty hat which leads to an invalid game.
 
 With this alternative picking procedure, we can reduce the amount of replays as only every fourth game will end in an invalid constellation.
 
-> santa2 :: Dist SecretSanta
-> santa2 = pickRoundWOFailed (santaGame 3)
+\begin{spec}
+repl> isFailedGame ?? (pickRoundWOFailed (santaGame 3))
+frac 1 4
+\end{spec}
+
+Instead of manipulating the hat before each pick, we can make an additional check and pick a second time as necessary.
+After a pick, we check if the person picked herself and if so, she makes a second pick without putting herself back into the hat.
+Note that similar to the alternative |pickRoundWOFailed| the hat can be empty for the second try, if the last person to pick can only pick herself.
+
+> pickAndCheckRound :: Hat -> Dist SecretSanta
+> pickAndCheckRound [] = certainly FailedGame
+> pickAndCheckRound xs@(_:_) = pickRound' xs xs []
+>  where
+>   pickRound' []     _   assigns = certainly (Success assigns)
+>   pickRound' (p:ps) hat assigns =
+>     pPicks p hat >>>= \ mAssign ->
+>     maybe (certainly FailedGame)
+>           (\ (assign,newHat) ->
+>             if person assign == p
+>               then pPicks p newHat >>>= \ mAssign2 ->
+>                    maybe (certainly FailedGame)
+>                          (\ (assign2,newHat2) ->
+>                            pickRound' ps (p:newHat2) (assign2:assigns))
+>                          mAssign2
+>               else pickRound' ps newHat (assign:assigns))
+>           mAssign
 
 \begin{spec}
-repl> isFailedGame ?? santa2
-0.25
+repl> isFailedGame ?? (pickAndCheckRound (santaGame 3))
+frac 1 4
 \end{spec}
+
+We can take this idea one step further and repeat the process until we end up with a valid pick.
+However, as we can only model discrete, and not continous, distributions, we need to set a limit for the number of retries we do.
+
+> pickAndRepeatRound :: Int -> Hat -> Dist SecretSanta
+> pickAndRepeatRound _ [] = certainly FailedGame
+> pickAndRepeatRound limit xs@(_:_) = pickRound' limit xs xs []
+>  where
+>   pickRound' _ []     _   assigns = certainly (Success assigns)
+>   pickRound' limit (p:ps) hat assigns
+>    | limit == 0 = certainly FailedGame
+>    | limit > 0  =
+>      pPicks p hat >>>= \ mAssign ->
+>      maybe (certainly FailedGame)
+>            (\ (assign,newHat) ->
+>              if person assign == p
+>               then pickRound' (limit - 1) (p:ps) hat assigns
+>               else pickRound' limit ps newHat (assign:assigns))
+>            mAssign
+
+Running this implementation with an increasing value for the number of retries reveals that the overall probability for an invalid game converges to $25\%$.
+
+\begin{spec}
+repl> isFailedGame ?? (pickAndRepeatRound 1 (santaGame 3))
+frac 2 3
+
+repl> isFailedGame ?? (pickAndRepeatRound 5 (santaGame 3))
+0.2802211934156378
+
+repl> isFailedGame ?? (pickAndRepeatRound 10 (santaGame 3))
+0.2509723287280479
+
+repl> isFailedGame ?? (pickAndRepeatRound 20 (santaGame 3))
+0.2500009536026171
+\end{spec}
+
+When passing `1` as limit to `pickAndRepeatRound`, the implementation is equivalent to using the function "pickRound" and normalising the results like we did in the beginning.
+Note that both approaches are equivalent because no picker is allowed to retry when picking himself.
 
 \subsection{Performance Comparisons}
 
