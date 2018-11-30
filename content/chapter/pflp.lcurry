@@ -767,7 +767,7 @@ All in all, in order to benefit from non-strictness, all operations have to use 
 For this reason PFLP does not provide the |Dist|-constructor nor the corresponding projection functions to the user.
 With this restriction, the library guarantees that no relevant probabilities get lost with respect to non-strictness.
 
-\section{Restrictions}
+\section{Pitfalls}
 
 \subsection{Non-deterministic Events}
 
@@ -936,8 +936,8 @@ We only allow to filter distributions when a probability is computed using |(??)
 In the current implementation this restriction on functions when using |(>>>=)| is neither statically nor dynamically enforced, but a coding convention that users should keep in mind and follow when working with the library.
 When this restriction is strictly followed, the user has the guarantee that the library works as expected.
 
-\subsection{Monad Laws}
-\label{ssec:monad}
+\section{Monad Laws}
+\label{sec:monad}
 
 When we comply with the restrictions we have discussed above, the operators |(>>>=)| and |certainly| allow us to formulate probabilistic programs as one would expect.
 However, there is one obvious question that we did not answer yet.
@@ -1143,7 +1143,7 @@ All in all, |certainly| and |(>>>=)| form a valid monad from the user's point of
 
 \section{Related Work}
 
-The approach of this paper is based on the work by \citet{erwig2006functional}, who introduce a Haskell library that represents distributions as lists of event-probability pairs. %
+The approach of the presented library PFLP for probabilistic programming in Curry is based on the work by \citet{erwig2006functional}, who introduce a Haskell library that represents distributions as lists of event-probability pairs. %
 Their library also provides a simple sampling mechanism to perform inference on distributions.
 Inference algorithms come into play because common examples in probabilistic programming have an exponential growth and it is not feasible to compute the whole distribution.
 Similarly, \citet{scibior2015practical} present a more efficient implementation using a DSL in Haskell.
@@ -1151,18 +1151,16 @@ They represent distributions as a free monad and inference algorithms as an inte
 Thanks to this interpretation, the approach is competitive to full-blown probabilistic programming languages with respect to performance.
 PFLP provides functions to sample from distributions as well.
 However, in this work we focus on modeling distributions and do not discuss any sampling mechanism.
-In particular, as future work we plan to investigate whether we can benefit from the improved performance as presented here in the case of sampling.
-Furthermore, a more detailed investigation of the performance of non-determinism in comparison to a list model is a topic for another paper.
 
 The benefit with respect to the combination of non-strictness and non-de\-ter\-min\-ism is similar to the benefit of property-based testing using Curry-like non-determinism in Haskell (\citet{runciman2008smallcheck}) and Curry (\citet{christiansen2008easycheck}).
-In property-based testing, sometimes we want to generate test cases that satisfy a precondition.
+In property-based testing, sometimes we want to generate only test cases that satisfy a precondition.
 With Curry-like non-determinism the precondition can prune the search space early, while a list-based implementation has to generate all test cases and filter them afterwards.
 Both applications, probabilistic programming and property-based testing, are examples, where built-in non-determinism outperforms list-based approaches as introduced by \citet{wadler1985replace}.
-In comparison to property-based testing, here, we observe that we can even add a kind of monadic layer on top of the non-determinism that computes additional information and still preserve the demand driven behavior.
+In comparison to property-based testing, here, we observe that we can even add a kind of monadic layer on top of the non-determinism that computes additional information and still preserve the demand-driven behavior.
 However, the additional information has to be evaluated strictly --- as it is the case for probabilities, otherwise we might lose non-deterministic results.
 
 There are other more elaborated approaches to implement a library for probabilistic programming.
-For example, \citet{kiselyov2009embedded} extend their library for probabilistic programming in OCAML with a construct for lazy evaluation to achieve similar positive effects.
+For example, \citet{kiselyov2009embedded} extend their library for probabilistic programming in OCaml with a construct for lazy evaluation to achieve similar positive effects.
 However, they use lazy evaluation for a concrete application based on importance sampling.
 Due to the combination of non-strictness and non-determinism, we can efficiently calculate the total probability of the resulting distribution without utilizing sampling.
 
@@ -1660,11 +1658,14 @@ Considering these restrictions, we showed that the library obeys the expected mo
 As future work, we see a high potential for performance improvements for the Curry compiler KiCS2.
 PFLP serves as a starting point for further studies of functional logic features in practical applications.
 For example, we would expect the running times of the strict implementation based on non-determinism to be approximately as efficient as a list-based implementation.
-However, as the numbers in \autoref{sec:details} show, the list approach is considerably faster.
+As the numbers in \autoref{sec:details} show, the list approach is, however, considerably faster.
+Furthermore, a more detailed investigation of the performance of non-determinism in comparison to a list model is an interesting topic for itself.
 
 The library's design does not support the use of non-determinism in events or probabilities of a distribution.
 In case of deeper non-determinism, we have to be careful to trigger all non-determinism when querying a distribution as shown in \autoref{sec:details}.
 Hence, the extension of the library with an interface using non-determinism on the user's side is an idea worth studying.
+
+Since we did not discuss any sampling mechanisms for the library here, we plan to investigate whether we can also benefit from the improved performance in the case of sampling.
 
 Last but not least, we see an opportunity to apply ideas and solutions of the functional logic paradigm in probabilistic programming.
 For instance,~\citet{christiansen2010free} investigate free theorems for functional logic programs.
