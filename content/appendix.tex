@@ -1,40 +1,292 @@
-% !TEX root = ../my-thesis.tex
-%
-\chapter{Example Appendix}
+\chapter{Appendix}
 \label{sec:appendix}
 
 \Blindtext[1][1]
 
-\section{Appendix Section 1}
-\label{sec:appendix:sec1}
+\section{Example Programs in Probabilistic Programming Languages}
+\label{sec:appendix:ppl}
 
-\Blindtext[1][1]
+\section{WebPPL}
 
-\begin{table}[h]
-	\begin{tabularx}{\textwidth}{X | X | X}
-		%\hline
-		Alpha		& Beta			& Gamma			\\ \hline
-		0			& 1				& 2				\\ \hline
-		3			& 4				& 5				\\ %\hline
-	\end{tabularx}
-	\label{tab:table1}
-	\caption{This is a caption text.}
-\end{table}
+\paragraph{Bayesian Network}
+\begin{minted}{javascript}
+var raining = function() {
+    return flip(0.2);
+};
 
-\section{Appendix Section 2}
-\label{sec:appendix:sec2}
+var sprinkler = function(r) {
+    if (r) {
+        return flip(0.01)
+    } else {
+        return flip(0.4);
+    }
+};
 
-\Blindtext[1][1]
+var grassWet = function(s,r) {
+    if (s && r) {
+        return flip(0.99);
+    } else {
+        if (s && !r) {
+            return flip(0.9);
+        } else {
+            if (!s && r) {
+                return flip(0.8);
+            } else {
+                return flip(0.0);
+            };
+        }
+    };
+};
 
-\begin{table}[h]
-	\begin{tabularx}{\textwidth}{X | X | X}
-		%\hline
-		Alpha		& Beta			& Gamma			\\ \hline
-		0			& 1				& 2				\\ \hline
-		3			& 4				& 5				\\ %\hline
-	\end{tabularx}
-	\label{tab:table2}
-	\caption{This is a caption text.}
-\end{table}
+var grassModel = function () {
+    var r = raining();
+    var s = sprinkler(r);
+    var g = grassWet(s,r);
+    return { isRaining : r, isSprinklerOn : s, isGrassWet : g };
+}
 
-\Blindtext[1][2]
+var grassWetWhenRaining = function() {
+    var g = grassModel();
+    return (g.isRaining && g.isGrassWet);
+};
+
+\end{minted}
+
+\begin{minted}{javascript}
+Infer({ model: grassWetWhenRaining
+        , method: 'enumerate'
+        , maxRuntimeInMS: Infinity});
+\end{minted}
+
+\paragraph{Replicate Die}
+
+\begin{minted}{javascript}
+var die = function() {
+    return uniformDraw([1,2,3,4,5,6]);
+};
+
+var replicateDist = function (n, dist) {
+    if (n == 0) {
+        return uniformDraw([[]]);
+    } else {
+        return [dist()].concat(replicateDist(n-1,dist));
+    }
+};
+
+// allSix n = all (== Six) ?? replicateDist n (\ () -> die)
+var allSix = function(n) {
+    var list = replicateDist(n,die);
+    all(function(x) { isSix(x) }, list);
+}
+
+var isSix = function(dist) {
+    var x = dist;
+    return x == 6 ? true : false;
+};
+
+\end{minted}
+
+\begin{minted}{javascript}
+Infer({ model: function() { allSix(5) }
+        , method: 'enumerate'
+        , maxRuntimeInMS: Infinity});
+\end{minted}
+
+\paragraph{Strings}
+
+\begin{minted}{javascript}
+var pickChar = function () {
+    return uniformDraw(['a','b']);
+};
+
+var replicateDist = function (n, dist) {
+    if (n == 0) {
+        return uniformDraw([[]]);
+    } else {
+        return [dist()].concat(replicateDist(n-1,dist));
+    }
+};
+
+var randomString = function(n) {
+    replicateDist(n, pickChar);
+};
+
+var isPalindrome = function(str) {
+    return (JSON.stringify(str) == JSON.stringify(str.reverse()));
+};
+
+var hasConsecutiveBs = function(str) {
+    if (str.length < 2) {
+        return false;
+    } else {
+        return helper(str,0,str.length-1);
+    }
+}
+
+var helper = function (str,n,max) {
+    if (n == max) {
+        return false;
+    } else {
+        if (str[n] == 'b' && str[n+1]  == 'b') {
+            return true;
+        } else {
+            return helper(str,n+1,max);
+        }
+    }
+};
+\end{minted}
+
+\paragraph{Strings (efficient)}
+
+\begin{minted}{javascript}
+var pickChar = function () {
+    return uniformDraw(['a','b']);
+};
+
+var palindrome = function(n) {
+    return helper(1,n);
+};
+
+var helper = function (n,m) {
+    if (n > m) {
+        return true;
+    } else if (n == m) {
+        let x = pickChar();
+        return true;
+    } else {
+        let x1 = pickChar();
+        let x2 = pickChar();
+        if (x1 == x2) {
+            return helper(n+1,m-1);
+        } else
+            return false;
+    }
+};
+\end{minted}
+
+\begin{minted}{javascript}
+Infer({ model: function () { isPalindrome(randomString(5)) }
+        , method: 'enumerate', maxRuntimeInMS: Infinity});
+Infer({ model: function () { hasConsecutiveBs(randomString(5)) }
+        , method: 'enumerate', maxRuntimeInMS: Infinity});
+Infer({ model: function () { palindrome(5) }
+        , method: 'enumerate', maxRuntimeInMS: Infinity});
+\end{minted}
+
+
+\paragraph{Secret Santa}
+
+\section{ProbLog}
+
+\paragraph{Bayesian Network}
+
+\begin{minted}{prolog}
+0.2 :: raining.
+0.01 :: sprinkler :- raining.
+0.04 :: sprinkler :- \+raining.
+0.8 :: grassWet :- \+sprinkler, raining.
+0.9 :: grassWet :- sprinkler, \+raining.
+0.99 :: grassWet :- sprinkler, raining.
+
+grassWetWhenRaining :- raining, grassWet.
+query(grassWetWhenRaining).
+\end{minted}
+
+\paragraph{Replicate Die}
+\begin{minted}{prolog}
+% In ProbLog everything is tabled (or memoized).
+% Tabling is an advanced form of caching that is
+% used to speed-up the execution of logic programs
+% and that allows certain types of cyclic programs.
+
+% We need to add some kind of ID in order to "disable" tabling.
+  
+(1/6)::die(D,1).
+(1/6)::die(D,2).
+(1/6)::die(D,3).
+(1/6)::die(D,4).
+(1/6)::die(D,5).
+(1/6)::die(D,6).
+
+isSix(N) :- N == 6.
+allSix([]).
+allSix([X|XS]) :- isSix(X), allSix(XS).
+
+replicateDie(0,[]).
+replicateDie(N,[X|XS]) :- N \== 0, die(N,X), N1 is N-1, replicateDie(N1,XS).
+
+dieSix :- die(42,N), isSix(N).
+allRepSix(N) :- replicateDie(N,XS), allSix(XS).
+
+query(allRepSix(N)).
+\end{minted}
+
+\paragraph{Strings}
+\begin{minted}{prolog}
+0.5::pick(N, a) ; 0.5::pick(N,b).
+
+random_string(0,[]).
+random_string(N,[X|L]) :-
+     N > 0,
+     pick(N,X),
+     NN is N-1,
+     random_string(NN,L).
+
+palindrome(L) :- reverse(L,L).
+
+reverse(L,R) :-
+     reverse(L,[],R).
+reverse([],L,L).
+reverse([A|B],S,R) :-
+     reverse(B,[A|S],R).
+
+twoBs([b,b|_]).
+twoBs([_|L]) :-
+     twoBs(L).
+
+string_is_palindrome(N) :- string_is_palindrome(N,_).
+string_is_palindrome(N,L) :- random_string(N,L),palindrome(L).
+
+string_with_bb(N) :- string_with_bb(N,_).
+string_with_bb(N,L) :- random_string(N,L),twoBs(L).
+
+len(5).
+query(string_is_palindrome(X)) :- len(X).
+\end{minted}
+
+\paragraph{Strings (efficient)}
+
+\begin{minted}{prolog}
+0.5::pick(N, a) ; 0.5::pick(N,b).
+
+% a palindrome of length N spans positions 1 to N
+palindrome(N) :-
+      palindrome(1,N).
+
+% base case for even length: left and right crossed
+palindrome(A,B) :-
+      A > B.
+% base case for uneven length: arbitrary middle character
+palindrome(N,N) :-
+      pick(N,X).
+% recursive case: add same character at both ends and move positions towards the middle
+palindrome(A,B) :-
+      A < B,
+      pick(A,X),
+      pick(B,X),
+      AA is A+1,
+      BB is B-1,
+      palindrome(AA,BB).
+
+bb(N) :-
+      Max is N-1,
+      between(1,Max,I),
+      pick(I,b),
+      II is I+1,
+      pick(II,b).
+
+len(30).
+query(palindrome(X)) :- len(X).
+\end{minted}
+
+\paragraph{Secret Santa}
