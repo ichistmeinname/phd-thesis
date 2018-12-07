@@ -11,11 +11,11 @@
     xmax = 5.5,
     ylabel = {\footnotesize{time in ms}},
     axis y line = left,
-    xticklabels = {grassWetWhenRaining,condProb,example3, example4, example5},
+    xticklabels = {grassWet,grassWetWhenRaining,condProb},
     xticklabel style = { font = \footnotesize },
     x tick label as interval,
     axis x line* = bottom,
-    xtick = {0.5,1.5,...,5.5},
+    xtick = {0.5,1.5,...,3.5},
     enlarge y limits  = 0.02,
     legend style={
       at={(0.75,-0.25)},
@@ -26,31 +26,25 @@
   %Curry
   \addplot+[curry]
     coordinates {
-      (1,25.8)
-      (2,25.8)
-      (3,25.8)
-      (4,25.8)
-      (5,25.8)
+      (1,24.81)
+      (2,25.20)
+      (3,28.94)
     };
 
   % ProbLog
   \addplot+[probLog]
     coordinates {
-      (1,156)
-      (2,156)
-      (3,156)
-      (4,156)
-      (5,156)
+      (1,128.1)
+      (2,126.7)
+      (3,129.9)
     };
 
   % WebPPL
   \addplot+[webPPL]
     coordinates {
-      (1,1530)
-      (2,1530)
-      (3,1530)
-      (4,1530)
-      (5,1530)
+      (1,1402)
+      (2,1570)
+      (3,1524)
     };
 
   \legend{Curry, ProbLog, WebPPL}

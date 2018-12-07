@@ -1662,14 +1662,6 @@ Nevertheless, whereas WebPPL computes the probability for $8$ dice,
 our library can compute the probability for $2500$ dice in roughly the same
 time.
 
-\paragraph{Bayes}
-\todo{more examples for bayes}
-\begin{figure}
-\input{content/figures/BayesBar}
-\caption{Comparisons of running times for bayesian reasoning examples}
-\label{fig:bayesBar}
-\end{figure}
-
 \paragraph{Palindrome}
 
 In order to back up the results of the previous example, \autoref{fig:palindromeBar} shows
@@ -1708,7 +1700,7 @@ The tests are parametrised over the number of players that participate in the ha
 \end{figure}
 
 At first it seems as our library can outperform the other languages again, but the exponential growth of the search space becomes already visible for a small number of players.
-The second graphic, \autoref{fig:santaBar2}, shows the running times for the optimised implementation that does not allow a player to pick himself by construction.
+The second visual comparison, \autoref{fig:santaBar2}, shows the running times for the optimised implementation that does not allow a player to pick himself by construction.
 
 \begin{figure}[h]
 \input{content/figures/santaBar2}
@@ -1721,6 +1713,19 @@ However, the our library still performs bad in comparison to the ProbLog and Web
 
 This case study shows that optimising Curry's performance with respect to non-determinism is an important topic for future research.
 We can only try to emphasise the suitability of a functional logic language like Curry for well-chosen examples and queries that explicitly use non-determinism in such a way that we can prune lot of the search space early.
+
+\paragraph{Bayesian Network}
+In order to complete the performance comparisons, we include the running times for three queries of the bayesian network example.
+However, as the model is quite simpel, the computational complexity to compute the queried probabilities is negligible.
+All we can deduce from these performance comparisons is overhead of the individual language.
+In this case, Curry and our library performs best followed by ProbLog, WebPPL has a more noticeable overhead that we already discussed before.
+\todo{conditional probability in ProbLog does not compute the right probability (see issue no 10)}
+
+\begin{figure}
+\input{content/figures/BayesBar}
+\caption{Comparisons of running times for bayesian reasoning examples}
+\label{fig:bayesBar}
+\end{figure}
 
 \section{Conclusion and Future Work}
 We have implemented a simple library for probabilistic programming in a functional logic programming language, namely Curry.
