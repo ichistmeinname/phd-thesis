@@ -1,7 +1,7 @@
-import Development.Shake
-import Development.Shake.Command
-import Development.Shake.FilePath
-import Development.Shake.Util
+import           Development.Shake
+import           Development.Shake.Command
+import           Development.Shake.FilePath
+import           Development.Shake.Util
 
 dist :: FilePath
 dist = "dist"
@@ -49,4 +49,5 @@ main = shakeArgs shakeOptions $ do
                                      : files))
       need ["thesis.bib", dist </> "thesis.tex"]
 
+      cmd_ "pdflatex" "-shell-escape" "-output-directory" dist (dist </> "thesis.tex")
       cmd_ "pdflatex" "-shell-escape" "-output-directory" dist (dist </> "thesis.tex")
