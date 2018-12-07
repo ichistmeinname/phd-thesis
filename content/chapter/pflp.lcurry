@@ -1673,7 +1673,7 @@ time.
 \paragraph{Palindrome}
 
 In order to back up the results of the previous example, \autoref{fig:palindromeBar} shows
-benchmarks for implementations of the naive and the efficient versions
+benchmarks for implementations of the naive and the efficient versions of the palindrome generation
 in Curry, ProbLog and WebPPL.
 The x-axis represents the length of the generated palindrome and, once again,
 we present the time in milliseconds in logarithmic scale on the y-axis.
@@ -1686,7 +1686,7 @@ we present the time in milliseconds in logarithmic scale on the y-axis.
 
 The figure uses dashed bars for the efficient version of the algorithm and a solid filling for the naive algorithm.
 The naive algorithm scales pretty bad in ProbLog and WebPPL.
-The Curry version is still applicable up to $30$ as its running time is similar
+The Curry version is still applicable up to a string length of $30$ as its running time is similar
 to all three efficient versions.
 Overall, the efficient versions all perform in a similar time range, but
 WebPPL shows a slight performance advantage for an increasing
@@ -1694,12 +1694,33 @@ length of the string.
 
 \paragraph{Secret Santa}
 
-\todo{more examples for Secret Santa}
-\begin{figure}
-\input{content/figures/BayesBar}
-\caption{Comparisons of running times for the secret santa model}
-\label{fig:bayesBar}
+The modeling of the secret santa problem is the first example, where it becomes apparent that our library in Curry has no chance to compete against other probabilistic languages, if the problem to solve cannot benefit from early pruning.
+In case of the secret santa problem, most of the computed assignments become invalid in the last pick.
+That is, all versions of our implementation need to traverse nearly the whole search space in order to compute the probability for an invalid game.
+More precisely, the predicate |isFailedGame| that we use in the query to compute the probability behaves similar in all implementations; in all implementations the whole list of assignments needs to be traversed in most of the cases.
+\autoref{fig:santaBar} shows a comparison of the running times for the simplest secret santa model that does not check the picks early, but only checks the validity at the end.
+The tests are parametrised over the number of players that participate in the hat picking process; the x-axis is labeled by the number of players.
+
+\begin{figure}[h]
+\input{content/figures/santaBar}
+\caption{Comparisons of running times for the secret santa model for an increasing number of players}
+\label{fig:santaBar1}
 \end{figure}
+
+At first it seems as our library can outperform the other languages again, but the exponential growth of the search space becomes already visible for a small number of players.
+The second graphic, \autoref{fig:santaBar2}, shows the running times for the optimised implementation that does not allow a player to pick himself by construction.
+
+\begin{figure}[h]
+\input{content/figures/santaBar2}
+\caption{Comparisons of running times for the secret santa model for an increasing number of players using an optimised strategy}
+\label{fig:santaBar2}
+\end{figure}
+
+The search space grows a bit slower, such that we can perform the query for a greater number of players as before.
+However, the our library still performs bad in comparison to the ProbLog and WebPPL.
+
+This case study shows that optimising Curry's performance with respect to non-determinism is an important topic for future research.
+We can only try to emphasise the suitability of a functional logic language like Curry for well-chosen examples and queries that explicitly use non-determinism in such a way that we can prune lot of the search space early.
 
 \section{Conclusion and Future Work}
 We have implemented a simple library for probabilistic programming in a functional logic programming language, namely Curry.
