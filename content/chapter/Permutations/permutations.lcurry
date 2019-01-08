@@ -1,3 +1,40 @@
+The most prominent combination of sorting functions and non-determinism is permutation sort, a sorting algorithm that generates all permutation and selects the one that is sorted to yield as result.
+This sorting function has a bad running time: the best case performs in $O(2^n)$ for an input list of length $n$.
+On the good side, we can argue that the worst case is as good as the best case.
+However, the best case is also as bad as the worst case.
+
+In this chapter we shed some light on a different combination of sorting functions and non-determinism: we enumerate permutations by applying sorting functions to a non-deterministic comparison function.
+First, we take a look at implementations of some famous sorting functions in Curry and define a suitable comparison functions to enumerate permutations.
+Thanks to Curry's built-in non-determinism we can reuse all common sorting functions as they are.
+We discuss the resulting permutation enumeration functions, the number of results is of special interest here.
+A selection of questions that we will answer read as follows.
+
+\begin{itemize}
+\item Can we enumerate all possible permutations of the input list using any sorting function?
+\item Is there a sorting function that can enumerate exactly the permutations of the input list?
+\item Can we visualise how a sorting function enumerates the permutations?
+\end{itemize}
+
+As a quick teaser for these question, we anticipate that all (correct) sorting functions indeed enumerate every permutation of the input list at least once. However, enumerating every permutation exactly once is a property that not all sorting functions share.
+
+In the second part of this chapter we transfer our implementation in Curry to Haskell.
+One possible model of non-determinism in a functional language is to use lists to represent all non-deterministic results.
+We go even one step further and generalise all functions to monadic functions.
+Using these monadically lifted functions, we try out different representation of non-determinism --- like multi-sets, sets, or trees --- but need only one implementation of the sorting function.
+We compare the monadic representation of non-determinism with the built-in non-determinism of Curry by means of these sorting functions to enumerate permutations.
+
+The main observation of the comparison is that Curry's built-in non-determinism can be less strict than a naive monadic model in Haskell.
+This observation is not new, there are other applications that exploit this advantage as well, it is an interesting use case of this advantage nonetheless.
+
+Last but not least, we leverage the monadic implementation of the sorting functions to discuss possibilities to get rid of duplicates when enumerating permutations.
+The main idea here is to enhance the underlying monad to track the decisions the non-deterministic comparison function makes when traversing the input list.
+
+In summary, this chapter makes the following contributions.
+
+\begin{itemize}
+
+\end{itemize}
+
 \section{Non-deterministic Sorting Functions in Curry}
 \begin{itemize}
 \item InsertionSort
