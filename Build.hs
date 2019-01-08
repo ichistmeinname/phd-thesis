@@ -31,7 +31,7 @@ main = shakeArgs shakeOptions $ do
     "thesis.lhs" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "setup.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/figures/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
-    "content/chapter/Permutations/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
+    "content/chapter/Permutations/*.lcurry" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/chapter/*.lcurry" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
 
