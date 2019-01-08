@@ -1389,7 +1389,7 @@ As the examples shown here are not the only examples that we implemented with ou
 
 Most tutorials on probabilistic programming include an example that models the classical Monty Hall game to show the probabilities for several game scenarios.
 In this section we will take a look at another problem that probably most people have already heard of.
-We will model the preparation for a game of secret santa\footnote{This example was motivated by an episode of \emph{Numberphile} moderated by Dr. Hannah Fry. See online via \url{https://youtu.be/5kC5k5QBqcc}}.
+We will model the preparation for a game of secret santa\footnote{This example was motivated by an episode of \emph{Numberphile} hosted by Dr. Hannah Fry. See online via \url{https://youtu.be/5kC5k5QBqcc}}.
 Secret santa is a famous western christmas tradition in which a group of people organise to exchange gifts.
 The main idea is that each person is randomly assigned to another person, these assignments declare who has to give a gift to whom.
 It should not be possible for a person to pick himself as gift receiver.
@@ -1730,7 +1730,6 @@ In order to complete the performance comparisons, we include the running times f
 However, as the model is quite simpel, the computational complexity to compute the queried probabilities is negligible.
 All we can deduce from these performance comparisons is overhead of the individual language.
 In this case, Curry and our library performs best followed by ProbLog, WebPPL has a more noticeable overhead that we already discussed before.
-\todo{conditional probability in ProbLog does not compute the right probability (see issue no 10)}
 
 \begin{figure}
 \input{content/figures/BayesBar}
