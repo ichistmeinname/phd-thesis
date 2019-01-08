@@ -1,0 +1,75 @@
+\begin{tikzpicture}
+  \begin{semilogyaxis}[
+    tickwidth = 0pt,
+    xmajorgrids=true,
+    grid style={dashed},
+    height=6cm,    
+    width=14cm,
+    bar width=0.25cm,
+    ybar=0pt,
+    xmin = 1.5,
+    xmax = 8.5,
+    ylabel = {\footnotesize{time in ms}},
+    axis y line = left,
+    xticklabel style = { font = \footnotesize },
+    x tick label as interval,
+    axis x line* = bottom,
+    xtick = {1.5,...,8.5},
+    xticklabels = {2,3,4,5,6,7,8},
+    enlarge y limits  = 0.02,
+    legend style={
+      at={(0.75,-0.25)},
+      legend columns=-1,
+      /tikz/every even column/.append style={column sep=0.5cm}}
+  ]
+
+  %KiCS2
+  \addplot+[curry]
+    coordinates {
+      (2,24.84)
+      (3,37.32)
+      (4,3884)
+    };
+
+  %PAKCS
+  \addplot+[curry, postaction={ pattern=north east
+    lines, pattern color = white}]
+    coordinates {
+      (2,173.3)
+      (3,148.4)
+      (4,190.5)
+      (5,467.5)
+      (6,2455)
+      (7,20560)
+      (8,186600)
+    };
+
+  % ProbLog
+  \addplot+[probLog]
+    coordinates {
+      (2,119.5)
+      (3,245.8)
+      (4,383.3)
+      (5,1197)
+      (6,15870)
+      (7,354900) % change
+      % change
+    };
+
+  % WebPPL
+  \addplot+[webPPL]
+    coordinates {
+      (2,1442)
+      (3,1407)
+      (4,1587)
+      (5,1450)
+      (6,1482)
+      (7,1612)
+      (8,2234)
+      (9,7913)
+      (10,65700)
+    };
+
+  \legend{KiCS2, PAKCS, ProbLog, WebPPL}
+  \end{semilogyaxis}
+\end{tikzpicture}

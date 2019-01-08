@@ -1710,9 +1710,20 @@ The second visual comparison, \autoref{fig:santaBar2}, shows the running times f
 
 The search space grows a bit slower, such that we can perform the query for a greater number of players as before.
 However, the our library still performs bad in comparison to the ProbLog and WebPPL.
+In order to show that the bad performance is not specific to our library, but to KiCS2's performance when a non-trivial amount of non-determinism is involved, we present the performance of PAKCS for the santa problems in comparision to ProbLog and WebPPL in \autoref{fig:santaBarP}.
+We observe that PAKCS (orange with patterns) has a performance overhead in comparison to KiCS2 when we run our examples for a small number of players.
+That is, the less non-determinism is used within the program, the better the performance of KiCS2 in comparison to PAKCS and vice versa.
+Nevertheless, PAKCS shows a better performance for a greater number of players: whereas KiCS2 take more than 
 
-This case study shows that optimising Curry's performance with respect to non-determinism is an important topic for future research.
-We can only try to emphasise the suitability of a functional logic language like Curry for well-chosen examples and queries that explicitly use non-determinism in such a way that we can prune lot of the search space early.
+\begin{figure}[h]
+\input{content/figures/santaBarP}
+\caption{Comparisons of running times for the secret santa model for an increasing number of players using PAKCS instead of KiCS2}
+\label{fig:santaBarP}
+\end{figure}
+
+
+This case study shows that optimising KiCS2's performance with respect to non-determinism is an important topic for future research.
+However, we emphasise the suitability of a functional logic language like Curry for well-chosen examples and queries that explicitly use non-determinism in such a way that we can prune lot of the search space early.
 
 \paragraph{Bayesian Network}
 In order to complete the performance comparisons, we include the running times for three queries of the bayesian network example.
