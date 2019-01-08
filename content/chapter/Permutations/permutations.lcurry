@@ -1,0 +1,31 @@
+\section{Non-deterministic Sorting Functions in Curry}
+\begin{itemize}
+\item InsertionSort
+\item SelectionSort
+\item BubbleSort
+\item QuickSort
+\end{itemize}
+\subsection{Exemplary Sorting Functions}
+\subsection{Difference to Monadic Non-determinism}
+\begin{itemize}
+\item non-determinism is not visible at the type-level
+\item non-determinism can occur in constructor components (deep vs. flat)
+\item thus, non-determinism can be non-stricter than instances using lists (or trees)
+\end{itemize}
+
+\section{Non-deterministic Sorting Functions in Haskell}
+\subsection{Modelling Non-determinism}
+\begin{itemize}
+\item using list monad
+\item generalisation to arbitrary monad: enables usage of set-based instance as well
+\end{itemize}
+\subsection{Exemplary Sorting Functions}
+\subsection{Getting Rid of Duplicates}
+\begin{itemize}
+\item drawing decision tree using free monad
+\item properties of predicates to prevent duplicates
+  \begin{itemize}
+  \item state monad to track result of compared pairs
+  \item consistency, totality, transitivity
+  \end{itemize}
+\end{itemize}

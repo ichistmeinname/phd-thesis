@@ -24,12 +24,14 @@ main = shakeArgs shakeOptions $ do
     "dist/thesis.bib" %> \out -> do
       cmd_ "cp" "thesis.bib" out
 
-    "thesis.bib" %> \_ -> do
-      need [dist </> "thesis.bib"]
+    "thesis.bib" %> \out -> do
+      need [dist </> out]
       cmd_ "touch" (dist </> "thesis.tex")
 
+    "thesis.lhs" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "setup.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/figures/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
+    "content/chapter/Permutations/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/chapter/*.lcurry" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
 

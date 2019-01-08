@@ -90,9 +90,13 @@
 \label{ch:dp}
 %\input{content/chapter/preliminaries}
 
+\chapter{Generating Permutations via Non-deterministic Sorting}
+\label{ch:permutations}
+%include content/chapter/Permutations/permutations.lcurry
+
 \chapter{A Library for Probabilistic Functional Logic Programming}
 \label{ch:pflp}
-%include content/chapter/pflp.lcurry
+% %include content/chapter/pflp.lcurry
 
 \chapter{Formal Reasoning About Effectful Programs with Non-Strictness}
 \label{ch:reasoning} 
