@@ -42,19 +42,6 @@ In summary, this chapter makes the following contributions.
 \end{itemize}
 
 \section{Non-deterministic Sorting Functions in Curry}
-\begin{itemize}
-\item InsertionSort
-\item SelectionSort
-\item BubbleSort
-\item QuickSort
-\end{itemize}
-\subsection{Exemplary Sorting Functions}
-\subsection{Difference to Monadic Non-determinism}
-\begin{itemize}
-\item non-determinism is not visible at the type-level
-\item non-determinism can occur in constructor components (deep vs. flat)
-\item thus, non-determinism can be non-stricter than instances using lists (or trees)
-\end{itemize}
 \subsection{InsertionSort}
 
 > insert :: (a -> a -> Bool) -> a -> [a] -> [a]
@@ -155,6 +142,12 @@ In summary, this chapter makes the following contributions.
 \subsection{Exemplary Sorting Functions}
 \begin{itemize}
 \item monadic abstraction for sorting function sufficient; |?|-like operator only necessary for comparison function
+\end{itemize}
+\subsection{Curry vs Monadic Non-determinism}
+\begin{itemize}
+\item non-determinism is not visible at the type-level
+\item non-determinism can occur in constructor components (deep vs. flat)
+\item thus, non-determinism can be non-stricter than instances using lists (or trees)
 \end{itemize}
 \subsection{Getting Rid of Duplicates}
 \begin{itemize}
