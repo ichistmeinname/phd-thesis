@@ -42,16 +42,56 @@ In summary, this chapter makes the following contributions.
 \end{itemize}
 
 \section{Non-deterministic Sorting Functions in Curry}
+\label{sec:sortCurry}
+
 \subsection{InsertionSort}
+\label{subs:insertion}
+The first sorting function we take a look at is insertion sort.
+The key idea behind the sorting algorithm is to traverse the input list and insert each element in the right position within the resulting list.
+That is, the element in focus is inserted in front of the first element of the list that is greater than or equal to the former.
+In order to implement |insertionSort|, we implement a function |insert| first that does exactly that task: it inserts an element in a list with respect to the given comparison function.
 
 > insert :: (a -> a -> Bool) -> a -> [a] -> [a]
 > insert _ x []                 = [x]
 > insert p x (y:ys) | p x y     = x:y:ys
 >                   | otherwise = y : insert p x ys
 
+We then define |insertionSort| using |insert| to sort a list.
+
 > insertionSort :: (a -> a -> Bool) -> [a] -> [a]
 > insertionSort _ []     = []
 > insertionSort p (x:xs) = insert p x (insertionSort p xs)
+
+Let us test if the function does as it supposed to do.
+The following example sorts a list of integer in ascending order.
+
+\begin{spec}
+repl> insertionSort (<=) (reverse [1..5])
+[1,2,3,4,5]
+\end{spec}
+
+As the definition of |insertionSort| is parametric over the comparision function, we can apply different orderings using the same function.
+Besides a deterministic order specified by `(<=)` or `(>=)`, there is nothing that stops us to use a non-deterministic comparison function instead.
+Consider the following non-deterministic comparison function that ignores both its arguments and non-deterministically yields |True| and |False|.
+
+> coinCmp :: a -> a -> Bool
+> coinCmp _ _ = True ? False
+
+The name |coinCmp| suggests a similarity to the popular |coin|-definition as an example for non-determinism; the difference here is that we define a two-ary function with a non-deterministic result, whereas |coin| is a nullary function.
+Next, we want to evaluate |insertionSort| using the non-deterministic comparison function |coinCmp|.
+
+\begin{spec}
+repl> insertionSort coinCmp [1,2,3]
+[1,2,3]          [2,3,1]
+[1,3,2]          [3,1,2]
+[2,1,3]          [3,2,1]
+\end{spec}
+
+We see that the expression non-deterministically yields six different results.
+All of these results is a permutation of the input list |[1,2,3]|.
+Since a list of length $n$ has $2^n$ number of permutations, the example above yields exactly all $2^3=6$ permutations of the list.
+Testing |insertionSort| more systematically with EasyCheck reveals that it was not a coincidence that the function yields exactly all permutations.
+
 \subsection{SelectionSort}
 
 > delete :: Eq a => a -> [a] -> [a]
@@ -131,6 +171,7 @@ In summary, this chapter makes the following contributions.
 > splitN [] _ = ([],[])
 > splitN (x:xs) n | n == 0 = ([],x:xs)
 >                 | otherwise = let (l1,l2) = splitN xs (n-1) in (x:l1,l2)
+
 
 
 \section{Non-deterministic Sorting Functions in Haskell}
