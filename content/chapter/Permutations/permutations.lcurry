@@ -63,6 +63,9 @@ In summary, this chapter makes the following contributions.
 \item generalisation to arbitrary monad: enables usage of set-based instance as well
 \end{itemize}
 \subsection{Exemplary Sorting Functions}
+\begin{itemize}
+\item monadic abstraction for sorting function sufficient; |?|-like operator only necessary for comparison function
+\end{itemize}
 \subsection{Getting Rid of Duplicates}
 \begin{itemize}
 \item drawing decision tree using free monad
@@ -71,4 +74,18 @@ In summary, this chapter makes the following contributions.
   \item state monad to track result of compared pairs
   \item consistency, totality, transitivity
   \end{itemize}
+\end{itemize}
+
+\section{Conclusion and Future Work}
+\begin{itemize}
+\item specific enumerations of permutations (lexicographic sorting, even/odd sorting, only one transposition from one to the next)
+\item possibility to produce derangements
+\item other functions parametrised by predicates
+\item investigate strictness properties and running time complexity of permutation enumeration function
+\end{itemize}
+
+\section{Final Remarks}
+\begin{itemize}
+\item ICFP publication with additional proofs
+\item bachelor's thesis with adaptation to Curry
 \end{itemize}
