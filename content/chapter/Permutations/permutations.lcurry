@@ -55,6 +55,96 @@ In summary, this chapter makes the following contributions.
 \item non-determinism can occur in constructor components (deep vs. flat)
 \item thus, non-determinism can be non-stricter than instances using lists (or trees)
 \end{itemize}
+\subsection{InsertionSort}
+
+> insert :: (a -> a -> Bool) -> a -> [a] -> [a]
+> insert _ x []                 = [x]
+> insert p x (y:ys) | p x y     = x:y:ys
+>                   | otherwise = y : insert p x ys
+
+> insertionSort :: (a -> a -> Bool) -> [a] -> [a]
+> insertionSort _ []     = []
+> insertionSort p (x:xs) = insert p x (insertionSort p xs)
+\subsection{SelectionSort}
+
+> delete :: Eq a => a -> [a] -> [a]
+> delete _ [] = []
+> delete x (y:ys) | x == y    = ys
+>                 | otherwise = y : (delete x ys)
+> 
+> minE :: (a -> a -> Bool) -> a -> a -> a
+> minE p x y | p x y     = x
+>            | otherwise = y
+> 
+> minL :: (a -> a -> Bool) -> [a] -> a
+> minL _ [x]      = x
+> minL p (y:x:xs) = minE p y $ minL p (x:xs)
+> 
+> 
+> selectionSort' :: Eq a => (a -> a -> Bool) -> [a] -> [a]
+> selectionSort' _ []     = []
+> selectionSort' p l@(_:_) = let y = minL p l
+>                            in y : (selectionSort' p (del y l))
+
+> pickMin :: (a -> a -> Bool) -> [a] -> (a,[a])
+> pickMin _ [x]      = (x,[])
+> pickMin p (x:xs@(y:_)) = let (m,l) = pickMin p xs in if p x y then (x,xs) else (m,x:l)
+> 
+> selectionSort :: (a -> a -> Bool) -> [a] -> [a]
+> selectionSort _ []      = []
+> selectionSort p l@(_:_) = let (m,l') = pickMin p l
+>                           in m : (selectionSort p l')
+
+\subsection{BubbleSort}
+
+> bubble :: (a -> a -> Bool) -> [a] -> [a]
+> bubble _ [x] = [x]
+> bubble p (x:xs@(_:_)) = let (y:ys) = bubble p xs
+>                         in if p x y then x:y:ys else y:x:ys
+> 
+> bubbleSort :: (a -> a -> Bool) -> [a] -> [a]
+> bubbleSort _ []       = []
+> bubbleSort p xs@(_:_) = let (y:ys) = bubble p xs in y : bubbleSort p ys
+
+\subsection{QuickSort}
+
+> quickSort' :: (a -> a -> Bool) -> [a] -> [a]
+> quickSort' _ []     = []
+> quickSort' p (x:xs) = let l1 = filter (\y -> p y x) xs
+>                           l2 = filter (\y -> not $ p y x) xs
+>                       in quickSort' p l1 ++ x : quickSort' p l2
+
+> quickSort :: (a -> a -> Bool) -> [a] -> [a]
+> quickSort _ []     = []
+> quickSort p (x:xs) = let t = split p x xs
+>                      in quickSort p (fst t) ++ (x:quickSort p (snd t))
+> 
+> split :: (a -> a -> Bool) -> a -> [a] -> ([a],[a])
+> split p x l = split' l ([],[]) where
+>   split' [] ls                        = ls
+>   split' (y:ys) (l1,l2) | not (p x y) = split' ys (l1,y:l2)
+>                         | otherwise   = split' ys (y:l1,l2)
+
+
+\subsection{MergeSort}
+
+> merge :: (a -> a -> Bool) -> [a] -> [a] -> [a]
+> merge _ [] l = l
+> merge _ (x:xs) [] = x:xs
+> merge p (x:xs) (y:ys) | p x y = x : merge p xs (y:ys)
+>                       | otherwise = y : merge p (x:xs) ys
+> 
+> mergeSort :: (a -> a -> Bool) -> [a] -> [a]
+> mergeSort p l = let n       = length l `div` 2
+>                     (l1,l2) = splitN l n
+>                 in if n == 0 then l else merge p (mergeSort p l1) (mergeSort p l2)
+> 
+> 
+> splitN :: [a] -> Int -> ([a],[a])
+> splitN [] _ = ([],[])
+> splitN (x:xs) n | n == 0 = ([],x:xs)
+>                 | otherwise = let (l1,l2) = splitN xs (n-1) in (x:l1,l2)
+
 
 \section{Non-deterministic Sorting Functions in Haskell}
 \subsection{Modelling Non-determinism}
