@@ -32,7 +32,13 @@ The main idea here is to enhance the underlying monad to track the decisions the
 In summary, this chapter makes the following contributions.
 
 \begin{itemize}
-
+\item We inspect sorting functions implemented in Curry and apply these functions to a non-deterministic comparison function and a given list to enumerate permutations of that given list.
+\item When taking a closer look at the resulting lists, we observe that the functions enumerate every possible permutation of the input list at least once.
+\item Some sorting functions yield duplicate results, we investigate why these duplicates emerge.
+\item Furthermore, we discover that some sorting functions even enumerate lists that are not a permutation of the input list.
+\item As a second step, we transfer the sorting functions to Haskell and model non-determinism explicitly using monads.
+\item Thanks to the flexibility of using monads, we can enrich the non-deterministic comparison function which necessary properties to eliminate duplicate results. We show three examples for properties that yield to an enumeration of the exact number of permutations for sorting functions that yield too many results with a simple non-deterministic comparison function.
+\item At last, we discuss a variety of questions that follow from the results and observations presented above.
 \end{itemize}
 
 \section{Non-deterministic Sorting Functions in Curry}
