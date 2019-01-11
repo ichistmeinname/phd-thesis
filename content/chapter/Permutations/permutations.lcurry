@@ -176,7 +176,7 @@ As next step we want to insert |1|; as |1| and |2| are in the correct order as w
 > selectionSort' :: Eq a => (a -> a -> Bool) -> [a] -> [a]
 > selectionSort' _ []     = []
 > selectionSort' p l@(_:_) = let y = minL p l
->                            in y : (selectionSort' p (del y l))
+>                            in y : (selectionSort' p (delete y l))
 
 > pickMin :: (a -> a -> Bool) -> [a] -> (a,[a])
 > pickMin _ [x]      = (x,[])
