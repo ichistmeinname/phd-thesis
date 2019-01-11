@@ -20,6 +20,14 @@
 % **************************************************
 \input{setup}
 
+% Unicode chars not set up for the use with LaTeX
+\DeclareUnicodeCharacter{251C}{\mbox{\kern.23em
+  \vrule height2.4exdepth1exwidth.4pt\vrule height2.4ptdepth-1.8ptwidth.23em}}
+\DeclareUnicodeCharacter{2500}{\mbox{\vrule height2.4ptdepth-1.8ptwidth.5em}}
+\DeclareUnicodeCharacter{2502}{\mbox{\kern.23em \vrule height2.4exdepth1exwidth.4pt}}
+\DeclareUnicodeCharacter{2514}{\mbox{\kern.23em \vrule height2.4exdepth-1.8ptwidth.4pt\vrule height2.4ptdepth-1.8ptwidth.23em}}
+
+
 %include polycode.fmt
 %include forall.fmt
 %include greek.fmt

@@ -85,14 +85,8 @@ repl> insertionSort (<=) (reverse [1..5])
 \end{spec}
 
 As the definition of |insertionSort| is parametric over the comparision function, we can apply different orderings using the same function.
-Besides a deterministic order specified by `(<=)` or `(>=)`, there is nothing that stops us to use a non-deterministic comparison function instead.
-Consider the following non-deterministic comparison function that ignores both its arguments and non-deterministically yields |True| and |False|.
-
-> coinCmp :: a -> a -> Bool
-> coinCmp _ _ = True ? False
-
-The name |coinCmp| suggests a similarity to the popular |coin|-definition as an example for non-determinism; the difference here is that we define a two-ary function with a non-deterministic result, whereas |coin| is a nullary function.
-Next, we want to evaluate |insertionSort| using the non-deterministic comparison function |coinCmp|.
+Besides a deterministic order specified by |(<=)| or |(>=)|, there is nothing that stops us to use a non-deterministic comparison function instead.
+Consider the following example, where we apply |insertionSort| to the non-deterministic comparison function |coinCmp|.
 
 \begin{spec}
 repl> insertionSort coinCmp [1,2,3]
@@ -105,6 +99,63 @@ We see that the expression non-deterministically yields six different results.
 All of these results is a permutation of the input list |[1,2,3]|.
 Since a list of length $n$ has $2^n$ number of permutations, the example above yields exactly all $2^3=6$ permutations of the list.
 Testing |insertionSort| more systematically with EasyCheck reveals that it was not a coincidence that the function yields exactly all permutations.
+
+In order to understand better how |insertSort| computes the pemutations of its input list when applied to |coinCmp|, we take a look at the decision tree for the exemplary call above in ~\autoref{fig:dtInsert1}.
+As the comparison function |coinCmp| non-deterministically yields |True| and |False|, the decision tree of our example reflects all possible control flows for |insertionSort| depending on the results of |coinCmp|.
+
+\begin{figure}[t]
+\begin{alltt}
+?1
+├── L: ?8
+│       ├── L: Val [1,2,3]
+│       └── R: ?b
+│               ├── L: Val [2,1,3]
+│               └── R: Val [2,3,1]
+└── R: ?8
+        ├── L: Val [1,3,2]
+        └── R: ?b
+                ├── L: Val [3,1,2]
+                └── R: Val [3,2,1]
+\end{alltt}
+\caption{Decision tree for |insertionSort coinCmp [1,2,3]| as produced by KiCS2}
+\label{fig:dtInsert1}
+\end{figure}
+
+We already introduced the option to draw the decision tree for a non-deterministic expression in ~\autoref{ch:dp}.
+In this example we do not care about the numbering of the choices as sharing is not used in the definition of |insert| nor |insertionSort|.
+That is, all choice numbers within one path are unique.
+Moreover, all branches in this decision tree correspond to non-determinism spawned by |coinCmp|.
+We observe that |insertionSort| traverses the input list and spawns two branches for each element of that list in all paths.
+Hence, we end up with a exponential number of results with respect to the length of the input list.
+An interesting insight that we, unfortunately, do not gain from the decision tree is \emph{how} exactly the permutations are computed on the way.
+In order to make the computation more transparent, we adjust the above decision tree and annotate each branch point with the comparison that takes place.
+That is, as each branch corresponds to a application of |coinCmp| to arguments, we can annotate the branches with these arguments.
+~\autoref{fig:dtInsert1} displays the modified decision tree.
+
+\begin{figure}[t]
+\begin{alltt}
+2 <= 3
+├── L: 1 <= 2
+│       ├── L: Val [1,2,3]
+│       └── R: 1 <= 3
+│               ├── L: Val [2,1,3]
+│               └── R: Val [2,3,1]
+└── R: 1 <= 3
+        ├── L: Val [1,3,2]
+        └── R: 1 <= 2
+                ├── L: Val [3,1,2]
+                └── R: Val [3,2,1]
+\end{alltt}
+\caption{Modified decision tree for |insertionSort coinCmp [1,2,3]| to highlight compared elements of the list}
+\label{fig:dtInsert2}
+\end{figure}
+
+Note that the first comparison is between the last two elements of the list: |2| and |3|.
+Thus, |insertionSort| starts by inserting the last element into the empty list, moves one position to the front at each recursive step and inserts the next element to the currently accumulated list.
+Depending on the decision of |coinCmp| that takes place when evaluating |insert|, the element to be inserted moves one position to the right in the resulting list.
+For example, the decisions that lead to the permutation |[1,2,3]| are that |2| and |3| as well as |1| and |2| relate with respect to |coinCmp|.
+The first decision leads to the temporary list [2,3], as |2| and |3| are already in the correct order.
+As next step we want to insert |1|; as |1| and |2| are in the correct order as well, we insert |1| at the front of the list yielding the resulting permutation [1,2,3].
 
 \subsection{SelectionSort}
 
