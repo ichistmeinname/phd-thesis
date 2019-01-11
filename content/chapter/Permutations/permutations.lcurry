@@ -42,6 +42,20 @@ In summary, this chapter makes the following contributions.
 \end{itemize}
 
 \section{Non-deterministic Sorting Functions in Curry}
+
+\begin{itemize}
+\item examples use integer, but arbitrary types can be used
+\item integer values represent positions within the list
+\item less than although the comparison function could be an arbitrary one
+\end{itemize}
+
+Consider the following non-deterministic comparison function that ignores both its arguments and non-deterministically yields |True| and |False|.
+
+> coinCmp :: a -> a -> Bool
+> coinCmp _ _ = True ? False
+
+The name |coinCmp| suggests a similarity to the popular |coin|-definition as an example for non-determinism; the difference here is that we define a two-ary function with a non-deterministic result, whereas |coin| is a nullary function.
+
 \label{sec:sortCurry}
 
 \subsection{InsertionSort}
