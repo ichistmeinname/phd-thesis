@@ -23,6 +23,7 @@ main = shakeArgs shakeOptions $ do
 
     "dist/thesis.bib" %> \out -> do
       cmd_ "cp" "thesis.bib" out
+      cmd_ "sh -c" ["cd dist; bibtex thesis"]
 
     "thesis.bib" %> \out -> do
       need [dist </> out]
@@ -49,7 +50,8 @@ main = shakeArgs shakeOptions $ do
             ++ map (\ch -> content </> chapter </> ch)
                    ("introduction" <.> "tex" : "conclusion" <.> "tex"
                                      : files))
-      need ["thesis.bib", dist </> "thesis.tex"]
+      need [dist </> "thesis.bib", dist </> "thesis.tex"]
 
       cmd_ "pdflatex" "-shell-escape" "-output-directory" dist (dist </> "thesis.tex")
       cmd_ "pdflatex" "-shell-escape" "-output-directory" dist (dist </> "thesis.tex")
+      cmd_ "rm" (dist </> "thesis.bib")
