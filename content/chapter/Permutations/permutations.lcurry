@@ -47,6 +47,7 @@ In summary, this chapter makes the following contributions.
 \item examples use integer, but arbitrary types can be used
 \item integer values represent positions within the list
 \item less than although the comparison function could be an arbitrary one
+\item argue about sorting function enumerating all permutations as otherwise it couldn't sort the list that was not enumerated
 \end{itemize}
 
 Consider the following non-deterministic comparison function that ignores both its arguments and non-deterministically yields |True| and |False|.
@@ -100,28 +101,28 @@ All of these results is a permutation of the input list |[1,2,3]|.
 Since a list of length $n$ has $2^n$ number of permutations, the example above yields exactly all $2^3=6$ permutations of the list.
 Testing |insertionSort| more systematically with EasyCheck reveals that it was not a coincidence that the function yields exactly all permutations.
 
-In order to understand better how |insertSort| computes the pemutations of its input list when applied to |coinCmp|, we take a look at the decision tree for the exemplary call above in ~\autoref{fig:dtInsert1}.
+In order to understand better how |insertSort| computes the pemutations of its input list when applied to |coinCmp|, we take a look at the decision tree for the exemplary call above in \autoref{fig:dtInsert}.
 As the comparison function |coinCmp| non-deterministically yields |True| and |False|, the decision tree of our example reflects all possible control flows for |insertionSort| depending on the results of |coinCmp|.
 
 \begin{figure}[t]
 \begin{alltt}
 ?1
 ├── L: ?8
-│       ├── L: Val [1,2,3]
+│       ├── L: [1,2,3]
 │       └── R: ?b
-│               ├── L: Val [2,1,3]
-│               └── R: Val [2,3,1]
+│               ├── L: [2,1,3]
+│               └── R: [2,3,1]
 └── R: ?8
-        ├── L: Val [1,3,2]
+        ├── L: [1,3,2]
         └── R: ?b
-                ├── L: Val [3,1,2]
-                └── R: Val [3,2,1]
+                ├── L: [3,1,2]
+                └── R: [3,2,1]
 \end{alltt}
 \caption{Decision tree for |insertionSort coinCmp [1,2,3]| as produced by KiCS2}
 \label{fig:dtInsert1}
 \end{figure}
 
-We already introduced the option to draw the decision tree for a non-deterministic expression in ~\autoref{ch:dp}.
+We already introduced the option to draw the decision tree for a non-deterministic expression in \autoref{ch:dp}.
 In this example we do not care about the numbering of the choices as sharing is not used in the definition of |insert| nor |insertionSort|.
 That is, all choice numbers within one path are unique.
 Moreover, all branches in this decision tree correspond to non-determinism spawned by |coinCmp|.
@@ -130,21 +131,21 @@ Hence, we end up with a exponential number of results with respect to the length
 An interesting insight that we, unfortunately, do not gain from the decision tree is \emph{how} exactly the permutations are computed on the way.
 In order to make the computation more transparent, we adjust the above decision tree and annotate each branch point with the comparison that takes place.
 That is, as each branch corresponds to a application of |coinCmp| to arguments, we can annotate the branches with these arguments.
-~\autoref{fig:dtInsert1} displays the modified decision tree.
+\autoref{fig:dtInsert1} displays the modified decision tree.
 
 \begin{figure}[t]
 \begin{alltt}
 2 <= 3
 ├── L: 1 <= 2
-│       ├── L: Val [1,2,3]
+│       ├── L: [1,2,3]
 │       └── R: 1 <= 3
-│               ├── L: Val [2,1,3]
-│               └── R: Val [2,3,1]
+│               ├── L: [2,1,3]
+│               └── R: [2,3,1]
 └── R: 1 <= 3
-        ├── L: Val [1,3,2]
+        ├── L: [1,3,2]
         └── R: 1 <= 2
-                ├── L: Val [3,1,2]
-                └── R: Val [3,2,1]
+                ├── L: [3,1,2]
+                └── R: [3,2,1]
 \end{alltt}
 \caption{Modified decision tree for |insertionSort coinCmp [1,2,3]| to highlight compared elements of the list}
 \label{fig:dtInsert2}
@@ -157,35 +158,179 @@ For example, the decisions that lead to the permutation |[1,2,3]| are that |2| a
 The first decision leads to the temporary list [2,3], as |2| and |3| are already in the correct order.
 As next step we want to insert |1|; as |1| and |2| are in the correct order as well, we insert |1| at the front of the list yielding the resulting permutation [1,2,3].
 
+We take a second step to demystify the generation of permutations using |coinCmp| as predicate.
+Let us revise the implementation of |insert| by inlining the applied predicate |coinCmp|.
+
+> insertCoin :: a -> [a] -> [a]
+> insertCoin x []     = [x]
+> insertCoin x (y:ys) = x:y:ys ? y : insertCoin x ys
+
+This variant of |insert| is exactly the definition of a non-deterministic insertion that is used to define a permutation function, for example in the overview of Curry by \citet{hanus1994integration}.
+
 \subsection{SelectionSort}
+Next, we consider the permutation function derived from selection sort.
+The key idea of selection sort is to find the minimum of the list and placing it to the front of the resulting list.
+First, we define a function to find a minimum of a given list parametrised by the comparision function.
+
+> minList :: (a -> a -> Bool) -> [a] -> a
+> minList _ [x]      = x
+> minList p (y:x:xs) = min p y (minList p (x:xs))
+>
+
+The function |minList| is partial, because we cannot yield a value in case of the empty list.
+If the list has one element, we yield that element, otherwise we compare the first element with the minimum of the remaining list.
+That is, we define a helper function |min|, a parametrised version of a function that takes two arguments and yields the smaller one.
+
+> min :: (a -> a -> Bool) -> a -> a -> a
+> min p x y  | p x y     = x
+>            | otherwise = y
+
+After picking a minimum, we need to delete that minimum from the list to recursively sort the remaining list.
+We define |delete| to remove an element from a list.
 
 > delete :: Eq a => a -> [a] -> [a]
 > delete _ [] = []
-> delete x (y:ys) | x == y    = ys
->                 | otherwise = y : (delete x ys)
-> 
-> minE :: (a -> a -> Bool) -> a -> a -> a
-> minE p x y | p x y     = x
->            | otherwise = y
-> 
-> minL :: (a -> a -> Bool) -> [a] -> a
-> minL _ [x]      = x
-> minL p (y:x:xs) = minE p y $ minL p (x:xs)
-> 
-> 
-> selectionSort' :: Eq a => (a -> a -> Bool) -> [a] -> [a]
-> selectionSort' _ []     = []
-> selectionSort' p l@(_:_) = let y = minL p l
->                            in y : (selectionSort' p (delete y l))
+> delete x (y:ys)  | x == y     = ys
+>                  | otherwise  = y : delete x ys
+
+Here, it is crucial that we use the comparision function |(==)| to make sure that the element is correctly removed from the list.
+As the resulting |Eq| context brakes with the general scheme that we parametrise all functions with a comparision function, we define a function that finds the minimum and yields the remaining list in one traversal of the input list.
 
 > pickMin :: (a -> a -> Bool) -> [a] -> (a,[a])
-> pickMin _ [x]      = (x,[])
-> pickMin p (x:xs@(y:_)) = let (m,l) = pickMin p xs in if p x y then (x,xs) else (m,x:l)
-> 
+> pickMin _ [x]     = (x,[])
+> pickMin p (x:xs@(_ : _))  = let (m,l) = pickMin p xs
+>                             in if p x m then (x,xs) else (m, x:l)
+
+%if False
+
+> selectionSort' :: Eq a => (a -> a -> Bool) -> [a] -> [a]
+> selectionSort' _ []       = []
+> selectionSort' p l@(_:_)  =  let y = minList p l
+>                              in y : selectionSort' p (delete y l)
+
+> delete' :: (a -> a -> Bool) -> a -> [a] -> [a]
+> delete' p _ [] = []
+> delete' p x (y:ys)  | p x y     = ys
+>                     | otherwise = y : delete' p x ys
+
+> selectionSort'' :: (a -> a -> Bool) -> [a] -> [a]
+> selectionSort'' _ []       = []
+> selectionSort'' p l@(_ : _)  =  let y = minList p l
+>                                 in y : selectionSort'' p (delete' (\x y -> p x y && p y x) y l)
+
+%endif
+
+Now we can define |selectionSort|: we pick the minimum of the input list, place it into the front of the resulting list, and continue with the list without the minimum.
+
 > selectionSort :: (a -> a -> Bool) -> [a] -> [a]
-> selectionSort _ []      = []
-> selectionSort p l@(_:_) = let (m,l') = pickMin p l
->                           in m : (selectionSort p l')
+> selectionSort _ []         = []
+> selectionSort p l@(_ : _)  =  let (m,l') = pickMin p l
+>                               in m : selectionSort p l'
+
+%if False
+
+> pickMinS :: (a -> a -> Bool) -> [a] -> (a,[a])
+> pickMinS _ [x]     = (x,[])
+> pickMinS p (x:xs@(_ : _))  = case pickMinS p xs of
+>                                (m,l) -> if p x m then (x,xs) else (m,x:l)
+>
+> pickMinS' :: (a -> a -> Bool) -> [a] -> (a,[a])
+> pickMinS' _ [x]             = (x,[])
+> pickMinS' p (x:xs@(_ : _))  = uncurry (,)  (case pickMinS' p xs of
+>                                              (m,l) -> if p x m then (x,xs) else (m,x:l))
+>
+> selectionSortS :: (a -> a -> Bool) -> [a] -> [a]
+> selectionSortS _ []       = []
+> selectionSortS p l@(_ : _)  =  case pickMinS p l of
+>                                  (m,l') -> m : selectionSortS p l'
+
+> pickCoin :: [a] -> (a,[a])
+> pickCoin [x] = (x,[])
+> pickCoin (x:xs@(_:_)) = (x,xs) ? fSnd (x:) (pickCoin xs) --let (m,l) = pickCoin xs in (m, x:l)
+>  where fSnd f (a,b) = (a, f b)
+>
+> selectionSortCoin :: [a] -> [a]
+> selectionSortCoin [] = []
+> selectionSortCoin xs@(_ : _) = case pickCoin xs of
+>                                 (m,l) -> m : selectionSortCoin l
+
+%endif
+We are ready to take a look at the resulting permutations.
+
+\begin{spec}
+repl> selectionSort coinCmp [1,2,3]
+[1,2,3]  [2,3,1]
+[1,3,2]  [3,1,2]
+[2,1,3]  [3,2,1]
+\end{spec}
+
+Exactly like |insertionSort|, we see that |selectionSort| yields exactly the permutations of the input list.
+Due to the let-bindings used in the implementation of |selectionSort| as well as the auxiliary function |pickMin|, the corresponding decision tree is not as easy to look at as for |insertionSort|.
+Instead, we take a look at the decision tree for |pickMin| and |minList| in \autoref{fig:select1}.
+
+\begin{figure}
+\begin{minipage}{0.50\textwidth}
+\begin{alltt}
+?3
+├── L: (1,[2,3])
+└── R: ?6
+        ├── L: ?6
+        │       ├── L: (2,[1,3])
+        │       └── R: (2,[1,2])
+        └── R: ?6
+                ├── L: (3,[1,3])
+                └── R: (3,[1,2])
+\end{alltt}
+\end{minipage}
+\vline $\quad$
+\begin{minipage}{0.44\textwidth}
+\begin{alltt}
+?4
+├── L: 1
+└── R: ?8
+        ├── L: 2
+        └── R: 3
+
+
+
+
+
+\end{alltt}
+\end{minipage}
+\caption{Decision trees for the expressions |pickMin coinCmp [1,2,3]| (left) and |minList coinCmp [1,2,3]| (right)}
+\label{fig:select1}
+\end{figure}
+
+Note that the decision tree for |pickMin| is an example for the visualisation of sharing: the decision labeled \emph{?6} occurs in each of the two preceding subtrees again.
+This decision origins in the usage of the let-binding for the recursive call in the second rule for |pickMin|.
+The recursive call |(m,l) = pickMin p xs| binds the minimum and the list without that minimum to the variables |m| and |l|, respectively.
+This example is an instance for space leaks that we mentioned in \autoref{ch:dp}.
+In particular, we cannot use case-expressions without altering the non-strictness-property of the original definition using let-bindings.
+Therefore, in the following, we represent decision trees in a reduced version, where we fuse shared decisions by only displaying the branches that would be considered in a search traversal.
+We compute this reduced decision tree by computing the internal representation by means of |someSearchTree|.
+That is, the following expression computes the decision tree for the exemplary application of |selectionSort| from above.
+
+\begin{spec}
+putStrLn $ showSearchTree (someSearchTree (selectionSortCoin [1,2,3]))
+\end{spec}
+
+\autoref{fig:select} displays the output of this expression --- with the additional modification that we label branches with the corresponding comparisons.
+\begin{figure}
+\begin{alltt}
+2 <= 3
+├─ ?
+│  ├─ [1,2,3]
+│  └─ [1,3,2]
+└─ ?
+   ├─ ?
+   │  ├─ [2,1,3]
+   │  └─ [2,3,1]
+   └─ ?
+      ├─ [3,1,2]
+      └─ [3,2,1]
+\end{alltt}
+\caption{Reduced decision tree for |selectionSort coinCmp [1,2,3]|}
+\end{figure}
 
 \subsection{BubbleSort}
 
