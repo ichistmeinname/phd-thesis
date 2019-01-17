@@ -239,10 +239,37 @@ repl> selectionSort coinCmp [1,2,3]
 
 %if False
 
-> selectionSort' :: Eq a => (a -> a -> Bool) -> [a] -> [a]
-> selectionSort' _ []       = []
-> selectionSort' p l@(_:_)  =  let y = minList p l
->                              in y : selectionSort' p (delete y l)
+> pickMinCase :: (a -> a -> Bool) -> [a] -> (a,[a])
+> pickMinCase p xs = case xs of
+>                 [x] -> (x,[])
+>                 x:xs -> let (m,l) = pickMinCase p xs
+>                         in if p x m then (x,m:l) else (m, x:l)
+
+> pickMin' :: (a -> a -> Bool) -> [a] -> (a,[a])
+> pickMin' _ [x]     = (x,[])
+> pickMin' p (x:xs@(_ : _))  =  let (m,l) = pickMin' p xs
+>                               in if p x m then (x,xs) else (m, x:l)
+
+> pickMinCase' :: (a -> a -> Bool) -> [a] -> (a,[a])
+> pickMinCase' p xs = case xs of
+>                      [x] -> (x,[])
+>                      y:ys -> let (m,l) = pickMinCase' p ys
+>                              in if p y m then (y,ys) else (m, y:l)
+
+> selectionSortPick' :: (a -> a -> Bool) -> [a] -> [a]
+> selectionSortPick' _ []         = []
+> selectionSortPick' p l@(_ : _)  =  let (m,l') = pickMin' p l
+>                                    in m : selectionSortPick' p l'
+
+> selectionSortPickCase' :: (a -> a -> Bool) -> [a] -> [a]
+> selectionSortPickCase' _ []         = []
+> selectionSortPickCase' p l@(_ : _)  =  let (m,l') = pickMinCase' p l
+>                                        in m : selectionSortPickCase' p l'
+
+> selectionSortDel :: Eq a => (a -> a -> Bool) -> [a] -> [a]
+> selectionSortDel _ []       = []
+> selectionSortDel p l@(_:_)  =  let y = minList p l
+>                                in y : selectionSortDel p (delete y l)
 
 > delete' :: (a -> a -> Bool) -> a -> [a] -> [a]
 > delete' p _ [] = []
