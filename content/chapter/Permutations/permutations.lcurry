@@ -198,8 +198,8 @@ As the resulting |Eq| context brakes with the general scheme that we parametrise
 
 > pickMin :: (a -> a -> Bool) -> [a] -> (a,[a])
 > pickMin _ [x]     = (x,[])
-> pickMin p (x:xs@(_ : _))  = let (m,l) = pickMin p xs
->                             in if p x m then (x,xs) else (m, x:l)
+> pickMin p (x:xs@(_ : _))  =  let (m,l) = pickMin p xs
+>                              in if p x m then (x,xs) else (m, x:l)
 
 %if False
 
