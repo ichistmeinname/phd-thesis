@@ -311,33 +311,49 @@ We compute this reduced decision tree by computing the internal representation b
 That is, the following expression computes the decision tree for the exemplary application of |selectionSort| from above.
 
 \begin{spec}
-putStrLn $ showSearchTree (someSearchTree (selectionSortCoin [1,2,3]))
+putStrLn (showSearchTree (someSearchTree (selectionSort coinCmp [1,2,3])))
 \end{spec}
-
+\noindent
 \autoref{fig:select} displays the output of this expression --- with the additional modification that we label branches with the corresponding comparisons.
 \begin{figure}
 \begin{alltt}
-2 <= 3
-├─ ?
+1 <= _ (*)
+├─ 2 <= 3
 │  ├─ [1,2,3]
 │  └─ [1,3,2]
-└─ ?
-   ├─ ?
+└─ 2 <= 3
+   ├─ 1 <= 3
    │  ├─ [2,1,3]
    │  └─ [2,3,1]
-   └─ ?
+   └─ 1 <= 2
       ├─ [3,1,2]
       └─ [3,2,1]
 \end{alltt}
 \caption{Reduced decision tree for |selectionSort coinCmp [1,2,3]|}
+\label{fig:select}
 \end{figure}
+
+As an interesting aside, note that we cannot give the second argument of the comparison for the first branch --- marked with \emph{(*)} in \autoref{fig:select}.
+This is due to the fact that |coinCmp| does not demand its second argument.
+In the example above the second argument is the expression |pickMin coinCmp [2,3]|; a demand is only necessary if we want to compute the entire list structure of the first solution.
+We can observe this non-strict behaviour when computing only the head element of the resulting permutations.
+Consider the following expressions involving a list with |failed| as element.
+
+\begin{spec}
+repl> selectionSort coinCmp [1,failed]
+repl> head (selectionSort coinCmp [1,failed])
+1
+\end{spec}
+\noindent
+In theory, the permutations of the list |[1,failed]| are |[1,failed]| and |[failed,1]|; in practice, the expression |failed| is not a value like |42| or |True|, printing |failed| in the REPL propagates the failure to the top-level, so no results are printed.\footnote{Note that KiCS2 does not behave consistent with respect to printing |failed|. A deterministic expression based on |failed| will be printed using |!| as symbol, for non-determinstic expressions, however, no results will be printed.}
+The first expression computes all possible permutations, but the expression does not have any results: |failed| causes the computation propagate the failure to the top-level.
+The second expression, however, computes only the head element and yields indeed a solution.
+That is, in order to yield the first element of the first list, we do no need to compute any further elements of the input list.
 
 \subsection{BubbleSort}
 
 > bubble :: (a -> a -> Bool) -> [a] -> [a]
-> bubble _ [x] = [x]
-> bubble p (x:xs@(_:_)) = let (y:ys) = bubble p xs
->                         in if p x y then x:y:ys else y:x:ys
+> bubble _ [x]             = [x]
 > 
 > bubbleSort :: (a -> a -> Bool) -> [a] -> [a]
 > bubbleSort _ []       = []
