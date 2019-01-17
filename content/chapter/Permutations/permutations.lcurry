@@ -395,12 +395,70 @@ That is, in order to yield the first element of the first list, we do no need to
 
 \subsection{BubbleSort}
 
+The next sorting function we examine is bubble sort.
+We define an implementation of the bubble slort algorithm that bubbles the minimum element to the front of a list.
+Bubbling to the front of the list allows for a more efficient implementation with respect to the selecting the minimum and the remaining list.
+The following function |bubble| defines the bubbling of the minimum element of the list to the front.
+
 > bubble :: (a -> a -> Bool) -> [a] -> [a]
 > bubble _ [x]             = [x]
-> 
+> bubble p (x:xs@(_ : _))  =  let (y:ys) = bubble p xs
+>                             in if p x y then x:ys else y:x:ys
+
+% if False
+> bubble2 :: (a -> a -> Bool) -> [a] -> [a]
+> bubble2 _ [x]              = [x]
+> bubble2 p (x:xs@(y : ys))  = if p x y then x : bubble2 p (y:ys) else y : bubble2 p (x:ys)
+>
+> bubble' :: (a -> a -> Bool) -> [a] -> [a]
+> bubble' _ [x]             = [x]
+> bubble' p (x:xs@(_ : _))  =  let (y:ys) = bubble' p xs
+>                              in if p x y then x:y:ys else y:x:ys
+>
+> bubbleSort2 :: (a -> a -> Bool) -> [a] -> [a]
+> bubbleSort2 _ []       = []
+> bubbleSort2 p xs@(_:_) = let (y:ys) = bubble2 p xs in y : bubbleSort2 p ys
+
+% endif
+
 > bubbleSort :: (a -> a -> Bool) -> [a] -> [a]
 > bubbleSort _ []       = []
 > bubbleSort p xs@(_:_) = let (y:ys) = bubble p xs in y : bubbleSort p ys
+
+Note that the implementation does not change the order of the remaining list elements when used with a deterministic comparison function like |(<=)|.
+
+\begin{spec}
+repl> bubble (<=) [1,2,3,4]
+[1,2,3,4]
+repl> bubble (<=) [2,3,4,1]
+[1,2,3,4]
+repl> bubble (<=) [3,4,2,1]
+[1,3,4,2]
+\end{spec}
+
+Using a non-deterministic comparison function like |coinCmp|, results, however, in a reordering of the non-minimum elements as well.
+Consider the following two examples.
+
+\begin{spec}
+repl>  bubble coinCmp [1,2,3]
+[1,2,3]   [2,1,3]
+[1,3,2]   [3,1,2]
+
+repl> bubble coinCmp [1,2,3,4]
+[1,2,3,4]  [2,1,3,4]
+[1,2,4,3]  [2,1,4,3]
+[1,3,2,4]  [3,1,2,4]
+[1,4,2,3]  [4,1,2,3]
+\end{spec}
+
+% if False
+
+> bubbleS :: (a -> a -> Bool) -> [a] -> [a]
+> bubbleS _ [x]             = [x]
+> bubbleS p (x:xs@(_ : _))  =  case bubbleS p xs of
+>                               y:ys -> if p x y then x:y:ys else y:x:ys
+
+% endif
 
 \subsection{QuickSort}
 
