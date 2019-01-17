@@ -174,7 +174,7 @@ First, we define a function to find a minimum of a given list parametrised by th
 
 > minList :: (a -> a -> Bool) -> [a] -> a
 > minList _ [x]      = x
-> minList p (y:x:xs) = min p y (minList p (x:xs))
+> minList p (x:y:ys) = min p x (minList p (y:ys))
 >
 
 The function |minList| is partial, because we cannot yield a value in case of the empty list.
@@ -194,12 +194,48 @@ We define |delete| to remove an element from a list.
 >                  | otherwise  = y : delete x ys
 
 Here, it is crucial that we use the comparision function |(==)| to make sure that the element is correctly removed from the list.
-As the resulting |Eq| context brakes with the general scheme that we parametrise all functions with a comparision function, we define a function that finds the minimum and yields the remaining list in one traversal of the input list.
+Now we can define |selectionSort|: we pick the minimum of the input list, place it into the front of the resulting list, and continue with the list without the minimum.
+
+\begin{spec}
+selectionSort :: Eq a => (a -> a -> Bool) -> [a] -> [a]
+selectionSort _ []       = []
+selectionSort p l@(_:_)  =  let y = minList p l
+                            in y : selectionSort p (delete y l)
+\end{spec}
+
+We are ready to take a look at the resulting permutations.
+
+\begin{spec}
+repl> selectionSort coinCmp [1,2,3]
+[1,2,3]  [2,3,1]
+[1,3,2]  [3,1,2]
+[2,1,3]  [3,2,1]
+\end{spec}
+
+Exactly like |insertionSort|, we see that |selectionSort| yields exactly the permutations of the input list.
+One difference of both implementation comes apparent when we look at the type: |selectionSort| has an |Eq|-constraint on the elements of the list.
+As the resulting |Eq|-contraint brakes with the general scheme that we parametrise all functions with a comparision function, we define a function |pickMin| that finds the minimum and yields the remaining list in one traversal of the input list.
 
 > pickMin :: (a -> a -> Bool) -> [a] -> (a,[a])
 > pickMin _ [x]     = (x,[])
 > pickMin p (x:xs@(_ : _))  =  let (m,l) = pickMin p xs
->                              in if p x m then (x,xs) else (m, x:l)
+>                              in if p x m then (x,xs) else (m,x:l)
+
+We adapt the implementation of |selectionSort| to use |pickMin| instead of using a combination of |minList| and |delete| as follows.
+
+> selectionSort :: (a -> a -> Bool) -> [a] -> [a]
+> selectionSort _ []         = []
+> selectionSort p l@(_ : _)  =  let (m,l') = pickMin p l
+>                               in m : selectionSort p l'
+
+Evaluating our example once again but with the adapted implementation yields the expected results.
+
+\begin{spec}
+repl> selectionSort coinCmp [1,2,3]
+[1,2,3]  [2,3,1]
+[1,3,2]  [3,1,2]
+[2,1,3]  [3,2,1]
+\end{spec}
 
 %if False
 
@@ -217,17 +253,6 @@ As the resulting |Eq| context brakes with the general scheme that we parametrise
 > selectionSort'' _ []       = []
 > selectionSort'' p l@(_ : _)  =  let y = minList p l
 >                                 in y : selectionSort'' p (delete' (\x y -> p x y && p y x) y l)
-
-%endif
-
-Now we can define |selectionSort|: we pick the minimum of the input list, place it into the front of the resulting list, and continue with the list without the minimum.
-
-> selectionSort :: (a -> a -> Bool) -> [a] -> [a]
-> selectionSort _ []         = []
-> selectionSort p l@(_ : _)  =  let (m,l') = pickMin p l
->                               in m : selectionSort p l'
-
-%if False
 
 > pickMinS :: (a -> a -> Bool) -> [a] -> (a,[a])
 > pickMinS _ [x]     = (x,[])
@@ -255,16 +280,7 @@ Now we can define |selectionSort|: we pick the minimum of the input list, place 
 >                                 (m,l) -> m : selectionSortCoin l
 
 %endif
-We are ready to take a look at the resulting permutations.
 
-\begin{spec}
-repl> selectionSort coinCmp [1,2,3]
-[1,2,3]  [2,3,1]
-[1,3,2]  [3,1,2]
-[2,1,3]  [3,2,1]
-\end{spec}
-
-Exactly like |insertionSort|, we see that |selectionSort| yields exactly the permutations of the input list.
 Due to the let-bindings used in the implementation of |selectionSort| as well as the auxiliary function |pickMin|, the corresponding decision tree is not as easy to look at as for |insertionSort|.
 Instead, we take a look at the decision tree for |pickMin| and |minList| in \autoref{fig:select1}.
 
