@@ -358,6 +358,7 @@ putStrLn (showSearchTree (someSearchTree (selectionSort coinCmp [1,2,3])))
 \end{spec}
 \noindent
 \autoref{fig:select} displays the output of this expression --- with the additional modification that we label branches with the corresponding comparisons.
+
 \begin{figure}
 \begin{alltt}
 1 <= _ (*)
@@ -403,9 +404,10 @@ The following function |bubble| defines the bubbling of the minimum element of t
 > bubble :: (a -> a -> Bool) -> [a] -> [a]
 > bubble _ [x]             = [x]
 > bubble p (x:xs@(_ : _))  =  let (y:ys) = bubble p xs
->                             in if p x y then x:ys else y:x:ys
+>                             in if p x y then x:y:ys else y:x:ys
 
-% if False
+%if False
+
 > bubble2 :: (a -> a -> Bool) -> [a] -> [a]
 > bubble2 _ [x]              = [x]
 > bubble2 p (x:xs@(y : ys))  = if p x y then x : bubble2 p (y:ys) else y : bubble2 p (x:ys)
@@ -413,30 +415,25 @@ The following function |bubble| defines the bubbling of the minimum element of t
 > bubble' :: (a -> a -> Bool) -> [a] -> [a]
 > bubble' _ [x]             = [x]
 > bubble' p (x:xs@(_ : _))  =  let (y:ys) = bubble' p xs
->                              in if p x y then x:y:ys else y:x:ys
+>                              in if p x y then x:xs else y:x:ys
 >
 > bubbleSort2 :: (a -> a -> Bool) -> [a] -> [a]
 > bubbleSort2 _ []       = []
 > bubbleSort2 p xs@(_:_) = let (y:ys) = bubble2 p xs in y : bubbleSort2 p ys
 
-% endif
+%endif
 
-> bubbleSort :: (a -> a -> Bool) -> [a] -> [a]
-> bubbleSort _ []       = []
-> bubbleSort p xs@(_:_) = let (y:ys) = bubble p xs in y : bubbleSort p ys
-
-Note that the implementation does not change the order of the remaining list elements when used with a deterministic comparison function like |(<=)|.
+When used with a deterministic comparison function like |(<=)|, the implementation potentially bubbles more than one local minimum to the beginning of the list.
 
 \begin{spec}
-repl> bubble (<=) [1,2,3,4]
-[1,2,3,4]
 repl> bubble (<=) [2,3,4,1]
 [1,2,3,4]
-repl> bubble (<=) [3,4,2,1]
-[1,3,4,2]
-\end{spec}
+repl> bubble (<=) [1,3,4,2]
+[1,2,3,4]
+repl> bubble (<=) [2,1,4,3]
+[1,2,3,4]\end{spec}
 
-Using a non-deterministic comparison function like |coinCmp|, results, however, in a reordering of the non-minimum elements as well.
+Using a non-deterministic comparison function like |coinCmp|, enumerates all possible \emph{bubblings}.
 Consider the following two examples.
 
 \begin{spec}
@@ -451,14 +448,71 @@ repl> bubble coinCmp [1,2,3,4]
 [1,4,2,3]  [4,1,2,3]
 \end{spec}
 
-% if False
+We can now define |bubbleSort| by means of |bubble|: |bubble| gives us easy access to the minimum of the list that we use as head element and sort the remaining list recursively.
 
-> bubbleS :: (a -> a -> Bool) -> [a] -> [a]
-> bubbleS _ [x]             = [x]
-> bubbleS p (x:xs@(_ : _))  =  case bubbleS p xs of
->                               y:ys -> if p x y then x:y:ys else y:x:ys
+> bubbleSort :: (a -> a -> Bool) -> [a] -> [a]
+> bubbleSort _ []       = []
+> bubbleSort p xs@(_ : _) = let (y:ys) = bubble p xs in y : bubbleSort p ys
 
-% endif
+Finally, the application of a sorting function to the non-deterministic comparison function |coinCmp| yields more results than expected.
+
+\begin{spec}
+repl> bubbleSort coinCmp [1,2,3]
+[1,2,3]    [2,1,3]
+[1,3,2]    [2,3,1]
+[1,3,2]    [3,1,2]
+[1,2,3]    [3,2,1]
+\end{spec}
+
+Instead of six results corresponding to all permutations of the input list, we observe that two permutation are computed twice: |[1,2,3]| and |[1,3,2]|.
+In order to understand how these duplicates are computed, we take a look at the decision tree for the example call above listed in \autoref{fig:bubble}.
+\begin{figure}
+\begin{alltt}
+1 <= head (bubble [2,3])
+├─ 2 <= head (bubble [3])       ***/*
+│  ├─ 2 <= head (bubble [3])    ***
+│  │  ├─ [1,2,3]
+│  │  └─ [1,3,2]                <<<
+│  └─ 3 <= head (bubble [2])    ****
+│     ├─ [1,3,2]
+│     └─ [1,2,3]                <<<<
+└─ 2 <= head (bubble [3])
+   ├─ 1 <= head (bubble [3])
+   │  ├─ [2,1,3]
+   │  └─ [2,3,1]
+   └─ 1 <= head (bubble [2])
+      ├─ [3,1,2]
+      └─ [3,2,1]
+\end{alltt}
+\caption{Reduced and modified decision tree for |bubbleSort coinCmp [1,2,3]|}
+\label{fig:bubble}
+\end{figure}
+Note that the second argument of the comparision function |coinCmp| are unevaluated expressions, again --- we have already seen a similar example when talking about |selectionSort|.
+The computation of all results in the REPL as well as drawing the decision tree demand the evaluation of expressions like |head (bubble [2,3])|\footnote{The actual expression appearing in the evaluation steps is a let-binding that references the head element in the comparision. That is, |let (x:xs) = bubble [2,3] in if 1 <= x then ... else ...| is closer to the expressions occuring during the evaluation.} not until the corresponding list element will be printed.
+The new thing about the decision tree for an application of |bubbleSort| is that some results occur twice.
+The duplicated results are marked with \texttt{<<<} and \texttt{<<<<}, respectively.
+Note, that it is by intention that we marked the first occurence in case of |[1,3,2]| and the second one in case of the result |[1,2,3]|.
+Consider the path from the root to the result marked with \texttt{<<<}.
+The crucial parts are the comparison marked with \texttt{***}: we compare |2| and |bubble [3]| twice.
+In a setting where we use a deterministic comparision function, the first path to |[1,3,2]| does not make any sense.
+The decision for the first comparison |2 <= bubble [3]| yields |True| --- otherwise we would not take the first branch, that is, doing the same comparision a second time should like |True| again.
+In the path from the root to the first occurence |[1,3,2]|, the comparision of |2| and |bubble [3]| yields |True| the first and |False| the second time.
+Note that there is no deterministic comparision function that yields |True| for a comparision first and |False| later.
+In the following we reference this property as \emph{behaving consistently}: a non-deterministic predicate behaves consistently, if it yields the same Boolean value for every application to the same values.
+
+The other result marked with \texttt{<<<<} is the second occurence of |[1,2,3]|.
+Here, the relevant comparisons taken on the path are |2 <= bubble [3]| and |3 <= head (bubble [2])|.
+Note that the |head (bubble [x])| evaluates to |x| for all |x| of appropriate type.
+That is, |head (bubble [3]) = 3| and |head (bubble [2]) = 2|.
+Below we only reference the comparisons with the evaluated function calls to simplify the reasoning.
+As the second comparison takes place in the second branch of the decision corresponding to |2 <= 3|, we know that the decision was |False|.
+That is, |2| is not smaller or equal than |3|, |2| is greater than |3|.
+We then take the second branch for the decision |3 <= 2|: |2| is greater than |3|.
+Note that this decision does not make any sense when using |bubbleSort| with a reasonable comparision function like |(<=)| on integer values.
+The important property missing here is that the relation described by |<=| needs the connex property.
+The connex property describes that any two pairs of elements of appropriate type are comparable with respect to |<=|.
+Binary relations that are total orders (like for example the smaller-or-equal-than-relation on integers) fulfill the connex property by definition.
+That is, the implementation of |bubbleSort| needs to be used with an comparison function corresponding to a binary relation that is a total order, otherwise it cannot sort all lists correctly.
 
 \subsection{QuickSort}
 
