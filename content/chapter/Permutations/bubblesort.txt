@@ -1,0 +1,493 @@
+ bubbleSort [1,2,3]
+=
+ let (x1:xs1) = bubble [1,2,3]
+ in x1 : bubbleSort xs1
+=
+ let (x1:xs1) = let (y1:ys1) = bubble [2,3]
+                in if p 1 y1 then 1:y1:ys1 else y1:1:ys1              --- p 1 y1
+ in x1 : bubbleSort xs1
+=
+ let (x1:xs1) = let (y1:ys1) = bubble [2,3]
+                in 1:y1:ys1 ? y1:1:ys1
+ in x1 : bubbleSort xs1
+=
+ let xs1 = let (y1:ys1) = bubble [2,3]
+           in y1:ys1
+ in 1 : bubbleSort xs1
+?
+ let xs1 = let (y1:ys1) = bubble [2,3]
+           in 1:ys1
+ in y1 : bubbleSort xs1
+= {- bubble [2,3] = ... -}
+ let (y1:ys1) = bubble [2,3]
+ in 1 : let (x2:xs2) = bubble (y1:ys1)
+        in x2 : bubbleSort xs2
+?
+ ...
+=
+ let (y1:ys1) = let (y2:ys2) = bubble [3]
+                in if p 2 y2 then 2:y2:ys2 else y2:2:ys2              --- p 2 y2
+ in 1 : let (x2:xs2) = bubble (y1:ys1)
+        in x2 : bubbleSort xs2
+?
+ ...
+=
+ let (y1:ys1) = let (y2:ys2) = bubble [3]
+                in 2:y2:ys2 ? y2:2:ys2
+ in 1 : let (x2:xs2) = bubble (y1:ys1)
+        in x2 : bubbleSort xs2
+?
+ ...
+=
+ let (y2:ys2) = bubble [3] in
+ let (y1:ys1) = 2:y2:ys2 ? y2:2:ys2
+ in 1 : let (x2:xs2) = bubble (y1:ys1)
+        in x2 : bubbleSort xs2
+?
+ ...
+=
+ let (y2:ys2) = bubble [3] in
+ in 1 : (let (x2:xs2) = bubble (2:y2:ys2)
+         in x2 : bubbleSort xs2
+        ?
+         let (x2:xs2) = bubble (y2:2:ys2)
+         in x2 : bubbleSort xs2)
+?
+ ...
+= {- bubble [3] = 3:[] -}
+ 1 : (let (x2:xs2) = bubble [2,3]
+      in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = bubble [3:2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- bubble [2,3] = ... -}
+ 1 : (let (x2:xs2) = let (y1:ys1) = bubble [3]
+                     in if p 2 y1 then 2:y1:ys1 else y1:2:ys1         --- p 2 y1
+      in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- p 2 y1 -}
+ 1 : (let (x2:xs2) = let (y1:ys1) = bubble [3]
+                     in 2:y1:ys1 ? y1:2:ys1
+      in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- rearrange let -}
+ 1 : (let (y1:ys1) = bubble [3] in
+      let (x2:xs2) = 2:y1:ys1 ? y1:2:ys1
+      in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- pull tab -}
+ 1 : (let (y1:ys1) = bubble [3] in
+      (let (x2:xs2) = 2:y1:ys1
+       in x2 : bubbleSort xs2
+      ?
+       let (x2:xs2) = y1:2:ys1
+       in x2 : bubbleSort xs2)
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+=
+ 1 : (let (y1:ys1) = bubble [3] in
+      (let xs2 = y1:ys1
+       in 2 : bubbleSort xs2
+      ?
+       let (x2:xs2) = y1:2:ys1
+       in x2 : bubbleSort xs2)
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- bubble [3] = 3:[] -}
+ 1 : ( 2 : bubbleSort [3]
+      ?
+       let (x2:xs2) = [3,2]
+       in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- bubbleSort [3] = ... -}
+ 1 : ( 2 : (let (x3: xs3) = bubble [3]
+            in x3 : bubbleSort xs3)
+      ?
+       let (x2:xs2) = [3,2]
+       in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- bubble [3] = 3:[] -}
+ 1 : ( 2 : (3 : bubbleSort [])
+      ?
+       let (x2:xs2) = [3,2]
+       in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- bubbleSort [] = [] -}
+ 1 : ( 2 : (3 : [])
+      ?
+       let (x2:xs2) = [3,2]
+       in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- pull-tab -}
+ 1 : 2 : 3 : []
+?
+ 1 : (let (x2:xs2) = [3,2]
+      in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- simplify -}
+ 1 : 2 : 3 : []
+?
+ 1 : (3 : bubbleSort [2]
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- bubbleSort [3] = 3 : [] -}
+ 1 : 2 : 3 : []
+?
+ 1 : (3 : 2 : []
+     ?
+      let (x2:xs2) = bubble [3,2]
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- pull tab -}
+ 1 : 2 : 3 : []
+?
+ 1 : 3 : 2 : []
+?
+ 1 : let (x2:xs2) = bubble [3,2]
+     in x2 : bubbleSort xs2
+?
+ ...
+= {- bubble [3,2] = ... -}
+ 1 : 2 : 3 : []
+?
+ 1 : 3 : 2 : []
+?
+ 1 : let (x2:xs2) = let (y1:ys1) = bubble [2]
+                    in if p 3 y1 then 3:y1:ys1 else y1:3:ys1              --- p 3 y1
+     in x2 : bubbleSort xs2
+?
+ ...
+= {- p 3 y1 -}
+ 1 : 2 : 3 : []
+?
+ 1 : 3 : 2 : []
+?
+ 1 : let (x2:xs2) = let (y1:ys1) = bubble [2]
+                    in 3:y1:ys1 ? y1:3:ys1
+     in x2 : bubbleSort xs2
+?
+ ...
+= {- rearrange lets and pull-tab -}
+ 1 : 2 : 3 : []
+?
+ 1 : 3 : 2 : []
+?
+ 1 : let (y1:ys1) = bubble [2] in
+     (let (x2:xs2) = 3:y1:ys1
+      in x2 : bubbleSort xs2
+     ?
+      let (x2:xs2) = y1:3:ys1
+      in x2 : bubbleSort xs2)
+?
+ ...
+= {- bubble [2] = 2:[] -}
+ 1 : 2 : 3 : []
+?
+ 1 : 3 : 2 : []
+?
+ 1 : (3 : bubbleSort [2]
+     ?
+      2 : bubbleSort [3])
+?
+ ...
+= {- bubbleSort [2] = [2] and pull-tab -}
+ 1 : 2 : 3 : []
+?
+ 1 : 3 : 2 : []
+?
+ 1 : 3 : 2 : []
+?
+ 1 : 2 : 3 : []
+?
+ ...
+
+= {- consider other branch -}
+ ...
+?
+ let (y1:ys1) = bubble [2,3] in
+ let xs1 = 1:ys1
+ in y1 : bubbleSort xs1
+= {- bubble [2,3] = ... -}
+ ...
+?
+ let (y1:ys1) = let (y2:ys2) = bubble [3]
+                in if p 2 y2 then 2:y2:ys2 else y2:2:ys2              --- p 2 y2
+ let xs1 = 1:ys1
+ in y1 : bubbleSort xs1
+= {- p 2 y2 -}
+ ...
+?
+ let (y1:ys1) = let (y2:ys2) = bubble [3]
+                in 2:y2:ys2 ? y2:2:ys2
+ let xs1 = 1:ys1
+ in y1 : bubbleSort xs1
+= {- rearrange lets and pull-tab -}
+ ...
+?
+ let (y2:ys2) = bubble [3] in
+ (let (y1:ys1) = 2:y2:ys2 in
+  in y1 : bubbleSort (1:ys1)
+ ?
+  let (y1:ys1) = y2:2:ys2 in
+  in y1 : bubbleSort (1:ys1))
+= {- simplify -}
+ ...
+?
+ let (y2:ys2) = bubble [3] in
+ (2 : bubbleSort (1:y2:ys2)
+ ?
+  y2 : bubbleSort (1:2:ys2))
+= {- bubble [3] = 3:[] -}
+ ...
+?
+ 2 : bubbleSort [1,3]
+?
+ 3 : bubbleSort [1,2]
+= {- bubbleSort [1,3] = ... -}
+ ...
+?
+ 2 : let (x1:xs1) = bubble [1,3]
+     in x1 : bubbleSort xs1
+?
+ 3 : bubbleSort [1,2]
+= {- bubble [1,3] = ... -}
+ ...
+?
+ 2 : let (x1:xs1) = let (y1:ys1) = bubble [3]
+                    in if p 1 y1 then 1:y1:ys1 else y1:1:ys1          --- p 1 y1
+     in x1 : bubbleSort xs1
+?
+ 3 : bubbleSort [1,2]
+= {- p 1 y1 -}
+ ...
+?
+ 2 : let (x1:xs1) = let (y1:ys1) = bubble [3]
+                    in 1:y1:ys1 ? y1:1:ys1
+     in x1 : bubbleSort xs1
+?
+ 3 : bubbleSort [1,2]
+
+= {- rearrange lets and pull-tab -}
+ ...
+?
+ 2 : let (y1:ys1) = bubble [3] in
+     (let (x1:xs1) = 1:y1:ys1
+      in x1 : bubbleSort xs1
+     ?
+      let (x1:xs1) = y1:1:ys1
+      in x1 : bubbleSort xs1)
+?
+ 3 : bubbleSort [1,2]
+= {- simplify and pull-tab -}
+ ...
+?
+ let (y1:ys1) = bubble [3] in
+ 2 : 1 : bubbleSort (y1:ys1)
+?
+ 2 : y1 : bubbleSort (1:ys1)
+?
+ 3 : bubbleSort [1,2]
+= {- bubbleSort (y1:ys1) = ... -}
+ ...
+?
+ let (y1:ys1) = bubble [3] in
+ 2 : 1 : let (x2:xs2) = bubble (y1:ys1)
+         in x2 : bubbleSort xs2
+?
+ 2 : y1 : bubbleSort (1:ys1)
+?
+ 3 : bubbleSort [1,2]
+= {- bubble (y1:ys1) = ... or bubble (y1:[]); demand on ys1, bubble [3] = 3:[] -}
+ ...
+?
+ 2 : 1 : let (x2:xs2) = bubble [3]
+         in x2 : bubbleSort xs2
+?
+ 2 : 3 : bubbleSort [1]
+?
+ 3 : bubbleSort [1,2]
+= {- bubble [3] = 3:[] -}
+ ...
+?
+ 2 : 1 : 3 : bubbleSort []
+?
+ 2 : 3 : bubbleSort [1]
+?
+ 3 : bubbleSort [1,2]
+= {- bubbleSort [] = [] -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : bubbleSort [1]
+?
+ 3 : bubbleSort [1,2]
+= {- bubbleSort [1] = [1] -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+ 3 : bubbleSort [1,2]
+= {- bubbleSort [1,2] = ... -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+ 3 : let (x1:xs1) = bubble [1,2]
+     in x1 : bubbleSort xs1
+= {- bubble [1,2] = ... -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+ 3 : let (x1:xs1) = let (y1:ys1) = bubble [2]
+                    in if p 1 y1 then 1:y1:ys1 else y1:1:ys1          --- p 1 y1
+     in x1 : bubbleSort xs1
+= {- p 1 y1 -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+ 3 : let (x1:xs1) = let (y1:ys1) = bubble [2]
+                    in 1:y1:ys1 ? y1:1:ys1
+     in x1 : bubbleSort xs1
+= {- rearrange lets and pull-tab -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+ 3 : let (y1:ys1) = bubble [2] in
+     (let (x1:xs1) = 1:y1:ys1
+      in x1 : bubbleSort xs1
+     ?
+      let (x1:xs1) = y1:1:ys1
+      in x1 : bubbleSort xs1)
+= {- simplify (x1:xs1) -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+ 3 : let (y1:ys1) = bubble [2] in
+     (1 : bubbleSort (y1:ys1)
+     ?
+      y1 : bubbleSort (1:ys1))
+= {- pull-tab -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+ (let (y1:ys1) = bubble [2] in
+  3 : 1 : bubbleSort (y1:ys1)
+ ?
+  3 : y1 : bubbleSort (1:ys1))
+= {- bubbleSort (y1:ys1) = ... -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+ (let (y1:ys1) = bubble [2] in
+  3 : 1 : let (x1:xs1) = bubble (y1:ys1)
+          in x1 : bubbleSort xs1
+ ?
+  3 : y1 : bubbleSort (1:ys1))
+= {- bubble (y1:ys1) = ... or bubble [y1], demand on ys1, bubble [2] = 2:[] -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+3 : 1 : let (x1:xs1) = bubble [2]
+        in x1 : bubbleSort xs1
+?
+3 : 2 : bubbleSort [1]
+= {- bubble [2] = 2:[] -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+3 : 1 : 2 : bubbleSort []
+?
+3 : 2 : bubbleSort [1]
+= {- bubbleSort [] = [] -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+3 : 1 : 2 : []
+?
+3 : 2 : bubbleSort [1]
+= {- bubbleSort [1] = [1] -}
+ ...
+?
+ 2 : 1 : 3 : []
+?
+ 2 : 3 : [1]
+?
+3 : 1 : 2 : []
+?
+3 : 2 : [1]
