@@ -199,8 +199,8 @@ Now we can define |selectionSort|: we pick the minimum of the input list, place 
 \begin{spec}
 selectionSort :: Eq a => (a -> a -> Bool) -> [a] -> [a]
 selectionSort _ []       = []
-selectionSort p l@(_:_)  =  let y = minList p l
-                            in y : selectionSort p (delete y l)
+selectionSort p l@(_ : _)  =  let y = minList p l
+                              in y : selectionSort p (delete y l)
 \end{spec}
 
 We are ready to take a look at the resulting permutations.
