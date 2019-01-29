@@ -516,23 +516,89 @@ That is, the implementation of |bubbleSort| needs to be used with an comparison 
 
 \subsection{QuickSort}
 
-> quickSort' :: (a -> a -> Bool) -> [a] -> [a]
-> quickSort' _ []     = []
-> quickSort' p (x:xs) = let l1 = filter (\y -> p y x) xs
->                           l2 = filter (\y -> not $ p y x) xs
->                       in quickSort' p l1 ++ x : quickSort' p l2
+In this section we take a look at an implementation of \emph{quicksort} that is known for its particular declarative realisation.
+The general idea behind the quicksort algorithm is to choose a pivot element and split the remaining list into two parts: one with all elements that are smaller or equal than the pivot and one with the all elements that do not fulfil this criterion.
+The algorithm is then recursively applied to these two sublists.
+
+The following function |quickSort| uses the head element of the given list as pivot element and the function |filter| to split the input list into the two parts.
 
 > quickSort :: (a -> a -> Bool) -> [a] -> [a]
-> quickSort _ []     = []
-> quickSort p (x:xs) = let t = split p x xs
->                      in quickSort p (fst t) ++ (x:quickSort p (snd t))
-> 
-> split :: (a -> a -> Bool) -> a -> [a] -> ([a],[a])
-> split p x l = split' l ([],[]) where
->   split' [] ls                        = ls
->   split' (y:ys) (l1,l2) | not (p x y) = split' ys (l1,y:l2)
->                         | otherwise   = split' ys (y:l1,l2)
+> quickSort _  []      = []
+> quickSort p  (x:xs)  =  let  l1 = filter (\y -> p y x) xs
+>                              l2 = filter (\y -> not $ p y x) xs
+>                         in quickSort p l1 ++ x : quickSort p l2
 
+Let us take a look at the resulting permutations for exemplary calls.
+
+\begin{spec}
+repl> quickSort coinCmp [1,2]
+[2,1]
+[2,1,2]
+[1]
+[1,2]
+
+repl> length (allValues (quickSort coinCmp [1,2,3]))
+49
+
+repl> length (allValues (quickSort coinCmp [1,2,3]))
+4225
+\end{spec}
+
+That escalated quickly.
+The first example call was already odd: for a list with two elements we get four results, of which two are not even permutations of the original list.
+The second and third example illustrates why did not evaluate all results for a list with more than 2 elements: the number of results grows way worse than expected for an algorithm that enumerates permutations.
+The expected number of results for three elements is $3!=6$ and $4!=24$ for four elements, respectively.
+
+A quick look at the two filter calls alone will get us closer to understand what is going on here.
+
+\begin{spec}
+repl> filter (coinCmp 1) [2]
+[2]
+[]
+
+repl> filter (not . coinCmp 1) [2]
+[]
+[2]
+\end{spec}
+
+Both bindings, |l1| and |l2|, evaluate to the same two values, just in reversed order.
+These two times two sublists yield four overall results, since all lists for |l1| are combined with all lists of |l2| to yield |l1 ++ x : l2|.
+In general, the resulting function enumerates the cross product of all subsequences of the input list.
+
+We can again observe that the definition of |quickSort| uses the comparison function |coinCmp| inconsistently, thus, yields the same results for both application of filter.
+Using a determinstic comparision function |p|, the sublists |l1| and |l2| would be disjunct, since we are using |p| for the first and |not . p| for the second list.
+
+We can overcome this drawback when using two |filter| applications by using |split| instead.
+The function |split :: (a -> Bool) -> [a] -> ([a],[a])| traverses a list only once to split it into two sublists fulfiling exactly the property we use above: the first list contains only elements that fulfill the given predicate and the second list contains the elements that do not.
+We define |split| as follows; note, that it is crucial that split traverses its input list only once.
+
+> split :: (a -> a -> Bool) -> a -> [a] -> ([a],[a])
+> split p x l = split' l ([],[])
+>  where
+>   split' [] ls                          = ls
+>   split' (y:ys) (l1,l2)  | not (p x y)  = split' ys (l1,y:l2)
+>                          | otherwise    = split' ys (y:l1,l2)
+
+Based on |split| we can define a second version of quick sort.
+We reuse the variable names |l1| and |l2| for the two sublists to indicate the the underlying idea of the algorithm stays exactly the same.
+
+> quickSortSplit :: (a -> a -> Bool) -> [a] -> [a]
+> quickSortSplit _ []     = []
+> quickSortSplit p (x:xs) =  let (l1,l2) = split p x xs
+>                            in quickSortSplit p l1 ++ x : quickSortSplit p l2
+
+Let us once again take a look at the resulting permutations.
+
+\begin{spec}
+repl> quickSortSplit coinCmp [1,2,3]
+[2,3,1]   [3,1,2]
+[3,2,1]   [1,2,3]
+[2,1,3]   [1,3,2]
+\end{spec}
+
+As |split| only traverses its input list once, each comparison happens only once.
+The pivot element is compared to each element of the remaining list, the recursive calls to |quickSortSplit| then pick new pivot elements that are used for comparison.
+That is, we end up with exact all permutations of the input list, again.
 
 \subsection{MergeSort}
 
