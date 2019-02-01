@@ -112,7 +112,7 @@ repl> insertionSort coinCmp [1,2,3]
 \end{spec}
 
 We see that the expression non-deterministically yields six different results.
-All of these results is a permutation of the input list |[1,2,3]|.
+All of these results are a permutation of the input list |[1,2,3]|.
 Since a list of length $n$ has $2^n$ number of permutations, the example above yields exactly all $2^3=6$ permutations of the list.
 Testing |insertionSort| more systematically with EasyCheck reveals that it was not a coincidence that the function yields exactly all permutations.
 
