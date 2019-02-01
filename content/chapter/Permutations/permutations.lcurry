@@ -150,15 +150,15 @@ That is, as each branch corresponds to a application of |coinCmp| to arguments, 
 
 \begin{figure}[t]
 \begin{alltt}
-2 <= 3
-├── L: 1 <= 2
+2 \(\leq\sb{?}\) 3
+├── L: 1 \(\leq\sb{?}\) 2
 │       ├── L: [1,2,3]
-│       └── R: 1 <= 3
+│       └── R: 1 \(\leq\sb{?}\) 3
 │               ├── L: [2,1,3]
 │               └── R: [2,3,1]
-└── R: 1 <= 3
+└── R: 1 \(\leq\sb{?}\) 3
         ├── L: [1,3,2]
-        └── R: 1 <= 2
+        └── R: 1 \(\leq\sb{?}\) 2
                 ├── L: [3,1,2]
                 └── R: [3,2,1]
 \end{alltt}
