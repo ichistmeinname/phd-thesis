@@ -196,12 +196,10 @@ We define |delete| to remove an element from a list.
 Here, it is crucial that we use the comparision function |(==)| to make sure that the element is correctly removed from the list.
 Now we can define |selectionSort|: we pick the minimum of the input list, place it into the front of the resulting list, and continue with the list without the minimum.
 
-\begin{spec}
-selectionSort :: Eq a => (a -> a -> Bool) -> [a] -> [a]
-selectionSort _ []       = []
-selectionSort p l@(_ : _)  =  let y = minList p l
-                              in y : selectionSort p (delete y l)
-\end{spec}
+> selectionSort :: Eq a => (a -> a -> Bool) -> [a] -> [a]
+> selectionSort _ []         = []
+> selectionSort p l@(_ : _)  =  let y = minList p l
+>                               in y : selectionSort p (delete y l)
 
 We are ready to take a look at the resulting permutations.
 
@@ -223,15 +221,15 @@ As the resulting |Eq|-contraint brakes with the general scheme that we parametri
 
 We adapt the implementation of |selectionSort| to use |pickMin| instead of using a combination of |minList| and |delete| as follows.
 
-> selectionSort :: (a -> a -> Bool) -> [a] -> [a]
-> selectionSort _ []         = []
-> selectionSort p l@(_ : _)  =  let (m,l') = pickMin p l
->                               in m : selectionSort p l'
+> selectionSortPick :: (a -> a -> Bool) -> [a] -> [a]
+> selectionSortPick _ []         = []
+> selectionSortPick p l@(_ : _)  =  let (m,l') = pickMin p l
+>                                   in m : selectionSortPick p l'
 
 Evaluating our example once again but with the adapted implementation yields the expected results.
 
 \begin{spec}
-repl> selectionSort coinCmp [1,2,3]
+repl> selectionSortPick coinCmp [1,2,3]
 [1,2,3]  [2,3,1]
 [1,3,2]  [3,1,2]
 [2,1,3]  [3,2,1]
@@ -308,7 +306,7 @@ repl> selectionSort coinCmp [1,2,3]
 
 %endif
 
-Due to the let-bindings used in the implementation of |selectionSort| as well as the auxiliary function |pickMin|, the corresponding decision tree is not as easy to look at as for |insertionSort|.
+Due to the let-bindings used in the implementation of |selectionSortPick| as well as the auxiliary function |pickMin|, the corresponding decision tree is not as easy to look at as for |insertionSort|.
 Instead, we take a look at the decision tree for |pickMin| and |minList| in \autoref{fig:select1}.
 
 \begin{figure}
@@ -351,10 +349,10 @@ This example is an instance for space leaks that we mentioned in \autoref{ch:dp}
 In particular, we cannot use case-expressions without altering the non-strictness-property of the original definition using let-bindings.
 Therefore, in the following, we represent decision trees in a reduced version, where we fuse shared decisions by only displaying the branches that would be considered in a search traversal.
 We compute this reduced decision tree by computing the internal representation by means of |someSearchTree|.
-That is, the following expression computes the decision tree for the exemplary application of |selectionSort| from above.
+That is, the following expression computes the decision tree for the exemplary application of |selectionSortPick| from above.
 
 \begin{spec}
-putStrLn (showSearchTree (someSearchTree (selectionSort coinCmp [1,2,3])))
+putStrLn (showSearchTree (someSearchTree (selectionSortPick coinCmp [1,2,3])))
 \end{spec}
 \noindent
 \autoref{fig:select} displays the output of this expression --- with the additional modification that we label branches with the corresponding comparisons.
@@ -373,7 +371,7 @@ putStrLn (showSearchTree (someSearchTree (selectionSort coinCmp [1,2,3])))
       ├─ [3,1,2]
       └─ [3,2,1]
 \end{alltt}
-\caption{Reduced decision tree for |selectionSort coinCmp [1,2,3]|}
+\caption{Reduced decision tree for |selectionSortPick coinCmp [1,2,3]|}
 \label{fig:select}
 \end{figure}
 
@@ -384,7 +382,7 @@ We can observe this non-strict behaviour when computing only the head element of
 Consider the following expressions involving a list with |failed| as element.
 
 \begin{spec}
-repl> selectionSort coinCmp [1,failed]
+repl> selectionSortPick coinCmp [1,failed]
 repl> head (selectionSort coinCmp [1,failed])
 1
 \end{spec}
