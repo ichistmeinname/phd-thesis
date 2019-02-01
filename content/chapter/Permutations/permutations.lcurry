@@ -602,24 +602,56 @@ That is, we end up with exact all permutations of the input list, again.
 
 \subsection{MergeSort}
 
+Last but not least, we take a look at merge sort.
+The general idea of the sorting algorithm it to divide the input list of length $n$ into $n$ sublists, that is, all sublists are singleton lists.
+These singleton lists, which are trivially sorted, are merged into new sorted sublists.
+The merging is repeated until only one list is remaining: the resulting sorted list.
+
+First, we define a function |divideN| to divide the input lists into two lists of the same length.
+
+> divideN :: [a] -> ([a],[a])
+> divideN xs = divideN' xs (length xs `div` 2)
+>  where  divideN' []      _  = ([],[])
+>         divideN' (y:ys)  n  | n == 0     = ([],y:ys)
+>                             | otherwise  =  let (l1,l2) = divideN' ys (n-1)
+>                                             in (y:l1,l2)
+
+
+Second, we define a function |merge| that merges two lists based on a comparison function.
+
 > merge :: (a -> a -> Bool) -> [a] -> [a] -> [a]
-> merge _ [] l = l
-> merge _ (x:xs) [] = x:xs
-> merge p (x:xs) (y:ys) | p x y = x : merge p xs (y:ys)
->                       | otherwise = y : merge p (x:xs) ys
-> 
+> merge _ []     l       = l
+> merge _ (x:xs) []      = x:xs
+> merge p (x:xs) (y:ys)  | p x y      = x : merge p xs (y:ys)
+>                        | otherwise  = y : merge p (x:xs) ys
+
+The first two rules cover the cases that it is not necessary to merge if one of lists is empty, we just yield the other one.
+If both lists are non-empty, we decide based on the comparison function |p| which element to put at the front of the resulting list and merge recursively with the remaining lists.
+Note that we assume that both list arguments of |merge| are already sorted.
+Finally, we define the overall sorting function |mergeSort| that uses |divideN| to divide the lists into two sublists that are sorted recursively, and |merge| to merge the sorted sublists.
+ 
 > mergeSort :: (a -> a -> Bool) -> [a] -> [a]
-> mergeSort p l = let n       = length l `div` 2
->                     (l1,l2) = splitN l n
->                 in if n == 0 then l else merge p (mergeSort p l1) (mergeSort p l2)
-> 
-> 
-> splitN :: [a] -> Int -> ([a],[a])
-> splitN [] _ = ([],[])
-> splitN (x:xs) n | n == 0 = ([],x:xs)
->                 | otherwise = let (l1,l2) = splitN xs (n-1) in (x:l1,l2)
+> mergeSort _ []               = []
+> mergeSort _ [x]              = [x]
+> mergeSort p l@(_ : (_ : _))  =  let (l1,l2) = divideN l
+>                                 in merge p (mergeSort p l1) (mergeSort p l2)
 
+Once again we take a look at an exemplary application of |mergeSort| to the non-deterministic comparison function |coinCmp|.
 
+\begin{spec}
+repl> mergeSort coinCmp [1,2,3]
+[1,2,3]   [1,3,2]
+[2,1,3]   [3,1,2]
+[2,3,1]   [3,2,1]
+\end{spec}
+
+We are pleased to observe that the resulting function enumerates exactly all permutations.
+The procedure follows by |mergeSort| does not make any redundant comparisons.
+The first step of dividing the list into sublists is not based on the predicate but based on the length of the list only.
+The comparison take place when using |merge|.
+As |merge| has the precondition that both argument list are already sorted, it is sufficient to compare the lists head-wise.
+That is, if one head element is smaller than the other head element, the former is put in front of the list and does not need to be considered anymore.
+The utilisation of the precondition leads to a efficient sorting algorithm: no two elements are compared more than once.
 
 \section{Non-deterministic Sorting Functions in Haskell}
 \subsection{Modelling Non-determinism}
