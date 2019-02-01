@@ -19,7 +19,7 @@ As a quick teaser for these question, we anticipate that all (correct) sorting f
 
 In the second part of this chapter we transfer our implementation in Curry to Haskell.
 One possible model of non-determinism in a functional language is to use lists to represent all non-deterministic results.
-We go even one step further and generalise all functions to monadic functions.
+We go even one step further and generalise all functions to monadic functions and use a more specialised version of monads that have an additional |mplus| function that is especially suitable for non-determinism.
 Using these monadically lifted functions, we try out different representation of non-determinism --- like multi-sets, sets, or trees --- but need only one implementation of the sorting function.
 We compare the monadic representation of non-determinism with the built-in non-determinism of Curry by means of these sorting functions to enumerate permutations.
 
@@ -43,19 +43,34 @@ In summary, this chapter makes the following contributions.
 
 \section{Non-deterministic Sorting Functions in Curry}
 
-\begin{itemize}
-\item examples use integer, but arbitrary types can be used
-\item integer values represent positions within the list
-\item less than although the comparison function could be an arbitrary one
-\item argue about sorting function enumerating all permutations as otherwise it couldn't sort the list that was not enumerated
-\end{itemize}
-
-Consider the following non-deterministic comparison function that ignores both its arguments and non-deterministically yields |True| and |False|.
+We start this chapter with an overview of common sorting functions, which we implement using a version that is parametrised by a comparison function.
+The main quest of this section is to document the behavior of these sortings function when applied to a particular comparison function.
+Hereunto, consider the following non-deterministic comparison function that ignores both its arguments and non-deterministically yields |True| and |False|.
 
 > coinCmp :: a -> a -> Bool
 > coinCmp _ _ = True ? False
 
 The name |coinCmp| suggests a similarity to the popular |coin|-definition as an example for non-determinism; the difference here is that we define a two-ary function with a non-deterministic result, whereas |coin| is a nullary function.
+
+In the remainder of this section we will apply all sorting functions to the non-deterministic comparison function |coinCmp|.
+We can already anticipate here that the non-determinism introduced by |coinCmp| will transform the sorting functions with resulting list type |[a]| to functions that produce several lists non-deterministically.
+That is, the non-determinism of |coinCmp| propagates to the result.
+
+The interesting thing about using these sorting function with a non-deterministic comparison function like |coinCmp| is that we expect that each permutation of the input list is part of the resultings lists.
+Why is it reasonable to expect to see all permutations?
+We expect the orginal sorting function, say |sort :: (Int -> Int -> Bool) -> [Int] -> [Int]|, to actually sort a list in ascending order when we apply it to the comparison function |(<=)|.
+If |sort (<=)| is indeed such a sorting function, then every permutation of a sorted list |[1..n]| of length $n$ can be sorted by |sort (<=)|.
+That is, there are decisions of |(<=)| that result in a sorted list.
+If we apply |sort coinCmp| to a list, then |coinCmp| tries every possible decision when comparing two elements.
+Hence, there is a sequence of decisions that leads to a specific permutation of the input list.
+As we are trying every possible decision, we expect all possible permutations to be part of the result.
+Otherwise, if a specific permutation is not part of the result, we cab deduce that |sort (<=)| does not correctly this permutation.
+
+In the following all of our examples use lists of integer, more particuar, we use lists of the shape [1..n] with $n$ as length of the list.
+These integers are only meant to be placeholders for concrete values and represent the position of the element within the original list.
+That is, when we produce permutations of the input list, we can deduce the behaviour for a variety of input lists of other types, because we know where elements end up in the result based on their position in the input list.
+Moreover, when we describe how a function produces its results, we use \emph{less than} with respect to the comparison function in question, that is, not every usage of \emph{less than} refers to the actual relation $\leq$ on integer values.
+We think, however, these descriptions are easier to read when \emph{less than} as an overloaded relation.
 
 \label{sec:sortCurry}
 
