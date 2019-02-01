@@ -42,6 +42,7 @@ In summary, this chapter makes the following contributions.
 \end{itemize}
 
 \section{Non-deterministic Sorting Functions in Curry}
+\label{sec:NDCurry}
 
 We start this chapter with an overview of common sorting functions, which we implement using a version that is parametrised by a comparison function.
 The main quest of this section is to document the behavior of these sortings function when applied to a particular comparison function.
@@ -408,6 +409,7 @@ The second expression, however, computes only the head element and yields indeed
 That is, in order to yield the first element of the first list, we do no need to compute any further elements of the input list.
 
 \subsection{BubbleSort}
+\label{subsec:CurryBubble}
 
 The next sorting function we examine is bubble sort.
 We define an implementation of the bubble slort algorithm that bubbles the minimum element to the front of a list.
@@ -666,31 +668,7 @@ As |merge| has the precondition that both argument list are already sorted, it i
 That is, if one head element is smaller than the other head element, the former is put in front of the list and does not need to be considered anymore.
 The utilisation of the precondition leads to a efficient sorting algorithm: no two elements are compared more than once.
 
-\section{Non-deterministic Sorting Functions in Haskell}
-\subsection{Modelling Non-determinism}
-\begin{itemize}
-\item using list monad
-\item generalisation to arbitrary monad: enables usage of set-based instance as well
-\end{itemize}
-\subsection{Exemplary Sorting Functions}
-\begin{itemize}
-\item monadic abstraction for sorting function sufficient; |?|-like operator only necessary for comparison function
-\end{itemize}
-\subsection{Curry vs Monadic Non-determinism}
-\begin{itemize}
-\item non-determinism is not visible at the type-level
-\item non-determinism can occur in constructor components (deep vs. flat)
-\item thus, non-determinism can be non-stricter than instances using lists (or trees)
-\end{itemize}
-\subsection{Getting Rid of Duplicates}
-\begin{itemize}
-\item drawing decision tree using free monad
-\item properties of predicates to prevent duplicates
-  \begin{itemize}
-  \item state monad to track result of compared pairs
-  \item consistency, totality, transitivity
-  \end{itemize}
-\end{itemize}
+%include Permutations.lhs
 
 \section{Conclusion and Future Work}
 \begin{itemize}
