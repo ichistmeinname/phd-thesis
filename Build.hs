@@ -8,12 +8,15 @@ dist = "dist"
 
 main :: IO ()
 main = shakeArgs shakeOptions $ do
-    want [dist </> "thesis.pdf", dist </> "thesis.bib", "thesis.lhs",
-          "thesis.bib", "setup.tex", "content/appendix.tex"]
+    want [dist </> "thesis.pdf", dist </> "thesis.tex", "thesis.lhs"]
 
     phony "clean" $ do
+      putNormal "Remove dist"
+      cmd_ "rm" "-r" "-f" dist
+
+    phony "clean-aux" $ do
       putNormal "Remove *.aux"
-      cmd_ "remove" (dist </> "*.aux")
+      cmd_ "rm" (dist </> "*.aux")
 
     let content = "content"
         chapter = "chapter"
@@ -29,12 +32,11 @@ main = shakeArgs shakeOptions $ do
       need [dist </> out]
       cmd_ "touch" (dist </> "thesis.tex")
 
-    "thesis.lhs" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
+    "//*.lhs" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
+    "//*.lcurry" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
+    "content/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "setup.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
     "content/figures/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
-    "content/chapter/Permutations/*.lcurry" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
-    "content/chapter/*.lcurry" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
-    "content/*.tex" %> \_ -> cmd_ "touch" (dist </> "thesis.tex")
 
 --    "content/chapter/*.lcurry" %> \out -> do
 --      cmd_ "lhs2tex" out "-o" (out -<.> "tex")
@@ -50,7 +52,8 @@ main = shakeArgs shakeOptions $ do
             ++ map (\ch -> content </> chapter </> ch)
                    ("introduction" <.> "tex" : "conclusion" <.> "tex"
                                      : files))
-      need [dist </> "thesis.bib", dist </> "thesis.tex"]
+      b <- doesFileExist "dist/thesis.aux"
+      if b then need [dist </> "thesis.bib", dist </> "thesis.tex"] else return ()
 
       cmd_ "pdflatex" "-shell-escape" "-output-directory" dist (dist </> "thesis.tex")
       cmd_ "pdflatex" "-shell-escape" "-output-directory" dist (dist </> "thesis.tex")
