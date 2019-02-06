@@ -107,7 +107,7 @@ As a side note, consider the following urge to outsource the duplicate call to |
 > filterM' :: Monad m => (a -> m Bool) -> [a] -> m [a]
 > filterM' _ []      = return []
 > filterM' f (x:xs)  =  f x >>= \p ->
->                       filterM f xs >>= \ys ->
+>                       filterM' f xs >>= \ys ->
 >                       return (if p then x:ys else ys)
 
 This transformation that computes the non-deterministic computation |filterM f xs| only once, is still equivalent to |filterM|.
@@ -180,25 +180,56 @@ insertM' p x ys >>= \zs -> return (if b then x:y:ys else y:zs)
 \end{spec}
 
 we need to evaluate |insertM' p x ys| first.
-Consider the step-wise evaluation of the example from above listed in \autoref{fig:filterMStep}.
+In this example, we trigger the evaluation of the non-deterministic comaprision function |coinCmp| although we do not need the result |zs| if |b| is |True|.
+Consider the excerpt of a step-wise evaluation of the example from above listed in \autoref{fig:filterMStep}.
+Note that we need to evaluate |filterM' (coinCmpList 42) [1,2,3]| and all recursive calls of |filterM'| that arise during evaluation.
 
 \begin{figure}
 \plainhs
 \begin{spec}
-  filterM (coinCmpList 42) [1,2,3]
-= {- -}
-  blabla
+  filterM' (coinCmpList 42) [1,2,3]
+= {- Definition of |filterM'| -}
+  coinCmpList 42 1  >>= \p -> filterM' (coinCmpList 42) [2,3]
+                    >>= \ys -> return (if p then x:ys else ys)
+= {- Definition of |coinCmpList| -}
+  Cons True (Cons False Nil) >>= \p ->  filterM' (coinCmpList 42) [2,3] >>= \ys ->
+                                        return (if p then x:ys else ys)
+= {- Definition of |(>>=)| -}
+  filterM' (coinCmpList 42) [2,3] >>= \ys -> return (if p then x:ys else ys)
+  +++
+  Cons False Nil >>= \p ->  filterM' (coinCmpList 42) [2,3] >>= \ys ->
+                            return (if p then x:ys else ys)
+= {- Definition of |(>>=)| -}
+  filterM' (coinCmpList 42) [2,3] >>= \ys -> return (if True then x:ys else ys)
+  +++
+  filterM' (coinCmpList 42) [2,3] >>= \ys -> return (if False then x:ys else ys)
+  +++
+  Nil >>= \p ->  filterM' (coinCmpList 42) [2,3] >>= \ys ->
+                 return (if False then x:ys else ys)
+= {- Definition of |filterM'| -}
+  (coinCmpList 42 2 >>= \p ->  filterM' (coinCmpList 42) [3] >>= \ys ->
+                               return (if p then x:ys else ys)) >>= \ys ->
+  return (if True then x:ys else ys)
+  +++ ... +++ ...
+= {- Definition of |coinCmpList| -}
+  (Cons True (Cons False Nil) >>= \p ->  filterM' (coinCmpList 42) [3] >>= \ys ->
+                                         return (if p then x:ys else ys)) >>= \ys ->
+  return (if True then x:ys else ys)
+  +++ ... +++ ...
+= {- Definition of |(>>=)| -}
+  (filterM' (coinCmpList 42) [3] >>= \ys -> return (if True then x:ys else ys)
+   +++ filterM' (coinCmpList 42) [3] >>= \ys -> return (if False then x:ys else ys)
+   +++ Nil >>= \p ->  filterM' (coinCmpList 42) [3] >>= \ys ->
+                      return (if p then x:ys else ys)) >>= \ys ->
+  return (if True then x:ys else ys)
+  +++ ... +++ ...
+= {- Definition of |filterM'| -}
+  ...
 \end{spec}
 \framedhs
-\caption{Step-wise evaluation of |filterM (coinCmpList 42) [1,2,3]|}
+\caption{Step-wise evaluation of |filterM' (coinCmpList 42) [1,2,3]|}
 \label{fig:filterMStep}
 \end{figure}
-
-
- \begin{itemize}
-\item using list monad
-\item generalisation to arbitrary monad: enables usage of set-based instance as well
-\end{itemize}
 
 \subsection{Exemplary Sorting Functions}
 \begin{itemize}

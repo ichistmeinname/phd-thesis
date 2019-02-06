@@ -33,6 +33,7 @@
 %include greek.fmt
 
 %format not = "not"
+%format +++ = "\mathbin{+\!\!\!+\!\!\!+}"
 %format >>>= = "\mathbin{>\!\!\!>\!\!\!>\mkern-6.7mu=}"
 %format >>>=! = "\mathbin{>\!\!\!>\!\!\!>\mkern-6.7mu=!}"
 %format Values a = "\{"a"\}"
