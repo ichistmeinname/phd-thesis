@@ -73,8 +73,6 @@ That is, when we produce permutations of the input list, we can deduce the behav
 Moreover, when we describe how a function produces its results, we use \emph{less than} with respect to the comparison function in question, that is, not every usage of \emph{less than} refers to the actual relation $\leq$ on integer values.
 We think, however, these descriptions are easier to read when \emph{less than} as an overloaded relation.
 
-\label{sec:sortCurry}
-
 \subsection{InsertionSort}
 \label{subs:insertion}
 The first sorting function we take a look at is insertion sort.

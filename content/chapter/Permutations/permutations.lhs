@@ -45,16 +45,19 @@ On top of the definition of |applyND|, we introduce a smart constructor for a si
 > singleton x = Cons x Nil
 
 Note that, |applyND| corresponds to |concatMap| when using predefined lists.
+
+\paragraph{Example: Non-deterministic definition of filter}
 Equipped with these auxiliary functions, let us consider the Haskell function |filterND :: (a -> ND Bool) -> [a] -> ND [a]|, which is a non-deterministic extension of the higher-order function |filter|.
 
 > filterND :: (a -> ND Bool) -> [a] -> ND [a]
 > filterND _ []      = singleton []
-> filterND f (x:xs)  =
->   applyND (\p -> if p  then applyND (\ys -> singleton (x:ys)) (filterND f xs)
->                        else filterND f xs) (f x)
+> filterND p (x:xs)  =
+>   applyND (\b -> if b  then applyND (\ys -> singleton (x:ys)) (filterND p xs)
+>                        else filterND p xs) (p x)
 
-Note that we need to process the potentially non-deterministic computations resulting from the predicate check |f x| and the recursive call |filterND f xs| using |concatMap| to handle each possible value of the computation.
-Since the definition using |concatMap| explictely is more complicated than necessary, a natural next step is to generalise the definition of |filterND| to any monadic effect.
+Note that the potentially non-deterministic values occur in the result of the predicate and in the resulting type of the overall function |filterND|; moreover, the input list is a deterministic argument.
+We need to process the potentially non-deterministic computations resulting from the predicate check |f x| and the recursive call |filterND f xs| using |applyND| to handle each possible value of the computation.
+Since the definition using |applyND| explictely looks more complicated than necessary, a natural next step is to generalise the definition of |filterND| to any monadic effect.
 That is, instead of explicitely using lists to model non-determinism, we solely rely on the abstractions provided by monads.
 The resulting definition is |filterM|\footnote{Note that the definition of |filterM| is based on the |Applicative| instead of |Monad| type class now. \url{http://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Monad.html\#v:filterM} (last accessed: 2019-02-05}.
 
@@ -118,6 +121,8 @@ replHS> filterM' (coinCmpList 42) [1,2,3]
 \end{spec}
 
 We must be aware, however, that the transformation is only valid because we use the result of |filterM f xs| in both branches of the if-then-else-expression.
+
+\paragraph{Strictness of |(>>=)| for list monad}
 Consider the following non-deterministic version of the function insert and its alternative definition |insertM'|.
 
 > insertM :: Monad m => (a -> a -> m Bool) -> a -> [a] -> m [a]
@@ -157,9 +162,10 @@ replHS> length (insertM' coinCmpList 1 [2..11])
 1024
 \end{spec}
 
-The most important insight is that we need to be careful when using the |(>>=)|-operator.
+Due to the call to |insertM' p x ys| before checking the boolean value |b|, we need to evaluate the recursive call even though, we do not need to resulting variable binding |zs| when taking the |else|-branch.
+The important insight is that we need to be careful when using the |(>>=)|-operator.
 In most settings, and the list instance is no exception, |(>>=)| needs to be interpreted as a sequencing operator that is strict in its first argument.
-That is, if we have an expression |mx >>= f|, we cannot proceed |f| without evaluating |mx| first.
+That is, if we have an expression |mx >>= f|, we cannot proceed with |f| without evaluating |mx| first.
 
 In order to check the claim about the strictness of |(>>=)| in case of |ND|, recall that we implemented the |Monad| instance of |ND| using |applyND| for the implementation of |(>>=)|.
 That is, let us retake a look at the definition of |applyND| to see that the resulting function is indeed strict in its argument of type |ND a|.
@@ -230,11 +236,6 @@ Note that we need to evaluate |filterM' (coinCmpList 42) [1,2,3]| and all recurs
 \caption{Step-wise evaluation of |filterM' (coinCmpList 42) [1,2,3]|}
 \label{fig:filterMStep}
 \end{figure}
-
-\subsection{Exemplary Sorting Functions}
-\begin{itemize}
-\item monadic abstraction for sorting function sufficient; |?|-like operator only necessary for comparison function
-\end{itemize}
 
 \subsection{Curry vs Monadic Non-determinism}
 Let us reconsider the Curry implementation of |insert| as comparison.
