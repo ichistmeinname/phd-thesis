@@ -238,6 +238,58 @@ Note that we need to evaluate |filterM' (coinCmpList 42) [1,2,3]| and all recurs
 \end{figure}
 
 \subsection{Curry vs Monadic Non-determinism}
+With this insight about the strictness of |(>>=)| in mind, we check out the consequences when applying a non-deterministic comparision function to monadic sorting functions.
+That is, we transform the Curry implementation discussed in \autoref{sec:NDCurry} to Haskell.
+
+\paragraph{InsertionSort}
+As we have just seen the definition of |insertM|, we start with |insertionSort|.
+
+> insertionSortM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> insertionSortM _ []      = return []
+> insertionSortM p (x:xs)  = insertionSortM p xs >>= \ys -> insertM p x ys
+
+Note that is again crucial to introduced potentially non-deterministic values only as result of the comparison function and the result of the function itself.
+This observation also applies to the definition of |insertM|, the input list |ys| needs to be deterministic.
+That is, in order to insert the head element |x| into the already sorted tail, we unwrap the monadic context using |(>>=)| and apply |insertM| to each possible value of the computation |insertionSortM p xs|.
+
+Applying |insertionSortM| to |coinCmpList| and exemplary list values, yield the expected permutations, more precisely, exact the permutations of the input list.
+
+\begin{spec}
+replHS> insertionSortM coinCmpList [1..3]
+{ [1,2,3], [2,1,3], [2,3,1], [1,3,2], [3,1,2], [3,2,1] }
+
+replHS> let fac n = if n == 0 then 1 else n * fac (n-1) in
+        all  (\n -> lengthND (insertionSortM coinCmpList [1..n]) == fac n)
+             True [1..10]
+True
+\end{spec}
+
+The second example call checks for lists of length 1 to 10, if the number of non-deterministic results is equal to the factorial of that number, which is indeed the case.
+Now we know that both implementations compute the same results.
+The interesting question is, however, if they behave the same in all contexts.
+
+Recall that the Curry implementation defines |insertionSortM| using a let-declaration for the recursive call.
+This recursive call only has to be evaluated if we demand more than one element of the resulting list.
+In the example below, we call |insertionSort| on a non-empty-list to compute the head element of all non-deterministic results and count the number of non-deterministic results afterwards.
+
+\begin{spec}
+replHS> map  (\n ->  lengthND (insertionSortM coinCmpList [1..n] >>= \xs ->
+                     return (head xs)))
+             [5..10]
+[120,720,5040,40320,362880,3628800]
+\end{spec}
+
+Again, we have $n!$ non-deterministic results for an input list of length $n$.
+The result illustrates that all resulting permutations need to be computed to yield the corresponding head element.
+Next, we compare the behaviour of the Haskell implementation with the Curry implementation |insertionSort|.
+
+\plainhs
+\begin{spec}
+repl> map (\n -> length (allValues (head (insertionSort coinCmp [1..(n::Int)])))) [5..10]
+[16,32,64,128,256,512]
+\end{spec}
+\framedhs
+
 Let us reconsider the Curry implementation of |insert| as comparison.
 
 \plainhs
