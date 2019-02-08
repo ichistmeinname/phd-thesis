@@ -38,8 +38,10 @@ On top of the definition of |applyND|, we introduce a smart constructor for a si
 > applyND :: (a -> ND b) -> ND a -> ND b
 > applyND f Nil = Nil
 > applyND f (Cons x xs) = f x +++ applyND f xs
->  where Nil +++ ys = ys
->        Cons z zs +++ ys = Cons z (zs +++ ys)
+>
+> (+++) :: ND a -> ND a -> ND a
+> Nil +++ ys = ys
+> Cons z zs +++ ys = Cons z (zs +++ ys)
 
 > singleton :: a -> ND a
 > singleton x = Cons x Nil
@@ -92,7 +94,7 @@ As an example, we instantiate the monadic contexts with |ND| to illustrate the b
 We test the applications with the non-deterministic comparision function |coinCmpList| --- corresponding to the function |coinCmp| that we have used in Curry before, which transmits easily to the list model in Haskell.
 
 > coinCmpList :: a -> a -> ND Bool
-> coinCmpList _ _ = Cons True (Cons False Nil)
+> coinCmpList _ _ = singleton True +++ singleton False
 
 Since |filter| needs to applied to a unary predicate, we partially apply |coinCmpList| with |42| in the examples.
 Applying the orginal definition |filterND| and the generalised version |filterM| yield the same results.
