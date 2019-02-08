@@ -287,26 +287,61 @@ Next, we compare the behaviour of the Haskell implementation with the Curry impl
 
 \plainhs
 \begin{spec}
-repl> map (\n -> length (allValues (head (insertionSort coinCmp [1..(n::Int)])))) [5..10]
+repl> map  (\n -> length (allValues (head (insertionSort coinCmp [1..n)]))))
+           [5::Int..10]
 [16,32,64,128,256,512]
 \end{spec}
 \framedhs
 
-Let us reconsider the Curry implementation of |insert| as comparison.
+In Curry we do not need to evaluate all non-deterministic computations to yield the head element.
+Instead of $n!$ number of non-determinstic results, we only get $2^(n-1)$ results for an input list of length $n$.
+The difference between the Haskell and the Curry implementation with respect to the used model of non-deterministis is that Haskell's non-determinism is flat, while non-deterministic computations can occur in deep positions in Curry.
+Here, deep means that the non-deterministic is not visible at the outermost constructor, but ouccurs in the component of a constructor.
+
+Consider the following non-deterministic expression |exp| of type |[Bool]| and its projection to the head element and tail, respectively, in Curry.
 
 \plainhs
 \begin{spec}
-insert :: (a -> a -> Bool) -> a -> [a] -> [a]
-insert _ x [] = [x]
-insert p x (y:ys) = if p x y then x:y:ys else y : insert p x ys
+repl> let exp = True : ([] ? [False]) in head exp
+True
+repl> let exp = True : ([] ? [False]) in tail exp
+[]
+[False]
 \end{spec}
 \framedhs
 
-\begin{itemize}
-\item non-determinism is not visible at the type-level
-\item non-determinism can occur in constructor components (deep vs. flat)
-\item thus, non-determinism can be non-stricter than instances using lists (or trees)
-\end{itemize}
+The list |exp| is non-deterministic in its tail component, the head element is deterministic and the top-level list constructor |(:)| is also determinstic.
+That is, on the one hand appling |head| to |exp| does not trigger any non-deterministic, the evaluation yields a determinstic results, namely |True|.
+On the other hand the non-determinism appears in the overall result when we project the tail of the list |exp|, this application yiels the two results |[]| and |[False]|.
+In contrast, we cannot model the same behaviour in Haskell when using a list-based model for non-deterministic computations.
+
+\begin{spec}
+repl> let exp = True : (singleton [] +++ singleton [False]) in head exp
+<interactive>:88:19-52: error:
+    • Couldn't match expected type ‘[Bool]’
+                  with actual type ‘ND [Bool]’
+    • In the second argument of ‘(:)’, namely
+        ‘(singleton [] +++ singleton [False])’
+      In the expression: True : (singleton [] +++ singleton [False])
+      In an equation for ‘exp’:
+          exp = True : (singleton [] +++ singleton [False])
+\end{spec}
+
+The error message says that the list constructor |(:)| expects a second argument of type |[Bool]|, but we apply it to an argument of type |ND [Bool]|.
+Due to the explicit modelling of non-determinism that is visible in the type-level, i.e., using |ND|, we cannot construct non-determinstic computions that occur deep in the arguments of constructors like |(:)| out of the box.
+We can reconcile the computation we want to express with the explicit non-determinism by binding the non-deterministc computation first and reuse the list constructor then.
+
+\begin{spec}
+repl> singleton [] +++ singleton [False] >>= \nd -> let exp = True : nd in return (head exp)
+{ True, True }
+
+repl> singleton [] +++ singleton [False] >>= \nd -> let exp = True : nd in return (tail exp)
+{ [], [False] }
+\end{spec}
+
+In this case, however, the non-determinism is triggered definelty: even though |head| does not need to evaluate its tail, where the non-determinism occurs, the first argument of |(>>=)| is evaluated, yielding two results.
+All in all, the main insight here is that the non-determinism in Curry can occur deep withing data structure components and gives us the possibility to exploit non-strictness.
+In contrast, the naive Haskell model using lists can only express flat non-determinism, that is, all possibly deep occurences of non-determinism is pulled to the top-level constructor.
 
 \subsection{Getting Rid of Duplicates}
 \begin{itemize}
