@@ -404,7 +404,7 @@ We will use these drawing capabilities in the next section when we compare our i
 With this insight about the strictness of |(>>=)| in mind, we check out the consequences when applying a non-deterministic comparision function to monadic sorting functions.
 That is, we transform the Curry implementation discussed in \autoref{sec:NDCurry} to Haskell.
 
-\paragraph{InsertionSort}
+\paragraph{Insertion Sort}
 As we have just seen the definition of |insertM|, we start with |insertionSort|.
 
 > insertionSortM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
@@ -417,17 +417,26 @@ That is, in order to insert the head element |x| into the already sorted tail, w
 
 Applying |insertionSortM| to |coinCmpList| and exemplary list values, yield the expected permutations, more precisely, exact the permutations of the input list.
 
+% if False
+
+> lengthND :: ND a -> Int
+> lengthND Nil = 0
+> lengthND (Cons _ xs) = 1 + lengthND xs
+
+% endif
+
 \begin{spec}
 replHS> insertionSortM coinCmpList [1..3]
 { [1,2,3], [2,1,3], [2,3,1], [1,3,2], [3,1,2], [3,2,1] }
 
 replHS> let fac n = if n == 0 then 1 else n * fac (n-1) in
         all  (\n -> lengthND (insertionSortM coinCmpList [1..n]) == fac n)
-             True [1..10]
+             [1..10]
 True
 \end{spec}
 
 The second example call checks for lists of length 1 to 10, if the number of non-deterministic results is equal to the factorial of that number, which is indeed the case.
+Here, the function |lengthND| is the ordinary |length| function on lists adapted to our custom list data type |ND|.
 Now we know that both implementations compute the same results.
 The interesting question is, however, if they behave the same in all contexts.
 
@@ -479,9 +488,9 @@ In contrast, we cannot model the same behaviour in Haskell when using a list-bas
 \begin{spec}
 repl> let exp = True : (singleton [] +++ singleton [False]) in head exp
 <interactive>:88:19-52: error:
-    • Couldn't match expected type ‘[Bool]’
+    * Couldn't match expected type ‘[Bool]’
                   with actual type ‘ND [Bool]’
-    • In the second argument of ‘(:)’, namely
+    * In the second argument of ‘(:)’, namely
         ‘(singleton [] +++ singleton [False])’
       In the expression: True : (singleton [] +++ singleton [False])
       In an equation for ‘exp’:
@@ -490,18 +499,21 @@ repl> let exp = True : (singleton [] +++ singleton [False]) in head exp
 
 The error message says that the list constructor |(:)| expects a second argument of type |[Bool]|, but we apply it to an argument of type |ND [Bool]|.
 Due to the explicit modelling of non-determinism that is visible in the type-level, i.e., using |ND|, we cannot construct non-determinstic computions that occur deep in the arguments of constructors like |(:)| out of the box.
-We can reconcile the computation we want to express with the explicit non-determinism by binding the non-deterministc computation first and reuse the list constructor then.
+In contrast, Curry's non-determinism is not visible on the type-level, such that we can use non-determinism expressions in any constructur argument without altering the type of the expression.
+We can reconcile the computation we want to express with the explicit non-determinism in Haskell by binding the non-deterministc computation first and reuse the list constructor then.
 
 \begin{spec}
-repl> singleton [] +++ singleton [False] >>= \nd -> let exp = True : nd in return (head exp)
+repl>  singleton [] +++ singleton [False] >>= \nd ->
+       let exp = True : nd in return (head exp)
 { True, True }
 
-repl> singleton [] +++ singleton [False] >>= \nd -> let exp = True : nd in return (tail exp)
+repl>  singleton [] +++ singleton [False] >>= \nd ->
+       let exp = True : nd in return (tail exp)
 { [], [False] }
 \end{spec}
 
-In this case, however, the non-determinism is triggered definelty: even though |head| does not need to evaluate its tail, where the non-determinism occurs, the first argument of |(>>=)| is evaluated, yielding two results.
-All in all, the main insight here is that the non-determinism in Curry can occur deep withing data structure components and gives us the possibility to exploit non-strictness.
+In this case, however, the non-determinism is definelty triggered: even though |head| does not need to evaluate its tail, where the non-determinism occurs, the first argument of |(>>=)| is evaluated, yielding two results.
+All in all, the main insight here is that the non-determinism in Curry can occur deep within data structure components and gives us the possibility to exploit non-strictness.
 In contrast, the naive Haskell model using lists can only express flat non-determinism, that is, all possibly deep occurences of non-determinism is pulled to the top-level constructor.
 
 \subsection{Getting Rid of Duplicates}
