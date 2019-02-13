@@ -1,3 +1,12 @@
+%if False
+
+> {-# LANGUAGE StandaloneDeriving, FlexibleInstances #-}
+
+> import Control.Monad (MonadPlus(..))
+> import Control.Applicative (Alternative(..))
+
+%endif
+
 \framedhs
 \section{Non-deterministic Sorting Functions in Haskell}
 
@@ -238,6 +247,158 @@ Note that we need to evaluate |filterM' (coinCmpList 42) [1,2,3]| and all recurs
 \caption{Step-wise evaluation of |filterM' (coinCmpList 42) [1,2,3]|}
 \label{fig:filterMStep}
 \end{figure}
+
+\subsection{Drawing Decision Trees}
+\label{subsec:drawing}
+
+Thanks to the generic implementation using a monadic interface, we are free to use whatever instance fits our purpose to actually run the sortings functions.
+For example, we can generate decision trees like in Curry by using a monad that keeps track of all operations and pretty prints the non-deterministic parts of our computation.
+As first step, we generalise the comparision function |coinCmpList| to |MonadPlus|, which is an extension of the |Monad| type class that introduces an additional function |mplus| to combine monadic computations and |mzero| as neutral element for the function |mplus|.
+
+\begin{spec}
+class Monad m => MonadPlus m where
+      mplus :: m a -> m a -> m a
+      mzero :: m a
+\end{spec}
+
+The idea of the non-deterministic comparision function |coinCmpList| is to yield two results non-deterministically.
+In the concrete implementation using lists, we define |coinCmpList| based on singleton lists |[True]| and |[False]| that are combined using the concatenation operator |(++)|.
+A generalisation using |MonadPlus| replaces the singleton operator by |return|, as the structure inherits all functions of |Monad|, and the concatenation operator by |mplus|.
+
+> coinCmp :: MonadPlus m => a -> a -> m Bool
+> coinCmp _ _ = return True `mplus` return False
+
+As second step, we define a monad instance that can interpret all monadic operations in an abstract way: the free monad \citet{swierstra2008data}.
+Consider the following data type |Free| that is parametrised of a type constructor |f| and a value type |a|.
+
+> data Free f a = Pure a | Impure (f (Free f a))
+
+The general idea behind free monads is the realisation that monadic computations are either pure values or impure effects.
+We represent the impure effect using the type constructor |f| and pure values are of type |a|.
+The nice property of the |Free| data type is that |Free f| is a monad, if |f| is a functor.
+
+%if False
+
+> deriving instance Show a => Show (Free Sort a)
+>
+> instance Functor f => Functor (Free f) where
+>   fmap f (Pure x) = Pure (f x)
+>   fmap f (Impure fx) = Impure (fmap (fmap f) fx)
+> 
+> instance Functor f => Applicative (Free f) where
+   
+%endif
+ 
+> instance Functor f => Monad (Free f) where
+>   return = Pure
+>   Pure x >>= f = f x
+>   Impure fx >>= f = Impure (fmap (>>= f) fx)
+
+A variety of common monads are free monads.
+The most popluar representations are the identity monad, the maybe monad and the error maybe.
+Consider the following parametrised data types.
+
+> data Zero a
+> data One a = One
+> data Const e a = Const a
+
+Using the types as underlying effect, we get the identity monad using |Free Zero|, the maybe monad corresponds to |Free One| and the error monad can be represented using |Free (Const e)|, where |e| is the type of the error.
+As we are interested in pretty printing the non-deterministic components of our monadic computations, we need an effect to model non-determinism.
+The import effects of non-determinism are exactly the ones provided by the |MonadPlus| type class: a operator to combine two effectful computations and the failing computation.
+We define the following data type that represents exactly these operations.
+
+\begin{spec}
+data NonDet a = Choice a a | Fail
+\end{spec}
+
+Since we want to print the arguments the non-deterministic comparison function is applied to, we store additional information in the constructor as follows.
+
+> data Sort a = Choice (Maybe (String,String)) a a | Fail deriving Show
+
+In order to |Free Sort| as underyling monad in an non-deterministic application of, for example, |filterM|, we need to define a functor instance for |Sort| and a |MonadPlus| instance for |Free Sort|.
+
+%if False
+
+> instance Alternative (Free Sort) where
+>   empty = mzero
+>   (<|>) = mplus
+
+%endif
+
+> instance Functor Sort where
+>   fmap f (Choice id m1 m2 ) = Choice id (f m1) (f m2)
+>   fmap _ Fail = Fail
+>
+> instance MonadPlus (Free Sort) where
+>   mzero = Impure Fail
+>   mplus m1 m2 = Impure (Choice Nothing m1 m2)
+
+Note that, initially, we do not have any information about the arguments of the |mplus| operator, so we use |Nothing|.
+We add information to the structure when we apply the function that introduces non-determinism.
+For example, we define non-deterministic function |cmpCoinFree| that stores the string representation of its arguments and non-deterministically yields |True| and |False|.
+
+> coinCmpFree :: Show a => a -> a -> Free Sort Bool
+> coinCmpFree x y =
+>   Impure (Choice (Just (show x,show y)) (return True) (return False))
+
+Now we can apply |filterM| to our non-determinism-tracking comparison function |cmpCoinFree| and get a |Free Sort|-term that gives information about the arguments that need to be compared.
+
+\begin{spec}
+replHS> filterM (coinCmpFree 42) [1,2]
+Impure (Choice  (Just ("42","1"))
+                (Impure (Choice (Just ("42","2")) (Pure [1,2])  (Pure [1])))
+                (Impure (Choice (Just ("42","2")) (Pure [2])    (Pure []))))
+\end{spec}
+
+Note that the first argument is always |42|, because we use |coinCmpFree 42| as predicate argument for |filterM|.
+Since this term representation looks more complicated than helpful, as last step, we define a pretty printing function for |Free Sort|.
+The function |pretty :: Show a => Free Sort a -> String| prints a decision tree similar to the one we got to know from Curry.
+Now we take a look at the well-arranged decision tree resulting from the above call.
+
+\begin{spec}
+replHS> putStrLn (pretty (filterM (coinCmpFree 42) [1,2]))
+                          +-[1,2]
+             +- 42 <= 2  -+
+             |            +-[1]
++- 42 <= 1  -+
+             |            +-[2]
+             +- 42 <= 2  -+
+                          +-[]
+\end{spec}
+
+%if False
+
+> pretty :: Show alpha => Free Sort alpha -> String
+> pretty = unlines . draw Nothing
+> 
+> draw :: Show alpha => Maybe Bool -> Free Sort alpha -> [String]
+> draw _ (Pure x) = ["+-" ++ show x]
+> draw _ (Impure Fail) = ["+- mzero"]
+> draw topM (Impure (Choice cmp m1 m2)) =
+>   map (prefixTop++) m1s
+>     ++ cmpStr cmp
+>     ++ map (prefixBottom++) m2s
+>  where
+>   m1s = draw (Just False) m1
+>   m2s = draw (Just True) m2
+>   prefixTop =
+>     case topM of
+>          Nothing  -> spaces False
+>          Just top -> spaces top
+>   prefixBottom =
+>     case topM of
+>          Nothing  -> spaces False
+>          Just top -> spaces (not top)
+>   spaces b =
+>     (if b then '|' else ' ') : replicate (cmpLength cmp) ' '
+>   cmpStr Nothing = ["+--+"]
+>   cmpStr (Just (x,y)) = ["+- " ++ x ++ " <= " ++ y ++ " -+"]
+>   cmpLength Nothing = 4
+>   cmpLength (Just (x,y)) = length x + length y + 8
+
+%endif
+
+We will use these drawing capabilities in the next section when we compare our implementation of sortings functions in Haskell with the implementation in Curry.
 
 \subsection{Curry vs Monadic Non-determinism}
 With this insight about the strictness of |(>>=)| in mind, we check out the consequences when applying a non-deterministic comparision function to monadic sorting functions.
