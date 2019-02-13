@@ -516,6 +516,86 @@ In this case, however, the non-determinism is definelty triggered: even though |
 All in all, the main insight here is that the non-determinism in Curry can occur deep within data structure components and gives us the possibility to exploit non-strictness.
 In contrast, the naive Haskell model using lists can only express flat non-determinism, that is, all possibly deep occurences of non-determinism is pulled to the top-level constructor.
 
+\paragraph{Selection Sort}
+
+Whereas the application of insertion sort to a non-deterministic comparision function yields the same number of results for the Haskell as well as the Curry implementation, we will now take a look at an example that yields duplicate results: selection sort.
+We directly define the version of selection sort that uses |pickMin| instead of traversing the list twice.
+
+> pickMin :: Monad m => (a -> a -> m Bool) -> [a] -> m (a, [a])
+> pickMin _ [x] = return (x,[])
+> pickMin p (x:xs) =  pickMin p xs >>= \(m,l) ->
+>                     p x m >>= \b ->
+>                     return (if b then (x,xs) else (m, x:l))
+>
+> selectionSort :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> selectionSort _ []  = return []
+> selectionSort p xs  =  pickMin p xs >>= \(m,l) ->
+>                        selectionSort p l >>= \ys ->
+>                        return (m:ys)
+
+The application of |selectionSort| to |coinCmpList| yields more results than expected, the resultung function enumerates some permutations multiple times.
+
+\begin{spec}
+replHS> selectionSort coinCmpList [1,2,3]
+{ [1,2,3], [1,3,2], [2,1,3], [2,3,1], [1,2,3], [1,3,2], [3,1,2], [3,2,1] }
+
+replHS> all  (\n -> lengthND (selectionSort coinCmpList [1..n]) == 2^(frac (n*(n-1)) 2))
+             [1..7]
+True
+\end{spec}
+\noindent
+In fact, we get
+\[
+2^{\frac{n (n-1)}{2}}
+\]
+results for for an input list of length $n$.
+Note that this function grows much faster than the number of permutations, $n!$.
+That is, for $n=10$ there are $n! = 3 628 800$ permutations, whereas an application of |selectionSort| to the list |[1..10]| yields
+\[
+2^{\frac{10*9}{2}} = 2^{45} = 35 184 372 088 832
+\]
+number of results.
+
+Since the number of results for |selectionSort| applied to a non-deterministic comparision functions differs with the result we got for the Curry implementation, we compare the underyling decision trees.
+The non-determinsm produced by |selectionSort| arises from the usage of |coinCmpList|, which is only evaluated in the auxiliary function |pickMin|.
+That is, it is sufficient to take a look at the decision tree for a subcall of |pickMin| to detect the different behaviour.
+We compute the decision tree displayed left in \autoref{fig:pickDecision} by applying a free monad based data type as described in \autoref{subsec:drawing}.
+The right side of the figure recaps the decision tree when using the Curry implementation.
+
+\begin{figure}
+\begin{minipage}{0.44\textwidth}
+\begin{verbatim}
+                      +-(1,[2,3])
+           +- 1 <= 2 -+
+           |          +-(2,[1,3])
++- 2 <= 3 -+
+           |          +-(1,[2,3])
+           +- 1 <= 3 -+
+                      +-(3,[1,2])
+
+\end{verbatim}
+\end{minipage}
+\vline $\quad$
+\begin{minipage}{0.50\textwidth}
+\begin{verbatim}
+           +- (1, [2,3])
+           |
++- 1 <= _ -+
+           |          +-(2,[1,3])
+           +- 2 <= 3 -+
+                      +-(3,[1,2])
+\end{verbatim}
+\end{minipage}
+
+\caption{Decision trees for the expressions |pickMin coinCmpList [1,2,3]| in Haskell (left) and |pickMin coinCmp [1,2,3]| in Curry (right)}
+\label{fig:pickDecision}
+\end{figure}
+
+The monadic version is more strict: the recursive call to |pickMin| needs to evaluated in order to apply the predicate |p|.
+In the Curry version, however, we can already take the |True|-branch for the application of |p| without considering the recursive call first.
+Thus, the first result |(1, [2,3])| triggers only one non-deterministic decision.
+Of course, the number of unnecessary triggered non-deterministic decisions increases with each recursive call of |pickMin|.
+That is, when we apply |pickMin| to a longer list elements, the number of duplicate results increases dependent of the length of the list.
 \subsection{Getting Rid of Duplicates}
 \begin{itemize}
 \item drawing decision tree using free monad
