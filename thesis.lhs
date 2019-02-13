@@ -40,6 +40,7 @@
 %format frac x y = "\frac{"x"}{"y"}"
 %format (frac x y) = "\frac{"x"}{"y"}"
 %format repl = "\lambda\mkern-3mu"
+%format replHS = "\lambda_{hs}\mkern-3mu"
 %format =? = "\stackrel{?}{\equiv}"
 %format tau1
 %format tau2
