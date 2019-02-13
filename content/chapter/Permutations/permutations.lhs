@@ -596,6 +596,48 @@ In the Curry version, however, we can already take the |True|-branch for the app
 Thus, the first result |(1, [2,3])| triggers only one non-deterministic decision.
 Of course, the number of unnecessary triggered non-deterministic decisions increases with each recursive call of |pickMin|.
 That is, when we apply |pickMin| to a longer list elements, the number of duplicate results increases dependent of the length of the list.
+
+\paragraph{Bubble Sort}
+We implement bubble sort.
+ 
+> bubble :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> bubble _ [x]     = return [x]
+> bubble p (x:xs)  =  bubble p xs >>= \(y:ys) ->
+>                     p x y >>= \b ->
+>                     return (if b then x : y : ys else y : x : ys)
+>
+> bubbleSort :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> bubbleSort _ [] =  return []
+> bubbleSort p xs =  bubble p xs >>= \(y:ys) ->
+>                    fmap (y:) (bubbleSort p ys)
+
+\begin{spec}
+replHS> bubbleSort coinCmpList [1,2,3]
+{ [1,2,3], [1,3,2], [2,1,3], [2,3,1], [1,3,2], [1,2,3], [3,1,2], [3,2,1] }
+\end{spec}
+
+\begin{figure}
+\begin{verbatim}
+                                 +-[1,2,3]
+                      +- 2 <= 3 -+
+                      |          +-[1,3,2]
+           +- 1 <= 2 -+
+           |          |          +-[2,1,3]
+           |          +- 1 <= 3 -+
+           |                     +-[2,3,1]
++- 2 <= 3 -+
+           |                     +-[1,3,2]
+           |          +- 3 <= 2 -+
+           |          |          +-[1,2,3]
+           +- 1 <= 3 -+
+                      |          +-[3,1,2]
+                      +- 1 <= 2 -+
+                                 +-[3,2,1]
+\end{verbatim}
+\caption{Decision tree for the expression |bubbleSort coinCmpList [1,2,3]|}
+\label{fig:bubbleDecision}
+\end{figure}
+
 \subsection{Getting Rid of Duplicates}
 \begin{itemize}
 \item drawing decision tree using free monad
