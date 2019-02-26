@@ -591,11 +591,22 @@ The right side of the figure recaps the decision tree when using the Curry imple
 \label{fig:pickDecision}
 \end{figure}
 
-The monadic version is more strict: the recursive call to |pickMinM| needs to evaluated in order to apply the predicate |p|.
+The monadic version is more strict: the recursive call to |pickMinM| needs to be evaluated in order to apply the predicate |p|.
 In the Curry version, however, we can already take the |True|-branch for the application of |p| without considering the recursive call first.
-Thus, the first result |(1, [2,3])| triggers only one non-deterministic decision.
-Of course, the number of unnecessary triggered non-deterministic decisions increases with each recursive call of |pickMin|.
+Thus, the first result |(1, [2,3])| triggers only one non-deterministic decision in Curry.
+Of course, the number of unnecessary triggered non-deterministic decisions in the Haskell version increases with each recursive call of |pickMin|.
 That is, when we apply |pickMin| to a longer list elements, the number of duplicate results increases dependent of the length of the list.
+
+\begin{spec}
+replHS> map (\n -> lengthND (pickMinM coinCmpList [1..n] >>= return . fst )) [1..20]
+[1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144,524288]
+\end{spec}
+
+More precisely, |pickMinM coinCmpList xs| yields $2^{|length xs|}$ results, while the Curry version only $length n$ results.
+Note that the second variant, i.e., the Curry version, is what we expect in the first place: picking a minimum with a non-deterministic predicate is basically a function that non-deterministically yields each element of the list.
+
+In the end, |pickMinM| and |pickMin|, respectively, are the functions used to implement the selection sort algorithm and, thus, determines the number of permutations.
+Whereas |selectionSort| yields only the permutations of the input list in Curry, we get duplicate permutations in the Haskell version.
 
 \paragraph{Bubble Sort}
 We implement bubble sort.
