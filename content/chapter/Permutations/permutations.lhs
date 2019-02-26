@@ -457,8 +457,8 @@ Next, we compare the behaviour of the Haskell implementation with the Curry impl
 
 \plainhs
 \begin{spec}
-repl> map  (\n -> length (allValues (head (insertionSort coinCmp [1..n)]))))
-           [5::Int..10]
+repl> map  (\n -> length (allValues (head (insertionSort coinCmp [1..n]))))
+           [5..10]
 [16,32,64,128,256,512]
 \end{spec}
 \framedhs
@@ -519,27 +519,27 @@ In contrast, the naive Haskell model using lists can only express flat non-deter
 \paragraph{Selection Sort}
 
 Whereas the application of insertion sort to a non-deterministic comparision function yields the same number of results for the Haskell as well as the Curry implementation, we will now take a look at an example that yields duplicate results: selection sort.
-We directly define the version of selection sort that uses |pickMin| instead of traversing the list twice.
+We directly define the version of selection sort that uses |pickMinM| instead of traversing the list twice.
 
-> pickMin :: Monad m => (a -> a -> m Bool) -> [a] -> m (a, [a])
-> pickMin _ [x] = return (x,[])
-> pickMin p (x:xs) =  pickMin p xs >>= \(m,l) ->
->                     p x m >>= \b ->
->                     return (if b then (x,xs) else (m, x:l))
+> pickMinM :: Monad m => (a -> a -> m Bool) -> [a] -> m (a, [a])
+> pickMinM _ [x] = return (x,[])
+> pickMinM p (x:xs) =  pickMinM p xs >>= \(m,l) ->
+>                      p x m >>= \b ->
+>                      return (if b then (x,xs) else (m, x:l))
 >
-> selectionSort :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
-> selectionSort _ []  = return []
-> selectionSort p xs  =  pickMin p xs >>= \(m,l) ->
->                        selectionSort p l >>= \ys ->
->                        return (m:ys)
+> selectionSortM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> selectionSortM _ []  = return []
+> selectionSortM p xs  =  pickMinM p xs >>= \(m,l) ->
+>                         selectionSortM p l >>= \ys ->
+>                         return (m:ys)
 
-The application of |selectionSort| to |coinCmpList| yields more results than expected, the resultung function enumerates some permutations multiple times.
+The application of |selectionSortM| to |coinCmpList| yields more results than expected, the resultung function enumerates some permutations multiple times.
 
 \begin{spec}
-replHS> selectionSort coinCmpList [1,2,3]
+replHS> selectionSortM coinCmpList [1,2,3]
 { [1,2,3], [1,3,2], [2,1,3], [2,3,1], [1,2,3], [1,3,2], [3,1,2], [3,2,1] }
 
-replHS> all  (\n -> lengthND (selectionSort coinCmpList [1..n]) == 2^(frac (n*(n-1)) 2))
+replHS> all  (\n -> lengthND (selectionSortM coinCmpList [1..n]) == 2^(frac (n*(n-1)) 2))
              [1..7]
 True
 \end{spec}
@@ -557,7 +557,7 @@ That is, for $n=10$ there are $n! = 3 628 800$ permutations, whereas an applicat
 number of results.
 
 Since the number of results for |selectionSort| applied to a non-deterministic comparision functions differs with the result we got for the Curry implementation, we compare the underyling decision trees.
-The non-determinsm produced by |selectionSort| arises from the usage of |coinCmpList|, which is only evaluated in the auxiliary function |pickMin|.
+The non-determinsm produced by |selectionSort| arises from the usage of |coinCmpList|, which is only evaluated in the auxiliary function |pickMinM|.
 That is, it is sufficient to take a look at the decision tree for a subcall of |pickMin| to detect the different behaviour.
 We compute the decision tree displayed left in \autoref{fig:pickDecision} by applying a free monad based data type as described in \autoref{subsec:drawing}.
 The right side of the figure recaps the decision tree when using the Curry implementation.
@@ -587,11 +587,11 @@ The right side of the figure recaps the decision tree when using the Curry imple
 \end{verbatim}
 \end{minipage}
 
-\caption{Decision trees for the expressions |pickMin coinCmpList [1,2,3]| in Haskell (left) and |pickMin coinCmp [1,2,3]| in Curry (right)}
+\caption{Decision trees for the expressions |pickMinM coinCmpList [1,2,3]| in Haskell (left) and |pickMinM coinCmp [1,2,3]| in Curry (right)}
 \label{fig:pickDecision}
 \end{figure}
 
-The monadic version is more strict: the recursive call to |pickMin| needs to evaluated in order to apply the predicate |p|.
+The monadic version is more strict: the recursive call to |pickMinM| needs to evaluated in order to apply the predicate |p|.
 In the Curry version, however, we can already take the |True|-branch for the application of |p| without considering the recursive call first.
 Thus, the first result |(1, [2,3])| triggers only one non-deterministic decision.
 Of course, the number of unnecessary triggered non-deterministic decisions increases with each recursive call of |pickMin|.
@@ -600,19 +600,19 @@ That is, when we apply |pickMin| to a longer list elements, the number of duplic
 \paragraph{Bubble Sort}
 We implement bubble sort.
  
-> bubble :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
-> bubble _ [x]     = return [x]
-> bubble p (x:xs)  =  bubble p xs >>= \(y:ys) ->
->                     p x y >>= \b ->
->                     return (if b then x : y : ys else y : x : ys)
+> bubbleM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> bubbleM _ [x]     = return [x]
+> bubbleM p (x:xs)  =  bubbleM p xs >>= \(y:ys) ->
+>                      p x y >>= \b ->
+>                      return (if b then x : y : ys else y : x : ys)
 >
-> bubbleSort :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
-> bubbleSort _ [] =  return []
-> bubbleSort p xs =  bubble p xs >>= \(y:ys) ->
->                    fmap (y:) (bubbleSort p ys)
+> bubbleSortM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> bubbleSortM _ [] =  return []
+> bubbleSortM p xs =  bubbleM p xs >>= \(y:ys) ->
+>                     fmap (y:) (bubbleSortM p ys)
 
 \begin{spec}
-replHS> bubbleSort coinCmpList [1,2,3]
+replHS> bubbleSortM coinCmpList [1,2,3]
 { [1,2,3], [1,3,2], [2,1,3], [2,3,1], [1,3,2], [1,2,3], [3,1,2], [3,2,1] }
 \end{spec}
 
@@ -634,7 +634,7 @@ replHS> bubbleSort coinCmpList [1,2,3]
                       +- 1 <= 2 -+
                                  +-[3,2,1]
 \end{verbatim}
-\caption{Decision tree for the expression |bubbleSort coinCmpList [1,2,3]|}
+\caption{Decision tree for the expression |bubbleSortM coinCmpList [1,2,3]|}
 \label{fig:bubbleDecision}
 \end{figure}
 
