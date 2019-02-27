@@ -649,6 +649,46 @@ replHS> bubbleSortM coinCmpList [1,2,3]
 \label{fig:bubbleDecision}
 \end{figure}
 
+> partitionM :: Monad m => (a -> m Bool) -> [a] -> m ([a],[a])
+> partitionM _ []      = return ([],[])
+> partitionM p (x:xs)  = do
+>   b <- p x
+>   (ys,zs) <- partitionM p xs
+>   return (if b then (x:ys,zs) else (ys,x:zs))
+>
+> quickSortM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> quickSortM _ []      = return []
+> quickSortM p (x:xs)  = do
+>   (ys,zs) <- partitionM (\y -> p y x) xs
+>   ys' <- quickSortM p ys
+>   zs' <- quickSortM p zs
+>   return (ys' ++ [x] ++ zs')
+
+
+> divideN :: [a] -> ([a],[a])
+> divideN xs = divideN' xs (length xs `div` 2)
+>  where  divideN' []      _  = ([],[])
+>         divideN' (y:ys)  n  | n == 0     = ([],y:ys)
+>                             | otherwise  =  let (l1,l2) = divideN' ys (n-1)
+>                                             in (y:l1,l2)
+>
+> mergeM :: Monad m => (a -> a -> m Bool) -> [a] -> [a] -> m [a]
+> mergeM _ []     l       = return l
+> mergeM _ (x:xs) []      = return (x:xs)
+> mergeM p (x:xs) (y:ys)  = do
+>   b <- p x y
+>   if b then mergeM p xs (y:ys) >>= return . (x:)
+>        else mergeM p (x:xs) ys >>= return . (y:)
+>
+> mergeSortM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> mergeSortM _ []               = return []
+> mergeSortM _ [x]              = return [x]
+> mergeSortM p l@(_ : (_ : _))  = do
+>   let (ys,zs) = divideN l
+>   ys' <- mergeSortM p ys
+>   zs' <- mergeSortM p zs
+>   mergeM p ys' zs'
+
 \subsection{Getting Rid of Duplicates}
 \begin{itemize}
 \item drawing decision tree using free monad
