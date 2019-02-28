@@ -404,7 +404,7 @@ We will use these drawing capabilities in the next section when we compare our i
 With this insight about the strictness of |(>>=)| in mind, we check out the consequences when applying a non-deterministic comparision function to monadic sorting functions.
 That is, we transform the Curry implementation discussed in \autoref{sec:NDCurry} to Haskell.
 
-\paragraph{Insertion Sort}
+\paragraph{Insertion Sort}\label{par:insert}
 As we have just seen the definition of |insertM|, we start with |insertionSort|.
 
 > insertionSortM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
@@ -598,8 +598,10 @@ Of course, the number of unnecessary triggered non-deterministic decisions in th
 That is, when we apply |pickMin| to a longer list elements, the number of duplicate results increases dependent of the length of the list.
 
 \begin{spec}
-replHS> map (\n -> lengthND (pickMinM coinCmpList [1..n] >>= return . fst )) [1..20]
-[1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144,524288]
+replHS> map  (\n -> lengthND (pickMinM coinCmpList [1..n] >>= return . fst ))
+             [1..20]
+[1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,
+65536,131072,262144,524288]
 \end{spec}
 
 More precisely, |pickMinM coinCmpList xs| yields $2^{|length xs|}$ results, while the Curry version only $length n$ results.
@@ -608,9 +610,18 @@ Note that the second variant, i.e., the Curry version, is what we expect in the 
 In the end, |pickMinM| and |pickMin|, respectively, are the functions used to implement the selection sort algorithm and, thus, determines the number of permutations.
 Whereas |selectionSort| yields only the permutations of the input list in Curry, we get duplicate permutations in the Haskell version.
 
-\paragraph{Bubble Sort}
-We implement bubble sort.
- 
+\paragraph{Other Sorting Algorithms}
+
+The remaining sorting algorithms discussed in \autoref{sec:NDCurry}, i.e., bubble sort, quick sort and merge sort, yield the same results for the monadic Haskell version as they do in Curry.
+ However, we can observe a similar effects as with |insertionSortM| in \autoref{par:insert} concerining non-strictness.
+When we demand only the head elements of all permutations, the monadic Haskell version's need to trigger more non-deterministic that is necessary in the Curry version.
+
+\begin{figure}
+\input{content/figures/permutations}
+\caption{Comparison of the strictness when demanding only the head elements}
+\label{fig:strictSort}
+\end{figure}
+
 > bubbleM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
 > bubbleM _ [x]     = return [x]
 > bubbleM p (x:xs)  =  bubbleM p xs >>= \(y:ys) ->
@@ -662,6 +673,15 @@ replHS> bubbleSortM coinCmpList [1,2,3]
 >   (ys,zs) <- partitionM (\y -> p y x) xs
 >   ys' <- quickSortM p ys
 >   zs' <- quickSortM p zs
+>   return (ys' ++ [x] ++ zs')
+
+> quickSortFilterM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
+> quickSortFilterM _ []      = return []
+> quickSortFilterM p (x:xs)  = do
+>   ys <- filterM (\y -> p y x) xs
+>   zs <- filterM (\y -> fmap not (p y x)) xs
+>   ys' <- quickSortFilterM p ys
+>   zs' <- quickSortFilterM p zs
 >   return (ys' ++ [x] ++ zs')
 
 
