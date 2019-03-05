@@ -614,13 +614,19 @@ Whereas |selectionSort| yields only the permutations of the input list in Curry,
 
 The remaining sorting algorithms discussed in \autoref{sec:NDCurry}, i.e., bubble sort, quick sort and merge sort, yield the same results for the monadic Haskell version as they do in Curry.
  However, we can observe a similar effects as with |insertionSortM| in \autoref{par:insert} concerining non-strictness.
-When we demand only the head elements of all permutations, the monadic Haskell version's need to trigger more non-deterministic that is necessary in the Curry version.
+When we demand only the head elements of all permutations, the monadic Haskell versions need to trigger more non-deterministic that is necessary in the Curry version.
+\autoref{fig:strictSort} visualises the number of triggered non-deterministic computations that are necessary to compute only the head element of all permutations.
+We observe that all Curry implementations (completely colored bars) compute less non-deterministic computations than all Haskell implementations.
+One interesting contrast is the behaviour of bubble sort: the Curry version only needs to trigger a constant number of non-deterministic computation (constant with respect to the length of the input list), whereas the Haskell version triggers $n!$ non-deterministic computations for an input list of length $n$.
+Note that the evaluation of all permutations for bubble sort needs to trigger $n!$ non-deterministic computations as well, that is, in this case demaning only the head of each permutations is as strict as evaluating all list elements of each permutation.
 
 \begin{figure}
 \input{content/figures/permutations}
-\caption{Comparison of the strictness when demanding only the head elements}
+\caption{Comparison of the number of triggered non-deterministic computations for demanding the head element of all permutations}
 \label{fig:strictSort}
 \end{figure}
+
+%if False
 
 > bubbleM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
 > bubbleM _ [x]     = return [x]
@@ -718,3 +724,5 @@ replHS> bubbleSortM coinCmpList [1,2,3]
   \item consistency, totality, transitivity
   \end{itemize}
 \end{itemize}
+
+%endif

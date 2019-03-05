@@ -9,15 +9,14 @@
     ybar=0pt,
     xlabel = {\footnotesize{length of list}},
     ylabel = {\footnotesize{number of non-deterministic branches spawned}},
-    ymax = 10000,
-    xmax = 8,
-    xmin = 0.,
+    ymax = 3628800,
+    xmax = 10.5,
+    xmin = 1.5,
     axis y line = left,
 %    x tick label as interval,
     xticklabel style = { font = \footnotesize },
-    xtick = {0.5,1.5,...,7.5},
-    ytick = {1, 2, 6, 24, 120, 720, 5040, 
-    xticklabels = {1,2,3,4,5,6,7},
+    xtick = {0.5, 1.5,...,10.5},
+    xticklabels = {2,3,4,5,6,7,8,9,10},
     x tick label as interval,
     axis x line* = bottom,
     xlabel style={at={(0.5,-0.125)}},
@@ -29,31 +28,114 @@
       /tikz/every even column/.append style={column sep=0.5cm}}
   ]
 
-  %Curry
-  \addplot+[curry]
+  %bubbleSortC
+  \addplot+[blue!70!black]
     coordinates {
-                (1,1)
+                (2,2)
+                (3,3)
+                (4,4)
+                (5,5)
+                (6,6)
+                (7,7)
+                (8,8)
+                (9,9)
+                (10,10)
+    };
+
+  %mergeSortC
+  \addplot+[red!70!black]
+    coordinates {
                 (2,2)
                 (3,4)
                 (4,8)
                 (5,16)
                 (6,32)
                 (7,64)
+                (8,128)
+                (9,256)
+                (10,512)    
+  };
+
+  %quickSortC
+  \addplot+[yellow!80!black]
+    coordinates {
+                (2,2)
+                (3,5)
+                (4,15)
+                (5,52)
+                (6,203)
+                (7,877)
+                (8,4140)
+                (9,21147)
+                (10,115975)
     };
 
-  % Haskell
-  \addplot+[haskell]
+  %quickSortFilterC
+  % \addplot+[orange!80!black]
+  %   coordinates {
+  %               (2,2)
+  %               (3,5)
+  %               (4,15)
+  %               (5,52)
+  %               (6,203)
+  %               (7,877)
+  %               (8,4140)
+  %               (9,21147)
+  %               (10,115975)
+  %   };
+
+  % bubbleSortH
+  \addplot+[blue!70!black, postaction={ pattern=north east
+    lines, pattern color = white}]
     coordinates {
-                (1,1)
+                (2,2)
+                (3,8)
+                (4,64)
+                (5,1024)
+                (6, 32768)
+                (7, 2097152)
+    };
+
+  % mergeSortH
+  \addplot+[red!70!black, postaction={ pattern=north east
+    lines, pattern color = white}]
+    coordinates {
                 (2,2)
                 (3,6)
                 (4,24)
                 (5,120)
                 (6,720)
                 (7,5040)
+                (8, 40320)
+                (9, 362880)
+                (10, 3628800)
     };
 
-  \legend{Curry, Haskell}
+  % quickSortH 
+  \addplot+[yellow!80!black, postaction={ pattern=north east
+    lines, pattern color = white}]
+    coordinates {
+                (2,2)
+                (3,6)
+                (4,24)
+                (5,120)
+                (6,720)
+                (7,5040)
+                (8, 40320)
+                (9, 362880)
+                (10, 3628800)
+    };
+
+  % quickSortFilterH 
+  % \addplot+[orange!80!black, postaction={ pattern=north east
+  %   lines, pattern color = white}]
+  %   coordinates {
+  %               (2,4)
+  %               (3,49)
+  %               (4,4225)
+  %   };
+
+  \legend{Bubble Sort, Merge Sort, Quick Sort}
   \end{semilogyaxis}
 
 \end{tikzpicture}
