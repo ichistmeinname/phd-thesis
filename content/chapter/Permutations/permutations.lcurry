@@ -20,14 +20,16 @@ As a quick teaser for these question, we anticipate that all (correct) sorting f
 In the second part of this chapter we transfer our implementation in Curry to Haskell.
 One possible model of non-determinism in a functional language is to use lists to represent all non-deterministic results.
 We go even one step further and generalise all functions to monadic functions and use a more specialised version of monads that have an additional |mplus| function that is especially suitable for non-determinism.
-Using these monadically lifted functions, we try out different representation of non-determinism --- like multi-sets, sets, or trees --- but need only one implementation of the sorting function.
+Using these monadically lifted functions, we are especially interested in multi-set model of non-determinism using list. 
 We compare the monadic representation of non-determinism with the built-in non-determinism of Curry by means of these sorting functions to enumerate permutations.
 
 The main observation of the comparison is that Curry's built-in non-determinism can be less strict than a naive monadic model in Haskell.
 This observation is not new, there are other applications that exploit this advantage as well, it is an interesting use case of this advantage nonetheless.
 
+%if False
 Last but not least, we leverage the monadic implementation of the sorting functions to discuss possibilities to get rid of duplicates when enumerating permutations.
 The main idea here is to enhance the underlying monad to track the decisions the non-deterministic comparison function makes when traversing the input list.
+%endif
 
 In summary, this chapter makes the following contributions.
 
@@ -37,7 +39,10 @@ In summary, this chapter makes the following contributions.
 \item Some sorting functions yield duplicate results, we investigate why these duplicates emerge.
 \item Furthermore, we discover that some sorting functions even enumerate lists that are not a permutation of the input list.
 \item As a second step, we transfer the sorting functions to Haskell and model non-determinism explicitly using monads.
+\item We investigate the difference between Curry's non-determinism and the list-based model in Haskell for the resulting permutation enumeration functions
+%if False
 \item Thanks to the flexibility of using monads, we can enrich the non-deterministic comparison function which necessary properties to eliminate duplicate results. We show three examples for properties that yield to an enumeration of the exact number of permutations for sorting functions that yield too many results with a simple non-deterministic comparison function.
+%endif
 \item At last, we discuss a variety of questions that follow from the results and observations presented above.
 \end{itemize}
 
