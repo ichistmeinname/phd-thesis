@@ -687,7 +687,9 @@ The other sorting functions compute the same non-deterministic results: insertio
 Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementions can exploit non-strictness better than their Haskell counterparts.
 As an example, we demanded the head elements of all permutations and counted the number of non-deterministic choices that were triggered in to compute the result.
 The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
-On top of that, none of the Curry implementations need to trigger all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n$ computations.
+On top of that, none of the Curry implementations need to trigger all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n!$ computations.
+This is a nice property for the Curry implementation since $n!$ non-determinisic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
+That is, selecting only the head element of the permutations has no effect on the non-determinism that needs to be triggered.
 
 \begin{itemize}
 \item specific enumerations of permutations (lexicographic sorting, even/odd sorting, only one transposition from one to the next)
