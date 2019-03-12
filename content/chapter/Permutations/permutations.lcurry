@@ -725,7 +725,7 @@ The first other common functions that come to mind are |takeWhile, dropWhile :: 
 
 \section{Final Remarks}
 
-The basis of the work discussed in this chapter has been published as functional pearlin the Proceedings of the twentith International Conference on Functional Programming \cite{christiansen2016all}.
+The basis of the work discussed in this chapter has been published as functional pearlin the Proceedings of the twentith International Conference on Functional Programming \citep{christiansen2016all}.
 The conference paper motivates the investigation of non-deterministic sorting functions solely based on the monadic Haskell version.
 The generic monadic interface allows for a more detailed investigation of the behaviour of the resulting permutation functions.
 We enhance the monadic comparison function |coinCmp| with an additional state in order to mimic a comparison function that meets additional properties like consistency and totality.
