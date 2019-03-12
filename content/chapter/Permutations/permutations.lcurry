@@ -724,7 +724,16 @@ It might be interesting to search for more predicate-based functions and their n
 The first other common functions that come to mind are |takeWhile, dropWhile :: (a -> Bool) -> [a] -> [a]|, but we are sure that there are other functions that have interesting and useful non-deterministic counterparts.
 
 \section{Final Remarks}
-\begin{itemize}
-\item ICFP publication with additional proofs and getting rid of duplicates
-\item bachelor's thesis with adaptation to Curry
-\end{itemize}
+
+The basis of the work discussed in this chapter has been published as functional pearlin the Proceedings of the twentith International Conference on Functional Programming \cite{christiansen2016all}.
+The conference paper motivates the investigation of non-deterministic sorting functions solely based on the monadic Haskell version.
+The generic monadic interface allows for a more detailed investigation of the behaviour of the resulting permutation functions.
+We enhance the monadic comparison function |coinCmp| with an additional state in order to mimic a comparison function that meets additional properties like consistency and totality.
+In case of consistency, for example, the state collects all compared value pairs and the corresponding decision of their comparison in order to repeat that decision when the same values are compared again.
+
+On top of that, the conference paper formulates and proves a theorem stating that no matter which sorting function we use, the corresponding permutation function enumerates all permutations of the input list.
+In order to prove this statement, we use free theorems, which are derived from the type of a function alone.
+
+The novelty of the content presented in this chapter lies in the comparision to a direct implementation in Curry.
+Instead of modelling non-determinism with monads, we reused Curry's built-in non-determinism.
+The main insight of this comparison is the advantage of Curry's built-in non-determinism as it can exploit non-strictness that a naive Haskell implementation using a list monad cannot.
