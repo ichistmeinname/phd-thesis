@@ -533,6 +533,7 @@ Binary relations that are total orders (like for example the smaller-or-equal-th
 That is, the implementation of |bubbleSort| needs to be used with an comparison function corresponding to a binary relation that is a total order, otherwise it cannot sort all lists correctly.
 
 \subsection{QuickSort}
+\label{subsec:quicksort}
 
 In this section we take a look at an implementation of \emph{quicksort} that is known for its particular declarative realisation.
 The general idea behind the quicksort algorithm is to choose a pivot element and split the remaining list into two parts: one with all elements that are smaller or equal than the pivot and one with the all elements that do not fulfil this criterion.
@@ -691,12 +692,36 @@ On top of that, none of the Curry implementations need to trigger all $n!$ non-d
 This is a nice property for the Curry implementation since $n!$ non-determinisic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
 That is, selecting only the head element of the permutations has no effect on the non-determinism that needs to be triggered.
 
-\begin{itemize}
-\item specific enumerations of permutations (lexicographic sorting, even/odd sorting, only one transposition from one to the next)
-\item possibility to produce derangements./
-\item other functions parametrised by predicates
-\item investigate strictness properties and running time complexity of permutation enumeration function
-\end{itemize}
+While we started first investigations to compare the strictness behaviour of the different sorting functions, we think that a more rigorous investigation might lead to futher interesting properties.
+For example, it would be interesting to analyse the run-time behaviour for the resulting permutation functions.
+As we only compared the non-deterministic version in Curry and the monadic version in Haskell, it would be interesting to compare the non-deterministic version with deterministic permutation algorithms as well.
+For example, according to \citet{sedgewick1977permutation} the classical permutation
+algorithm based on inserting an element at each possible position in a list was developed independently by \citet{trotter1962algorithm}
+and \citet{johnson1963generation}.
+The implementation of the |permutations :: [a] -> [[a]]| function in Haskell is also
+based on this approach but has been improved with respect to
+non-strictness via a mailing list discussion by
+\citet{vanlaarhoven2007haskell}.
+A comparison of the improved permutation algorithm used in Haskell and the best-performing non-deterministic Curry version would be an intersting topic for future work.
+
+A different line of future work could be to focus more on the resulting permutations function.
+For example, we noticed only by chance that selection sort enumerates all permutation in lexographic order when evaluted using depth-first-search instead of the default behaviour of breadth-first-search.
+It would be interesting to analyse the order of results for all other sorting algorithms as well.
+This analysis can then be enhanced to other non-deterministic sorting functions, which are perhaps more strict than |coinCmp|, but yield an interesting property.
+An example of an alternative non-deterministic comparison function is the following definition of |liftCmp| that lifts a comparison function |cmp| into a monadic context.
+
+> liftCmp :: (a -> a -> Bool) -> a -> a -> Bool
+> liftCmp p x y = p x y ? not (p x y)
+
+There are lots of other properties related to permutations.
+For example, enumerating derangements, that is, enumerating all permutations where an element does not appear at its original position, enumerating all permutations of a sublist of a given list, or analysing the resulting order of permutation with respect to the parity for the transposition from one permutation to the next.
+
+Besides a further investigation of permutation enumeration functions, we are interested if there are other predicate-based functions that do a useful task when applied to a non-deterministic predicate.
+The other example next to sorting we have discussed is filtering a list.
+Namely, we used |filter| to implement quick sort in \ref{subsec:quicksort}.
+We have seen that using |filter| with a non-deterministic predicate yields all sublists of the input list.
+It might be interesting to search for more predicate-based functions and their non-deterministic counterparts.
+The first other common functions that come to mind are |takeWhile, dropWhile :: (a -> Bool) -> [a] -> [a]|, but we are sure that there are other functions that have interesting and useful non-deterministic counterparts.
 
 \section{Final Remarks}
 \begin{itemize}
