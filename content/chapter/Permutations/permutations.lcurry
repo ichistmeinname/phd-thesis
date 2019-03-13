@@ -732,7 +732,8 @@ We enhance the monadic comparison function |coinCmp| with an additional state in
 In case of consistency, for example, the state collects all compared value pairs and the corresponding decision of their comparison in order to repeat that decision when the same values are compared again.
 
 On top of that, the conference paper formulates and proves a theorem stating that no matter which sorting function we use, the corresponding permutation function enumerates all permutations of the input list.
-In order to prove this statement, we use free theorems, which are derived from the type of a function alone.
+In order to prove this statement, we use free theorems as presented by
+\cite{wadler1989theorems}, which are derived from the type of a function alone.
 
 The novelty of the content presented in this chapter lies in the comparision to a direct implementation in Curry.
 Instead of modelling non-determinism with monads, we reused Curry's built-in non-determinism.
