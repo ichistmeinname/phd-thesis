@@ -50,21 +50,21 @@ In summary, this chapter makes the following contributions.
 \label{sec:NDCurry}
 
 We start this chapter with an overview of common sorting functions, which we implement using a version that is parametrised by a comparison function.
-The main quest of this section is to document the behavior of these sortings function when applied to a particular comparison function.
+The main quest of this section is to document the behavior of these sorting function when applied to a particular comparison function.
 Hereunto, consider the following non-deterministic comparison function that ignores both its arguments and non-deterministically yields |True| and |False|.
 
 > coinCmp :: a -> a -> Bool
 > coinCmp _ _ = True ? False
 
-The name |coinCmp| suggests a similarity to the popular |coin|-definition as an example for non-determinism; the difference here is that we define a two-ary function with a non-deterministic result, whereas |coin| is a nullary function.
+The name |coinCmp| suggests a similarity to the popular |coin|-definition as an example for non-determinism; the difference here is that we define a binary function with a non-deterministic result, whereas |coin| is a nullary function.
 
 In the remainder of this section we will apply all sorting functions to the non-deterministic comparison function |coinCmp|.
 We can already anticipate here that the non-determinism introduced by |coinCmp| will transform the sorting functions with resulting list type |[a]| to functions that produce several lists non-deterministically.
 That is, the non-determinism of |coinCmp| propagates to the result.
 
-The interesting thing about using these sorting function with a non-deterministic comparison function like |coinCmp| is that we expect that each permutation of the input list is part of the resultings lists.
+The interesting thing about using these sorting function with a non-deterministic comparison function like |coinCmp| is that we expect that each permutation of the input list is part of the resulting lists.
 Why is it reasonable to expect to see all permutations?
-We expect the orginal sorting function, say |sort :: (Int -> Int -> Bool) -> [Int] -> [Int]|, to actually sort a list in ascending order when we apply it to the comparison function |(<=)|.
+We expect the original sorting function, say |sort :: (Int -> Int -> Bool) -> [Int] -> [Int]|, to actually sort a list in ascending order when we apply it to the comparison function |(<=)|.
 If |sort (<=)| is indeed such a sorting function, then every permutation of a sorted list |[1..n]| of length $n$ can be sorted by |sort (<=)|.
 That is, there are decisions of |(<=)| that result in a sorted list.
 If we apply |sort coinCmp| to a list, then |coinCmp| tries every possible decision when comparing two elements.
@@ -72,7 +72,7 @@ Hence, there is a sequence of decisions that leads to a specific permutation of 
 As we are trying every possible decision, we expect all possible permutations to be part of the result.
 Otherwise, if a specific permutation is not part of the result, we cab deduce that |sort (<=)| does not correctly this permutation.
 
-In the following all of our examples use lists of integer, more particuar, we use lists of the shape [1..n] with $n$ as length of the list.
+In the following all of our examples use lists of integer, more particular, we use lists of the shape [1..n] with $n$ as length of the list.
 These integers are only meant to be placeholders for concrete values and represent the position of the element within the original list.
 That is, when we produce permutations of the input list, we can deduce the behaviour for a variety of input lists of other types, because we know where elements end up in the result based on their position in the input list.
 Moreover, when we describe how a function produces its results, we use \emph{less than} with respect to the comparison function in question, that is, not every usage of \emph{less than} refers to the actual relation $\leq$ on integer values.
@@ -104,7 +104,7 @@ repl> insertionSort (<=) (reverse [1..5])
 [1,2,3,4,5]
 \end{spec}
 
-As the definition of |insertionSort| is parametric over the comparision function, we can apply different orderings using the same function.
+As the definition of |insertionSort| is parametric over the comparison function, we can apply different orderings using the same function.
 Besides a deterministic order specified by |(<=)| or |(>=)|, there is nothing that stops us to use a non-deterministic comparison function instead.
 Consider the following example, where we apply |insertionSort| to the non-deterministic comparison function |coinCmp|.
 
@@ -120,7 +120,7 @@ All of these results are a permutation of the input list |[1,2,3]|.
 Since a list of length $n$ has $2^n$ number of permutations, the example above yields exactly all $2^3=6$ permutations of the list.
 Testing |insertionSort| more systematically with EasyCheck reveals that it was not a coincidence that the function yields exactly all permutations.
 
-In order to understand better how |insertSort| computes the pemutations of its input list when applied to |coinCmp|, we take a look at the decision tree for the exemplary call above in \autoref{fig:dtInsert}.
+In order to understand better how |insertSort| computes the permutations of its input list when applied to |coinCmp|, we take a look at the decision tree for the exemplary call above in \autoref{fig:dtInsert}.
 As the comparison function |coinCmp| non-deterministically yields |True| and |False|, the decision tree of our example reflects all possible control flows for |insertionSort| depending on the results of |coinCmp|.
 
 \begin{figure}[t]
@@ -189,7 +189,7 @@ This variant of |insert| is exactly the definition of a non-deterministic insert
 \subsection{SelectionSort}
 Next, we consider the permutation function derived from selection sort.
 The key idea of selection sort is to find the minimum of the list and placing it to the front of the resulting list.
-First, we define a function to find a minimum of a given list parametrised by the comparision function.
+First, we define a function to find a minimum of a given list parametrised by the comparison function.
 
 > minList :: (a -> a -> Bool) -> [a] -> a
 > minList _ [x]      = x
@@ -212,7 +212,7 @@ We define |delete| to remove an element from a list.
 > delete x (y:ys)  | x == y     = ys
 >                  | otherwise  = y : delete x ys
 
-Here, it is crucial that we use the comparision function |(==)| to make sure that the element is correctly removed from the list.
+Here, it is crucial that we use the comparison function |(==)| to make sure that the element is correctly removed from the list.
 Now we can define |selectionSort|: we pick the minimum of the input list, place it into the front of the resulting list, and continue with the list without the minimum.
 
 > selectionSort :: Eq a => (a -> a -> Bool) -> [a] -> [a]
@@ -231,7 +231,7 @@ repl> selectionSort coinCmp [1,2,3]
 
 Exactly like |insertionSort|, we see that |selectionSort| yields exactly the permutations of the input list.
 One difference of both implementation comes apparent when we look at the type: |selectionSort| has an |Eq|-constraint on the elements of the list.
-As the resulting |Eq|-contraint brakes with the general scheme that we parametrise all functions with a comparision function, we define a function |pickMin| that finds the minimum and yields the remaining list in one traversal of the input list.
+As the resulting |Eq|-contraint brakes with the general scheme that we parametrise all functions with a comparison function, we define a function |pickMin| that finds the minimum and yields the remaining list in one traversal of the input list.
 
 > pickMin :: (a -> a -> Bool) -> [a] -> (a,[a])
 > pickMin _ [x]     = (x,[])
@@ -406,7 +406,7 @@ repl> head (selectionSort coinCmp [1,failed])
 1
 \end{spec}
 \noindent
-In theory, the permutations of the list |[1,failed]| are |[1,failed]| and |[failed,1]|; in practice, the expression |failed| is not a value like |42| or |True|, printing |failed| in the REPL propagates the failure to the top-level, so no results are printed.\footnote{Note that KiCS2 does not behave consistent with respect to printing |failed|. A deterministic expression based on |failed| will be printed using |!| as symbol, for non-determinstic expressions, however, no results will be printed.}
+In theory, the permutations of the list |[1,failed]| are |[1,failed]| and |[failed,1]|; in practice, the expression |failed| is not a value like |42| or |True|, printing |failed| in the REPL propagates the failure to the top-level, so no results are printed.\footnote{Note that KiCS2 does not behave consistent with respect to printing |failed|. A deterministic expression based on |failed| will be printed using |!| as symbol, for non-deterministic expressions, however, no results will be printed.}
 The first expression computes all possible permutations, but the expression does not have any results: |failed| causes the computation propagate the failure to the top-level.
 The second expression, however, computes only the head element and yields indeed a solution.
 That is, in order to yield the first element of the first list, we do no need to compute any further elements of the input list.
@@ -415,7 +415,7 @@ That is, in order to yield the first element of the first list, we do no need to
 \label{subsec:CurryBubble}
 
 The next sorting function we examine is bubble sort.
-We define an implementation of the bubble slort algorithm that bubbles the minimum element to the front of a list.
+We define an implementation of the bubble sort algorithm that bubbles the minimum element to the front of a list.
 Bubbling to the front of the list allows for a more efficient implementation with respect to the selecting the minimum and the remaining list.
 The following function |bubble| defines the bubbling of the minimum element of the list to the front.
 
@@ -505,17 +505,17 @@ In order to understand how these duplicates are computed, we take a look at the 
 \caption{Reduced and modified decision tree for |bubbleSort coinCmp [1,2,3]|}
 \label{fig:bubble}
 \end{figure}
-Note that the second argument of the comparision function |coinCmp| are unevaluated expressions, again --- we have already seen a similar example when talking about |selectionSort|.
-The computation of all results in the REPL as well as drawing the decision tree demand the evaluation of expressions like |head (bubble [2,3])|\footnote{The actual expression appearing in the evaluation steps is a let-binding that references the head element in the comparision. That is, |let (x:xs) = bubble [2,3] in if 1 <= x then ... else ...| is closer to the expressions occuring during the evaluation.} not until the corresponding list element will be printed.
+Note that the second argument of the comparison function |coinCmp| are unevaluated expressions, again --- we have already seen a similar example when talking about |selectionSort|.
+The computation of all results in the REPL as well as drawing the decision tree demand the evaluation of expressions like |head (bubble [2,3])|\footnote{The actual expression appearing in the evaluation steps is a let-binding that references the head element in the comparison. That is, |let (x:xs) = bubble [2,3] in if 1 <= x then ... else ...| is closer to the expressions occurring during the evaluation.} not until the corresponding list element will be printed.
 The new thing about the decision tree for an application of |bubbleSort| is that some results occur twice.
 The duplicated results are marked with \texttt{<<<} and \texttt{<<<<}, respectively.
 Note, that it is by intention that we marked the first occurence in case of |[1,3,2]| and the second one in case of the result |[1,2,3]|.
 Consider the path from the root to the result marked with \texttt{<<<}.
 The crucial parts are the comparison marked with \texttt{***}: we compare |2| and |bubble [3]| twice.
-In a setting where we use a deterministic comparision function, the first path to |[1,3,2]| does not make any sense.
-The decision for the first comparison |2 <= bubble [3]| yields |True| --- otherwise we would not take the first branch, that is, doing the same comparision a second time should like |True| again.
-In the path from the root to the first occurence |[1,3,2]|, the comparision of |2| and |bubble [3]| yields |True| the first and |False| the second time.
-Note that there is no deterministic comparision function that yields |True| for a comparision first and |False| later.
+In a setting where we use a deterministic comparison function, the first path to |[1,3,2]| does not make any sense.
+The decision for the first comparison |2 <= bubble [3]| yields |True| --- otherwise we would not take the first branch, that is, doing the same comparison a second time should like |True| again.
+In the path from the root to the first occurence |[1,3,2]|, the comparison of |2| and |bubble [3]| yields |True| the first and |False| the second time.
+Note that there is no deterministic comparison function that yields |True| for a comparison first and |False| later.
 In the following we reference this property as \emph{behaving consistently}: a non-deterministic predicate behaves consistently, if it yields the same Boolean value for every application to the same values.
 
 The other result marked with \texttt{<<<<} is the second occurence of |[1,2,3]|.
@@ -526,17 +526,17 @@ Below we only reference the comparisons with the evaluated function calls to sim
 As the second comparison takes place in the second branch of the decision corresponding to |2 <= 3|, we know that the decision was |False|.
 That is, |2| is not smaller or equal than |3|, |2| is greater than |3|.
 We then take the second branch for the decision |3 <= 2|: |2| is greater than |3|.
-Note that this decision does not make any sense when using |bubbleSort| with a reasonable comparision function like |(<=)| on integer values.
+Note that this decision does not make any sense when using |bubbleSort| with a reasonable comparison function like |(<=)| on integer values.
 The important property missing here is that the relation described by |<=| needs the connex property.
 The connex property describes that any two pairs of elements of appropriate type are comparable with respect to |<=|.
-Binary relations that are total orders (like for example the smaller-or-equal-than-relation on integers) fulfill the connex property by definition.
+Binary relations that are total orders (like for example the smaller-or-equal-than-relation on integers) fulfil the connex property by definition.
 That is, the implementation of |bubbleSort| needs to be used with an comparison function corresponding to a binary relation that is a total order, otherwise it cannot sort all lists correctly.
 
 \subsection{QuickSort}
 \label{subsec:quicksort}
 
 In this section we take a look at an implementation of \emph{quicksort} that is known for its particular declarative realisation.
-The general idea behind the quicksort algorithm is to choose a pivot element and split the remaining list into two parts: one with all elements that are smaller or equal than the pivot and one with the all elements that do not fulfil this criterion.
+The general idea behind the quick sort algorithm is to choose a pivot element and split the remaining list into two parts: one with all elements that are smaller or equal than the pivot and one with the all elements that do not fulfil this criterion.
 The algorithm is then recursively applied to these two sublists.
 
 The following function |quickSort| uses the head element of the given list as pivot element and the function |filter| to split the input list into the two parts.
@@ -585,10 +585,10 @@ These two times two sublists yield four overall results, since all lists for |l1
 In general, the resulting function enumerates the cross product of all subsequences of the input list.
 
 We can again observe that the definition of |quickSort| uses the comparison function |coinCmp| inconsistently, thus, yields the same results for both application of filter.
-Using a determinstic comparision function |p|, the sublists |l1| and |l2| would be disjunct, since we are using |p| for the first and |not . p| for the second list.
+Using a deterministic comparison function |p|, the sublists |l1| and |l2| would be disjunct, since we are using |p| for the first and |not . p| for the second list.
 
 We can overcome this drawback when using two |filter| applications by using |split| instead.
-The function |split :: (a -> Bool) -> [a] -> ([a],[a])| traverses a list only once to split it into two sublists fulfiling exactly the property we use above: the first list contains only elements that fulfill the given predicate and the second list contains the elements that do not.
+The function |split :: (a -> Bool) -> [a] -> ([a],[a])| traverses a list only once to split it into two sublists fulfilling exactly the property we use above: the first list contains only elements that fulfil the given predicate and the second list contains the elements that do not.
 We define |split| as follows; note, that it is crucial that split traverses its input list only once.
 
 > split :: (a -> a -> Bool) -> a -> [a] -> ([a],[a])
@@ -676,7 +676,7 @@ The utilisation of the precondition leads to a efficient sorting algorithm: no t
 
 \section{Conclusion and Future Work}
 In this chapter we implemented a variety of sorting functions parametrised over a comparison function in Curry as well as in Haskell.
-Instead of ordinary sorting tasks, we applied the sorting functions to a non-determinstic comparison function.
+Instead of ordinary sorting tasks, we applied the sorting functions to a non-deterministic comparison function.
 The resulting function enumerates permutations of the input list.
 For the Curry implementation there are several sorting functions that compute only the permutations of the input list without any duplicates: insertion sort, selection sort, merge sort and a variant of quick sort that uses |partition| instead of two |filter| calls.
 We then compared these Curry implementations to their Haskell counterpart.
@@ -685,14 +685,14 @@ In the end, the Haskell implementations use a monadic lifting of the ordinary, p
 One particularly interesting observation was that whereas the Curry version of selection sort computes only the permutations, the Haskell version does not.
 This difference was the main reason we investigated the difference of both implementations in the first place.
 The other sorting functions compute the same non-deterministic results: insertion sort, merge sort, and quick sort using |partition| do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
-Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementions can exploit non-strictness better than their Haskell counterparts.
+Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementations can exploit non-strictness better than their Haskell counterparts.
 As an example, we demanded the head elements of all permutations and counted the number of non-deterministic choices that were triggered in to compute the result.
 The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
 On top of that, none of the Curry implementations need to trigger all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n!$ computations.
-This is a nice property for the Curry implementation since $n!$ non-determinisic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
+This is a nice property for the Curry implementation since $n!$ non-deterministic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
 That is, selecting only the head element of the permutations has no effect on the non-determinism that needs to be triggered.
 
-While we started first investigations to compare the strictness behaviour of the different sorting functions, we think that a more rigorous investigation might lead to futher interesting properties.
+While we started first investigations to compare the strictness behaviour of the different sorting functions, we think that a more rigorous investigation might lead to further interesting properties.
 For example, it would be interesting to analyse the run-time behaviour for the resulting permutation functions.
 As we only compared the non-deterministic version in Curry and the monadic version in Haskell, it would be interesting to compare the non-deterministic version with deterministic permutation algorithms as well.
 For example, according to \citet{sedgewick1977permutation} the classical permutation
@@ -705,13 +705,13 @@ non-strictness via a mailing list discussion by
 A comparison of the improved permutation algorithm used in Haskell and the best-performing non-deterministic Curry version would be an intersting topic for future work.
 
 A different line of future work could be to focus more on the resulting permutations function.
-For example, we noticed only by chance that selection sort enumerates all permutation in lexographic order when evaluted using depth-first-search instead of the default behaviour of breadth-first-search.
+For example, we noticed only by chance that selection sort enumerates all permutation in lexicographic order when evaluated using depth-first-search instead of the default behaviour of breadth-first-search.
 It would be interesting to analyse the order of results for all other sorting algorithms as well.
 This analysis can then be enhanced to other non-deterministic sorting functions, which are perhaps more strict than |coinCmp|, but yield an interesting property.
 An example of an alternative non-deterministic comparison function is the following definition of |liftCmp| that lifts a comparison function |cmp| into a monadic context.
 
 > liftCmp :: (a -> a -> Bool) -> a -> a -> Bool
-> liftCmp p x y = p x y ? not (p x y)
+> liftCmp cmp x y = p x y ? not (cmp x y)
 
 There are lots of other properties related to permutations.
 For example, enumerating derangements, that is, enumerating all permutations where an element does not appear at its original position, enumerating all permutations of a sublist of a given list, or analysing the resulting order of permutation with respect to the parity for the transposition from one permutation to the next.
@@ -721,11 +721,11 @@ The other example next to sorting we have discussed is filtering a list.
 Namely, we used |filter| to implement quick sort in \ref{subsec:quicksort}.
 We have seen that using |filter| with a non-deterministic predicate yields all sublists of the input list.
 It might be interesting to search for more predicate-based functions and their non-deterministic counterparts.
-The first other common functions that come to mind are |takeWhile, dropWhile :: (a -> Bool) -> [a] -> [a]|, but we are sure that there are other functions that have interesting and useful non-deterministic counterparts.
+The first other common functions that come to mind are |takeWhile, dropWhile :: (a -> Bool) -> [a] -> [a]|, but we are keen to search for other functions that have interesting and useful non-deterministic counterparts.
 
 \section{Final Remarks}
 
-The basis of the work discussed in this chapter has been published as functional pearlin the Proceedings of the twentith International Conference on Functional Programming \citep{christiansen2016all}.
+The basis of the work discussed in this chapter has been published as functional pearl in the Proceedings of the twentieth International Conference on Functional Programming \citep{christiansen2016all}.
 The conference paper motivates the investigation of non-deterministic sorting functions solely based on the monadic Haskell version.
 The generic monadic interface allows for a more detailed investigation of the behaviour of the resulting permutation functions.
 We enhance the monadic comparison function |coinCmp| with an additional state in order to mimic a comparison function that meets additional properties like consistency and totality.
@@ -735,6 +735,6 @@ On top of that, the conference paper formulates and proves a theorem stating tha
 In order to prove this statement, we use free theorems as presented by
 \cite{wadler1989theorems}, which are derived from the type of a function alone.
 
-The novelty of the content presented in this chapter lies in the comparision to a direct implementation in Curry.
+The novelty of the content presented in this chapter lies in the comparison to a direct implementation in Curry.
 Instead of modelling non-determinism with monads, we reused Curry's built-in non-determinism.
 The main insight of this comparison is the advantage of Curry's built-in non-determinism as it can exploit non-strictness that a naive Haskell implementation using a list monad cannot.

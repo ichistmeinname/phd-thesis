@@ -18,9 +18,9 @@ We will notice a difference between the Curry and the Haskell implementation whe
 This difference is not a new insight, but interesting nonetheless: Curry's non-determinism can exploit non-strictness in a way the Haskell model of non-determinism using a monadic interface cannot.
 
 Last but not least, we reexamine the sorting algorithms that compute duplicate permutations and discuss how we can prevent these results in the Haskell implementation.
-Due to the general monadic interface, we can use a state-based monad that keeps track of the decisions when applying the comparision functions.
+Due to the general monadic interface, we can use a state-based monad that keeps track of the decisions when applying the comparison functions.
 This way, the comparison function can behave in a consistent way; consistency is the property that we already discussed in the context of bubble sort in \autoref{subsec:CurryBubble}.
-In addition to consistency, we discuss other properties of the comparision function that are necessary in the Haskell implementation of bubble sort and quick sort.
+In addition to consistency, we discuss other properties of the comparison function that are necessary in the Haskell implementation of bubble sort and quick sort.
 
 \subsection{Modelling Non-determinism}
 
@@ -41,7 +41,7 @@ We define a new data type in order to define a custom show instance --- otherwis
 %endif
 
 When working with non-deterministic computations represented as |ND|, we need a mechanism to define functions that yield non-deterministic results and to use non-deterministic computations as arguments of these functions.
-In the list model we can use the function |applyND :: (a -> ND b) -> ND a -> ND b| to apply a non-deterministic function on a non-deterministic computation and cobmine all non-deterministic results via concatenation.
+In the list model we can use the function |applyND :: (a -> ND b) -> ND a -> ND b| to apply a non-deterministic function on a non-deterministic computation and combine all non-deterministic results via concatenation.
 On top of the definition of |applyND|, we introduce a smart constructor for a singleton result to simplify the usage of the |ND| type.
 
 > applyND :: (a -> ND b) -> ND a -> ND b
@@ -68,8 +68,8 @@ Equipped with these auxiliary functions, let us consider the Haskell function |f
 
 Note that the potentially non-deterministic values occur in the result of the predicate and in the resulting type of the overall function |filterND|; moreover, the input list is a deterministic argument.
 We need to process the potentially non-deterministic computations resulting from the predicate check |f x| and the recursive call |filterND f xs| using |applyND| to handle each possible value of the computation.
-Since the definition using |applyND| explictely looks more complicated than necessary, a natural next step is to generalise the definition of |filterND| to any monadic effect.
-That is, instead of explicitely using lists to model non-determinism, we solely rely on the abstractions provided by monads.
+Since the definition using |applyND| explicitly looks more complicated than necessary, a natural next step is to generalise the definition of |filterND| to any monadic effect.
+That is, instead of explicitly using lists to model non-determinism, we solely rely on the abstractions provided by monads.
 The resulting definition is |filterM|\footnote{Note that the definition of |filterM| is based on the |Applicative| instead of |Monad| type class now. \url{http://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Monad.html\#v:filterM} (last accessed: 2019-02-05}.
 
 > filterM :: Monad m => (a -> m Bool) -> [a] -> m [a]
@@ -79,7 +79,7 @@ The resulting definition is |filterM|\footnote{Note that the definition of |filt
 >                            else filterM f xs
 
 Note that the list-specific operations to lift a value and to combine all results of effectful computations correspond to the monadic |return| and |(>>=)| operations.
-In case of |ND|, we can easliy define a suitable |Monad| instance that implements the necessary operations using |singleton| and |applyND|.
+In case of |ND|, we can easily define a suitable |Monad| instance that implements the necessary operations using |singleton| and |applyND|.
 
 %if False
 
@@ -100,13 +100,13 @@ In case of |ND|, we can easliy define a suitable |Monad| instance that implement
 >   nd >>= f = applyND f nd
 
 As an example, we instantiate the monadic contexts with |ND| to illustrate the behaviour of a non-deterministic version of |filter|.
-We test the applications with the non-deterministic comparision function |coinCmpList| --- corresponding to the function |coinCmp| that we have used in Curry before, which transmits easily to the list model in Haskell.
+We test the applications with the non-deterministic comparison function |coinCmpList| --- corresponding to the function |coinCmp| that we have used in Curry before, which transmits easily to the list model in Haskell.
 
 > coinCmpList :: a -> a -> ND Bool
 > coinCmpList _ _ = singleton True +++ singleton False
 
 Since |filter| needs to applied to a unary predicate, we partially apply |coinCmpList| with |42| in the examples.
-Applying the orginal definition |filterND| and the generalised version |filterM| yield the same results.
+Applying the original definition |filterND| and the generalised version |filterM| yield the same results.
 
 \begin{spec}
 replHS> filterND (coinCmpList 42) [1,2,3]
@@ -158,7 +158,7 @@ replHS> insertM' coinCmpList 1 [2,3]
 { [1,2,3], [1,2,3], [2,1,3], [2,3,1] }
 \end{spec}
 
-The exemplary calls using the non-deterministic comparision function |coinCmpList| do not yield the same results.
+The exemplary calls using the non-deterministic comparison function |coinCmpList| do not yield the same results.
 When we apply a monadic version of |insert| to |coinCmpList|, we expect $n+1$ results for a input list of length $n$ --- the same result we observed in Curry.
 The usage of |insertM'|, however, yields $n^2$ results.
 
@@ -197,7 +197,7 @@ insertM' p x ys >>= \zs -> return (if b then x:y:ys else y:zs)
 \end{spec}
 
 we need to evaluate |insertM' p x ys| first.
-In this example, we trigger the evaluation of the non-deterministic comaprision function |coinCmp| although we do not need the result |zs| if |b| is |True|.
+In this example, we trigger the evaluation of the non-deterministic comparison function |coinCmp| although we do not need the result |zs| if |b| is |True|.
 Consider the excerpt of a step-wise evaluation of the example from above listed in \autoref{fig:filterMStep}.
 Note that we need to evaluate |filterM' (coinCmpList 42) [1,2,3]| and all recursive calls of |filterM'| that arise during evaluation.
 
@@ -251,9 +251,9 @@ Note that we need to evaluate |filterM' (coinCmpList 42) [1,2,3]| and all recurs
 \subsection{Drawing Decision Trees}
 \label{subsec:drawing}
 
-Thanks to the generic implementation using a monadic interface, we are free to use whatever instance fits our purpose to actually run the sortings functions.
+Thanks to the generic implementation using a monadic interface, we are free to use whatever instance fits our purpose to actually run the sorting functions.
 For example, we can generate decision trees like in Curry by using a monad that keeps track of all operations and pretty prints the non-deterministic parts of our computation.
-As first step, we generalise the comparision function |coinCmpList| to |MonadPlus|, which is an extension of the |Monad| type class that introduces an additional function |mplus| to combine monadic computations and |mzero| as neutral element for the function |mplus|.
+As first step, we generalise the comparison function |coinCmpList| to |MonadPlus|, which is an extension of the |Monad| type class that introduces an additional function |mplus| to combine monadic computations and |mzero| as neutral element for the function |mplus|.
 
 \begin{spec}
 class Monad m => MonadPlus m where
@@ -261,7 +261,7 @@ class Monad m => MonadPlus m where
       mzero :: m a
 \end{spec}
 
-The idea of the non-deterministic comparision function |coinCmpList| is to yield two results non-deterministically.
+The idea of the non-deterministic comparison function |coinCmpList| is to yield two results non-deterministically.
 In the concrete implementation using lists, we define |coinCmpList| based on singleton lists |[True]| and |[False]| that are combined using the concatenation operator |(++)|.
 A generalisation using |MonadPlus| replaces the singleton operator by |return|, as the structure inherits all functions of |Monad|, and the concatenation operator by |mplus|.
 
@@ -295,7 +295,7 @@ The nice property of the |Free| data type is that |Free f| is a monad, if |f| is
 >   Impure fx >>= f = Impure (fmap (>>= f) fx)
 
 A variety of common monads are free monads.
-The most popluar representations are the identity monad, the maybe monad and the error maybe.
+The most popular representations are the identity monad, the maybe monad and the error maybe.
 Consider the following parametrised data types.
 
 > data Zero a
@@ -315,7 +315,7 @@ Since we want to print the arguments the non-deterministic comparison function i
 
 > data Sort a = Choice (Maybe (String,String)) a a | Fail deriving Show
 
-In order to |Free Sort| as underyling monad in an non-deterministic application of, for example, |filterM|, we need to define a functor instance for |Sort| and a |MonadPlus| instance for |Free Sort|.
+In order to |Free Sort| as underlying monad in an non-deterministic application of, for example, |filterM|, we need to define a functor instance for |Sort| and a |MonadPlus| instance for |Free Sort|.
 
 %if False
 
@@ -398,10 +398,10 @@ replHS> putStrLn (pretty (filterM (coinCmpFree 42) [1,2]))
 
 %endif
 
-We will use these drawing capabilities in the next section when we compare our implementation of sortings functions in Haskell with the implementation in Curry.
+We will use these drawing capabilities in the next section when we compare our implementation of sorting functions in Haskell with the implementation in Curry.
 
 \subsection{Curry vs Monadic Non-determinism}
-With this insight about the strictness of |(>>=)| in mind, we check out the consequences when applying a non-deterministic comparision function to monadic sorting functions.
+With this insight about the strictness of |(>>=)| in mind, we check out the consequences when applying a non-deterministic comparison function to monadic sorting functions.
 That is, we transform the Curry implementation discussed in \autoref{sec:NDCurry} to Haskell.
 
 \paragraph{Insertion Sort}\label{par:insert}
@@ -411,7 +411,7 @@ As we have just seen the definition of |insertM|, we start with |insertionSort|.
 > insertionSortM _ []      = return []
 > insertionSortM p (x:xs)  = insertionSortM p xs >>= \ys -> insertM p x ys
 
-Note that is again crucial to introduced potentially non-deterministic values only as result of the comparison function and the result of the function itself.
+Note that is again crucial to introduce potentially non-deterministic values only as result of the comparison function and the result of the function itself.
 This observation also applies to the definition of |insertM|, the input list |ys| needs to be deterministic.
 That is, in order to insert the head element |x| into the already sorted tail, we unwrap the monadic context using |(>>=)| and apply |insertM| to each possible value of the computation |insertionSortM p xs|.
 
@@ -464,9 +464,9 @@ repl> map  (\n -> length (allValues (head (insertionSort coinCmp [1..n]))))
 \framedhs
 
 In Curry we do not need to evaluate all non-deterministic computations to yield the head element.
-Instead of $n!$ number of non-determinstic results, we only get $2^(n-1)$ results for an input list of length $n$.
-The difference between the Haskell and the Curry implementation with respect to the used model of non-deterministis is that Haskell's non-determinism is flat, while non-deterministic computations can occur in deep positions in Curry.
-Here, deep means that the non-deterministic is not visible at the outermost constructor, but ouccurs in the component of a constructor.
+Instead of $n!$ number of non-deterministic results, we only get $2^(n-1)$ results for an input list of length $n$.
+The difference between the Haskell and the Curry implementation with respect to the used model of non-deterministic is that Haskell's non-determinism is flat, while non-deterministic computations can occur in deep positions in Curry.
+Here, deep means that the non-deterministic is not visible at the outermost constructor, but occurs in the component of a constructor.
 
 Consider the following non-deterministic expression |exp| of type |[Bool]| and its projection to the head element and tail, respectively, in Curry.
 
@@ -480,9 +480,9 @@ repl> let exp = True : ([] ? [False]) in tail exp
 \end{spec}
 \framedhs
 
-The list |exp| is non-deterministic in its tail component, the head element is deterministic and the top-level list constructor |(:)| is also determinstic.
-That is, on the one hand appling |head| to |exp| does not trigger any non-deterministic, the evaluation yields a determinstic results, namely |True|.
-On the other hand the non-determinism appears in the overall result when we project the tail of the list |exp|, this application yiels the two results |[]| and |[False]|.
+The list |exp| is non-deterministic in its tail component, the head element is deterministic and the top-level list constructor |(:)| is also deterministic.
+That is, on the one hand applying |head| to |exp| does not trigger any non-deterministic, the evaluation yields a deterministic results, namely |True|.
+On the other hand the non-determinism appears in the overall result when we project the tail of the list |exp|, this application yields the two results |[]| and |[False]|.
 In contrast, we cannot model the same behaviour in Haskell when using a list-based model for non-deterministic computations.
 
 \begin{spec}
@@ -498,9 +498,9 @@ repl> let exp = True : (singleton [] +++ singleton [False]) in head exp
 \end{spec}
 
 The error message says that the list constructor |(:)| expects a second argument of type |[Bool]|, but we apply it to an argument of type |ND [Bool]|.
-Due to the explicit modelling of non-determinism that is visible in the type-level, i.e., using |ND|, we cannot construct non-determinstic computions that occur deep in the arguments of constructors like |(:)| out of the box.
-In contrast, Curry's non-determinism is not visible on the type-level, such that we can use non-determinism expressions in any constructur argument without altering the type of the expression.
-We can reconcile the computation we want to express with the explicit non-determinism in Haskell by binding the non-deterministc computation first and reuse the list constructor then.
+Due to the explicit modelling of non-determinism that is visible in the type-level, i.e., using |ND|, we cannot construct non-deterministic computations that occur deep in the arguments of constructors like |(:)| out of the box.
+In contrast, Curry's non-determinism is not visible on the type-level, such that we can use non-determinism expressions in any constructor argument without altering the type of the expression.
+We can reconcile the computation we want to express with the explicit non-determinism in Haskell by binding the non-deterministic computation first and reuse the list constructor then.
 
 \begin{spec}
 repl>  singleton [] +++ singleton [False] >>= \nd ->
@@ -512,13 +512,13 @@ repl>  singleton [] +++ singleton [False] >>= \nd ->
 { [], [False] }
 \end{spec}
 
-In this case, however, the non-determinism is definelty triggered: even though |head| does not need to evaluate its tail, where the non-determinism occurs, the first argument of |(>>=)| is evaluated, yielding two results.
+In this case, however, the non-determinism is definitely triggered: even though |head| does not need to evaluate its tail, where the non-determinism occurs, the first argument of |(>>=)| is evaluated, yielding two results.
 All in all, the main insight here is that the non-determinism in Curry can occur deep within data structure components and gives us the possibility to exploit non-strictness.
-In contrast, the naive Haskell model using lists can only express flat non-determinism, that is, all possibly deep occurences of non-determinism is pulled to the top-level constructor.
+In contrast, the naive Haskell model using lists can only express flat non-determinism, that is, all possibly deep occurrences of non-determinism is pulled to the top-level constructor.
 
 \paragraph{Selection Sort}
 
-Whereas the application of insertion sort to a non-deterministic comparision function yields the same number of results for the Haskell as well as the Curry implementation, we will now take a look at an example that yields duplicate results: selection sort.
+Whereas the application of insertion sort to a non-deterministic comparison function yields the same number of results for the Haskell as well as the Curry implementation, we will now take a look at an example that yields duplicate results: selection sort.
 We directly define the version of selection sort that uses |pickMinM| instead of traversing the list twice.
 
 > pickMinM :: Monad m => (a -> a -> m Bool) -> [a] -> m (a, [a])
@@ -533,7 +533,7 @@ We directly define the version of selection sort that uses |pickMinM| instead of
 >                         selectionSortM p l >>= \ys ->
 >                         return (m:ys)
 
-The application of |selectionSortM| to |coinCmpList| yields more results than expected, the resultung function enumerates some permutations multiple times.
+The application of |selectionSortM| to |coinCmpList| yields more results than expected, the resulting function enumerates some permutations multiple times.
 
 \begin{spec}
 replHS> selectionSortM coinCmpList [1,2,3]
@@ -556,8 +556,8 @@ That is, for $n=10$ there are $n! = 3 628 800$ permutations, whereas an applicat
 \]
 number of results.
 
-Since the number of results for |selectionSort| applied to a non-deterministic comparision functions differs with the result we got for the Curry implementation, we compare the underyling decision trees.
-The non-determinsm produced by |selectionSort| arises from the usage of |coinCmpList|, which is only evaluated in the auxiliary function |pickMinM|.
+Since the number of results for |selectionSort| applied to a non-deterministic comparison functions differs with the result we got for the Curry implementation, we compare the underlying decision trees.
+The non-determinism produced by |selectionSort| arises from the usage of |coinCmpList|, which is only evaluated in the auxiliary function |pickMinM|.
 That is, it is sufficient to take a look at the decision tree for a subcall of |pickMin| to detect the different behaviour.
 We compute the decision tree displayed left in \autoref{fig:pickDecision} by applying a free monad based data type as described in \autoref{subsec:drawing}.
 The right side of the figure recaps the decision tree when using the Curry implementation.
@@ -613,12 +613,12 @@ Whereas |selectionSort| yields only the permutations of the input list in Curry,
 \paragraph{Other Sorting Algorithms}
 
 The remaining sorting algorithms discussed in \autoref{sec:NDCurry}, i.e., bubble sort, quick sort and merge sort, yield the same results for the monadic Haskell version as they do in Curry.
- However, we can observe a similar effects as with |insertionSortM| in \autoref{par:insert} concerining non-strictness.
+ However, we can observe a similar effects as with |insertionSortM| in \autoref{par:insert} concerning non-strictness.
 When we demand only the head elements of all permutations, the monadic Haskell versions need to trigger more non-deterministic that is necessary in the Curry version.
 \autoref{fig:strictSort} visualises the number of triggered non-deterministic computations that are necessary to compute only the head element of all permutations.
-We observe that all Curry implementations (completely colored bars) compute less non-deterministic computations than all Haskell implementations.
+We observe that all Curry implementations (completely coloured bars) compute less non-deterministic computations than all Haskell implementations.
 One interesting contrast is the behaviour of bubble sort: the Curry version only needs to trigger a constant number of non-deterministic computation (constant with respect to the length of the input list), whereas the Haskell version triggers $n!$ non-deterministic computations for an input list of length $n$.
-Note that the evaluation of all permutations for bubble sort needs to trigger $n!$ non-deterministic computations as well, that is, in this case demaning only the head of each permutations is as strict as evaluating all list elements of each permutation.
+Note that the evaluation of all permutations for bubble sort needs to trigger $n!$ non-deterministic computations as well, that is, in this case demanding only the head of each permutations is as strict as evaluating all list elements of each permutation.
 
 \begin{figure}
 \input{content/figures/permutations}
