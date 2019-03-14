@@ -12,13 +12,26 @@ emphasise on non-determinism as an effect.
 
 On the one hand, we are interested in developing applications using
 non-determinism as underlying implementation idea.
-One application that we discuss in this work is a library for
-probabilistic programming developed in the functional logic language
-Curry.
-The key idea of the implementation is exploiting the interplay of
+We discuss two applications in the functional logic programming
+language Curry.
+The key idea of these implementations is to exploit the interplay of
 non-determinism and non-strictness that Curry employs.
-Due to this combination even a naive implementation has advantages
-over an implementation using lists to model non-determinism.
+
+The first application is a rather toy example that investigates
+sorting algorithms parametrised over a comparison function.
+By applying a non-deterministic predicate to these sorting functions,
+we gain a permutation enumeration function.
+We compare the implementation in Curry with an implementation in
+Haskell using a monadic interface to model non-determinism.
+
+The other application that we discuss in this work is a library for
+probabilistic programming.
+Instead of modelling distributions as list of event and probability
+pairs, we model distributions using Curry's built-in non-determinism.
+
+In both cases we observe that the combination of non-determinism and
+non-strictness has advantages over an implementation using lists to
+model non-determinism.
 
 On the other hand, we present an idea to apply formal reasoning on
 effectful declarative programming languages.
@@ -27,16 +40,17 @@ functional subset first.
 That is, the effects of interest are totality and partiality.
 We then observe that the general scheme to model these two effects can
 be generalised to capture a wide range of effects.
-Obviously, the next step is to apply the idea for modelling
+Obviously, the next step is to apply the idea to model
 non-determinism.
 More precisely, we model the non-determinism of Curry: that is,
 non-strict non-determinism with call-time-choice.
 
-At the end, we combine both worlds and show first efforts to formally
-reason about properties of the probabilistic programming library.
+At the end, we give an outlook of the combinations of both worlds and
+sketch the first ideas to formally reason about properties of the
+probabilistic programming library and non-deterministic sorting functions.
 
 \selectlanguage{ngerman}
-\chapter*{Abstrakt (deutsch)}
+\chapter*{Zusammenfassung (deutsch)}
 \label{sec:abstract-diff}
 
 Diese Arbeit besch\"aftigt sich mit der deklarativen
@@ -45,14 +59,33 @@ Nichtdeterminismus als Effekt.
 
 Einerseits m\"ochten wir Anwendungen entwicklen, dessen
 zugrundeliegende Implementierunsidee auf Nichtdeterminismus basiert.
-Als beispielhafte Anwendung werden wir dabei \"uber eine Bibliothek zur
-probabilistischen Programmierung diskutieren, die in der funktional logischen
-Programmiersprache implementiert wurde.
-Der Kern der Implementierung nutzt dabei die Kombination von
+Wir stellen dazu zwei beispielhafte Anwendungen vor, die in der
+funktional logischen Programmiersprache Curry implementiert sind.
+Die Kernidee dieser Implementierung ist dabei die Kombination von
 Nichtstriktheit und Nichtdeterminismus, die Curry unterliegen,
-gewinnbringend aus.
-Die entstandene naive Implementierung hat dadurch Vorteile geben\"uber
-einer Implementierung, die den Nichtdeterminismus durch Listen repr\"asentiert.
+gewinnbringend auszunutzen.
+
+Die erste Anwendung ist letztendlich eher eine nette Spielerei mit
+Sortierfunktionen als eine echte Anwendung.
+Wir untersuchen Sortierfunktionen die \"uber eine Vergleichsfunktion
+parametrisiert sind und wenden diese Funktionen auf ein
+nichtdeterministisches Pr\"adikat an.
+Dabei entsteht eine Funktion, die Permutationen der Eingabeliste
+auflistet.
+Wir vergleichen unsere Implementierung in Curry mit einer
+Implementierung in Haskell, die den Nichtdeterminismus monadisch
+modelliert.
+
+Als zweite Anwendung werden wir \"uber eine Bibliothek zur
+probabilistischen Programmierung diskutieren.
+Statt der \"ublichen Modellierung von Wahrscheinlichkeitsverteilungen
+als Liste von Ereignis-Wahrscheinlichtkeits-Paar modellieren wir diese
+Verteilungen mithilfe von Currys eingebauten Nichtdeterminismus.
+
+Beide Implementierung haben dadurch die Kombination von
+Nichtdeterminismus und Nichtstriktheit Vorteile geben\"uber
+einer Implementierung, die den Nichtdeterminismus durch Listen
+repr\"asentiert.
 
 Andererseits m\"ochten wir eine M\"oglichkeit schaffen, \"uber die
 Programme, die wir in den effektbehafteten deklarativen
@@ -67,9 +100,11 @@ Als nat\"urlichen n\"achsten Schritt betrachten wir den Effekte, der
 bei der Sprache Curry zus\"atzlich hinzukommt: nicht-strikter
 Nichtdeterminismus mit \emph{Call-Time-Choice} Semantik.
 
-Zu guter Letzt verbinden wir diese beiden Interessen und verwenden die
+Zu guter Letzt geben wir einen Ausblick auf die Verbindung dieser
+beiden Interessen und pr\"asentieren erste Ideen zur
 Modellierung von Curry, um Eigenschaften der Bibliothek zur
-probabilistischen Programmierung zur formulieren und deren Validit\"at
+probabilistischen Programmierung sowie nicht-deterministischen
+Sortierfunktionen zur formulieren und deren Validit\"at
 zu pr\"ufen.
 
 \endgroup
