@@ -1,3 +1,60 @@
+
+This chapter moves the focus from applications using effects like
+non-determinism to an approach to model effectful programs in order to
+apply equational reasoning.
+Equational reasoning is a popular and common tool to prove properties
+about functional programs and, thus, prominently used by Haskell
+practitioners. \todo{cite a lot}
+In particular, \citet{danielsson2006fast} argue that reasoning about
+total programs only and expecting the result to carry over partial
+programs is \textit{morally correct}.
+Nevertheless, if we are interested in proving properties about partial
+or other effectful programs more explicitly, we cannot apply
+equational reasoning as it is and need a model for effectful programs.
+In the remainder of this chapter we present an approach to model
+effectful non-strict functional programs in the proof assistant Coq
+and prove exemplary properties about common functions used in
+functional languages.
+All these properties hold in total languages as well and are, thus,
+not new insights.
+The main insight of our approach is that a lot of these properties
+carry over to partial languages in the sense that these properties
+still hold if partial values are at play.
+In the following we will talk about this insight as being able to
+prove properties in an effect-generic fashion.
+
+After discussing the general idea for a framework to model effectful
+non-strict functional programs, we emphasise on one effect occurring
+in Haskell: partiality.
+We present a case study that proves properties of common Haskell list
+functions.
+The transformation from Haskell to Coq is an intuitive manual
+process that we introduce as well.
+
+Last but not least we give an outlook on first ideas to model Curry
+programs.
+The underlying effect of Curry is non-determinism with the special
+treatment with respect to sharing.
+As we have seen in previous chapters, the combination of
+non-determinism and non-strictness lead Curry to chose a
+call-time-choice semantics, where variables declare values and not computations.
+That is, our idea tackles the problem of modelling a language where
+sharing is not an optimisation with respect to evaluation only, but
+can be observed.
+
+In summary, this chapter makes the following contributions.
+
+\begin{itemize}
+\item We present a generic model of effectful non-strict functional
+  programs in the proof assistant Coq.
+\item The modelling in Coq is particular interesting since the
+  standard implementation of effectful data structures does not please
+  the termination checker.
+We take the reader on an introductory tour of Coq's intricacies in
+order to define a valid representation of effectful programs.
+\item more
+\end{itemize}
+ 
 \section{A Generic Model For Effectful Non-Strict Programs}
 \subsection{Goal and Problem}
 \subsection{Free Monad and Containers}
