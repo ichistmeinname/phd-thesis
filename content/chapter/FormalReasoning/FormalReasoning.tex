@@ -6,7 +6,7 @@ Equational reasoning is a popular and common tool to prove properties
 about functional programs and, thus, prominently used by Haskell
 practitioners. \todo{cite a lot}
 In particular, \citet{danielsson2006fast} argue that reasoning about
-total programs only and expecting the result to carry over partial
+total programs only and expecting the result to carry over to partial
 programs is \textit{morally correct}.
 Nevertheless, if we are interested in proving properties about partial
 or other effectful programs more explicitly, we cannot apply
@@ -50,9 +50,13 @@ In summary, this chapter makes the following contributions.
 \item The modelling in Coq is particular interesting since the
   standard implementation of effectful data structures does not please
   the termination checker.
-We take the reader on an introductory tour of Coq's intricacies in
+\item We take the reader on an introductory tour of Coq's intricacies in
 order to define a valid representation of effectful programs.
-\item more
+\item We argue that our approach is especially interesting for proving
+  properties for a variety of effects once-at-for-all instead of
+  individually for each new effect of interest.
+\item The first ideas on modelling Curry's call-time choice semantics
+  gives insights about modelling a language with sharing.
 \end{itemize}
  
 \section{A Generic Model For Effectful Non-Strict Programs}
