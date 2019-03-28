@@ -63,7 +63,6 @@ order to define a valid representation of effectful programs.
 \end{itemize}
  
 \section{A Generic Model For Effectful Non-Strict Programs}
-\subsection{Goal and Problem}
 
 In this section we will present our general approach to model
 effectful non-strict programs in a dependently-typed language like
@@ -78,13 +77,264 @@ to model our approach in Coq.
 That is, this section tries to explain the obstacles and their
 solutions to a beginner-friendly Coq audience.
 
+\subsection{Representation of Partial Programs}
+The first obstacle that arises when we model Haskell programs in Coq
+is the fact that Coq is a total language and most Haskell programs are
+not.
+That is, we cannot translate partial Haskell programs into Coq as they
+are, we need to represent the partial parts of the programs more
+explicitly.
+
+Let us take a look at an example.
+One of the first partial function that comes to mind is the \hinl{head} function on lists.
+In case of the empty list the function is not defined as there is not element to return.
+
+\begin{minted}{haskell}
+head :: [a] -> a
+head (x:_) = x
+\end{minted}
+
+\noindent 
+Due to the missing case for the empty list, the above code is
+equivalent to the following implementation that uses a pattern for the
+empty list to explicitly yield \hinl{undefined}.
+
+\begin{minted}{haskell}
+head :: [a] -> a
+head []    = undefined
+head (x:_) = x
+\end{minted}
+
+In a total language like Coq the corresponding head functions usually
+takes an additional argument to take care of the undefined behaviour
+in case of the empty list.
+The following implementation is part of Coq's predefined library for
+lists.
+
+\begin{minted}{coq}
+Definition hd (A : Type) (default : A) (l : list A) : A = 
+  match l with
+  | nil => default
+  | cons x _ => x
+  end.
+\end{minted}
+
+Alternatively, we can indicate the potentially undefined behaviour by
+changing the result type to \cinl{option A}.
+In case of a non-empty list we wrap the head element into the
+\cinl{Some}-constructor, and use \cinl{None} as
+resulting value for an empty list.
+This alternative implementation is predefined under the name
+\cinl{head}.
+
+\begin{minted}{coq}
+Definition head (A : Type) (l : list A) : option A  = 
+  match l with
+  | nil => None
+  | x :: _ => Some x
+  end.
+\end{minted}
+
+The latter version suites our problem a bit better than the first:
+there is not always a good candidate in scope that can be used as
+default value, the latter version fits a general setting better.
+However, the latter version is not compositional.
+Consider the following example that uses the result of
+\cinl{head} as an argument.
+
+\begin{minted}{coq}
+Fail Definition exampleList (A : Type) : list A :=
+  cons (head nil) nil.
+\end{minted}
+
+We cannot use the result as an element of the newly constructed list,
+we get a type error.
+
+\begin{quote}
+The term "cons (head nil) nil" has type "list (option ?A)" while it is expected to have type "list A".
+\end{quote}
+
+The list constructor \cinl{cons} expects the head element
+of the list to match its type with all the elements of the remaining
+list.
+Since we want to construct a list of type \cinl{list A},
+the head element needs to be of type \cinl{A};
+the function \cinl{head}, however, yields a value of type
+\cinl{option A}.
+
+In order to model Haskell's partiality correctly, it is crucial that
+we allow partial values at top-level as well as within the components
+of data structures, that is, within arguments of constructors.
+In case of the lists we need to adapt the definition of the data type
+itself by lifting all arguments to allow partial values as well.
+
+\begin{minted}{coq}
+Inductive List (A : Type) :=
+| nil_ : List A
+| cons_ : option A -> option (List A) -> List A.
+
+Definition Nil (A : Type) : option (List A) :=
+  Some nil_.
+Definition Cons (A : Type) (ox : option A) (oxs : option (List A)) 
+  : option (List A) :=
+  Some (cons_ ox oxs).
+\end{minted}
+
+The data type \cinl{List} represents a Haskell list in Coq
+as all constructor arguments may be partial.
+When defining functions on lists, we need to consider that the overall
+list may already be partial.
+Hence, we define smart constructors \cinl{Nil} and
+\cinl{Cons} that wraps the list in the additional
+\cinl{Some}-constructor to indicate that the top-level
+expression is defined.
+The definition of  functions like \cinl{head} adapt to the settings as
+follows: all argument as well as result types need to be lifted and
+the implementation needs to handle the partial values accordingly.
+
+\begin{minted}{coq}
+Definition head (A : Type) (oxs : option (List A)) : option A :=
+  match oxs with
+  | None    => None
+  | Some xs => match xs with
+              | nil_       => None
+              | cons_ ox _ => ox
+              end
+  end.
+\end{minted}
+
+We cannot pattern match on the list directly as in the original
+defintion.
+In order to access the list, we need to take a look at the
+\cinl{option}-layer first.
+If the input list is already undefined (\cinl{None}), the
+overall result is \cinl{None} as well.
+If the input list is defined (\cinl{Some}), we can
+reimplement the original behaviour of the Haskell function, that is, yielding
+the first element in case of a non-empty list and yielding
+\cinl{None} as representative for undefined values in case
+of an empty list.
+
+Let us take a look at another list function in Haskell and its
+counterpart in our model for Coq: concatenation of two lists.
+
+\begin{minted}{haskell}
+(++) :: [a] -> [a] -> [a]
+[]     ++ ys = ys
+x : xs ++ ys = x : (xs ++ ys)
+\end{minted}
+
+The concatenation function on lists is a recursive and total function
+and can, thus, be translated to Coq as it is.
+However, since we want to mix partial and total functions and, thus,
+increase the compositionality of both possible effects, we translate
+the append function using the same scheme as above.
+
+\begin{minted}{coq}
+Fail Fixpoint append (A : Type) (oxs oys : option (List A)) : option (List A) :=
+  match oxs with
+  | None    => None
+  | Some xs => match xs with
+              | nil_         => oys
+              | cons_ oz ozs => Cons oz (append ozs oys)
+              end
+  end.
+\end{minted}
+
+The function \cinl{append} is recursive and, as far as we
+are concerned, the first argument is structurally decreasing in each
+recursive call.
+However, Coq does not accept the above definition and rejects its with
+the following message.
+
+\begin{quote}
+The command has indeed failed with message: Cannot guess decreasing
+argument of fix.
+Recursive call to append has principal argument equal to "ozs" instead of a subterm of "oxs".
+\end{quote}
+
+What is going on here?
+Coq cannot retrace that the value \cinl{ozs} is actually a
+subterm of \cinl{oxs}; without that connection the
+recursive call on \cinl{ozs} is not allowed.
+
+The problem is our lifted data type definition of
+\cinl{List}.
+Due to the lifting, the \cinl{List} becomes a so-called
+\emph{nested inductive} type, because the type we want to define
+appears nested in another inductive type.
+In this case the other inductive type is \cinl{option}.
+
+We can fix the problem by splitting the function into a non-recursive
+and a recursive part.
+The recursive part is working only on \cinl{List A} and
+produces an \cinl{option (List A)}, while the non-recursive
+function expects and yields a value of type \cinl{option
+  (List A)} and mainly calls the recursive one after unwrapping the
+\cinl{option}-layer.
+
+\begin{minted}{coq}
+Definition append (A : Type) (oxs oys : option (List A)) : option (List A) :=
+  match oxs with
+  | None    => None
+  | Some xs =>
+    let fix append' xs oys :=
+        match xs with
+        | nil_         => oys
+        | cons_ oz ozs => Cons oz (match ozs with
+                                  | None => None
+                                  | Some zs => append' zs oys
+                                  end)
+        end
+    in append' xs oys
+  end.
+\end{minted}
+
+The recursive function is the local function
+\cinl{append'}.
+In order to make the recursive call we need to unpack an additional
+\cinl{option}-layer of the variable \cinl{ozs}.
+Since we are now reconstructing the nested inductive structure using a
+nested recursion, Coq accepts the definition.
+
+In the remaining of this chapter we will define the two functions
+necessary to translate a recursive Haskell function on top-level to
+reuse the definitions in proofs.
+The recursive function that works directly on the nested inductive
+type will be prefixed with prime like for the local function definition.
+That is, the following code shows how the above can be split into two
+top-level functions.
+
+\begin{minted}{coq}
+Fixpoint append' (A : Type) (xs : List A) (oys : option (List A)) : option (List A) :=
+  match xs with
+  | nil_         => oys
+  | cons_ oz ozs => Cons oz (match ozs with
+                            | None    => None
+                            | Some zs => append' zs oys
+                            end)
+  end.
+
+Definition append (A : Type) (oxs oys : option (List A)) : option (List A) :=
+  match oxs with
+  | None    => None
+  | Some xs => append' xs oys
+  end.
+\end{minted}
+
+\subsection{Generalisation}
+
 \subsection{Free Monad and Containers}
 \subsection{Generic Properties and Their Proofs}
+
 \section{Partiality as Effect to Model Haskell Programs}
 \subsection{Translation of Haskell Programs}
 \subsection{Case Study on List-Related Functions}
+
 \section{First Ideas to Model Curry Programs}
 \subsection{Non-Determinism as Effect}
 \subsection{Sharing as Effect}
+
 \section{Conclusion and Future Work}
+
 \section{Final Remarks}
