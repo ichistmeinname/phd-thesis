@@ -46,6 +46,9 @@
 %format tau2
 %format tau3
 
+\newcommand{\hinl}[1]{\mintinline{Haskell}{#1}}
+\newcommand{\cinl}[1]{\mintinline{Coq}{#1}}
+        
 \def\commentbegin{\quad\{\ }
 \def\commentend{\}}
 
@@ -102,18 +105,18 @@
 
 \chapter{Generating Permutations via Non-deterministic Sorting}
 \label{ch:permutations}
-%include content/chapter/Permutations/permutations.lcurry
+% %include content/chapter/Permutations/permutations.lcurry
 
 \chapter{A Library for Probabilistic Functional Logic Programming}
 \label{ch:pflp}
 % %include content/chapter/pflp.lcurry
 
-\chapter{Formal Reasoning About Effectful Programs with Non-Strictness}
+\chapter{Formal Reasoning About Effectful Non-Strict Programs}
 \label{ch:reasoning} 
-%\input{content/chapter/free-proving}
+\input{content/chapter/FormalReasoning/FormalReasoning.tex}
 
-\chapter{Modelling Lazy Functional Logic Programming with Call-Time-Choice}
-\label{ch:modelling} 
+%\chapter{Modelling Lazy Functional Logic Programming with Call-Time-Choice}
+%\label{ch:modelling} 
 %\input{content/chapter/free-curry}
 
 \chapter{Conclusions}
