@@ -64,6 +64,20 @@ order to define a valid representation of effectful programs.
  
 \section{A Generic Model For Effectful Non-Strict Programs}
 \subsection{Goal and Problem}
+
+In this section we will present our general approach to model
+effectful non-strict programs in a dependently-typed language like
+Coq.
+We illustrate why previous work is not applicable anymore or does not
+tackle the same problem as we do.
+Since the reasons for the inapplicability of the previous work is due
+to rather technical reasons of dependently-typed languages and the
+general idea of propositions as types \citep{wadler2015propositions},
+we give a detailed explanation to illustrate which steps are necessary
+to model our approach in Coq.
+That is, this section tries to explain the obstacles and their
+solutions to a beginner-friendly Coq audience.
+
 \subsection{Free Monad and Containers}
 \subsection{Generic Properties and Their Proofs}
 \section{Partiality as Effect to Model Haskell Programs}
