@@ -337,6 +337,142 @@ Definition append (A : Type) (oxs oys : partial (List A)) : partial (List A) :=
 
 \subsection{Generalisation}
 
+Up to now, we have seen an encoding of Haskell programs in Coq that
+lifts all Haskell values to \cinl{partial} values.
+The overall goal is to not only reason about Haskell's partiality
+effect but a whole class of effects.
+That is, we do not want to restrict our model in Coq to one effect
+only, but generalise it to arbitrary effects.
+
+The first idea that comes to mind to generalise the above encoding is to change the
+concrete type \cinl{partial} by a type parameter.
+Hence, we can regain the above encoding by instantiating the type
+parameter with \cinl{partial}.
+Consider the following parametrised definition of \cinl{List}.
+
+\begin{minted}{coq}
+Fail Inductive List (M : Type -> Type) (A : Type) :=
+| nil : List M A
+| cons : M A -> M (List M A) -> List M A.
+\end{minted}
+
+Coq does not allow to define a type definition like \cinl{List}
+because of its \emph{strict positivity requirement}.
+When we try to compile the above definition, we get the following error message.
+
+\begin{quote}
+\emph{The command has indeed failed with message:
+Non strictly positive occurrence of "List" in "M A $\rightarrow$ M (List M A) $\rightarrow$ List M A".}
+\end{quote}
+
+What is going on this time?
+
+\paragraph{Strictly Positive Types}
+As a first step to understand what is going on here, we will reduce
+the above definition to the simplest definition that still triggers
+the same error message.
+
+\begin{minted}{coq}
+Fail Inductive NonStrictlyPos :=
+| con : (NonStrictlyPos -> nat) -> NonStrictlyPos.
+\end{minted}
+
+The data type \cinl{NonStrictlyPos} has no type parameters and only
+one unary constructor \cinl{con}.
+The argument of the constructor \cinl{con} is a function from
+\cinl{NonStrictlyPos} to \cinl{nat}.
+The domain of this function is the crucial part of the definition and
+the origin of the error message.
+As so often when using Coq, \citeauthor{chlipala2011certified}'s book is a
+great resource for typical obstacles beginners may face when using Coq
+for the first time; he has the following intuitive description for the
+strict positivity requirement.
+
+\begin{quote}
+\emph{We have run afoul of the strict positivity requirement for
+  inductive definitions, which says that the type being defined may
+  not occur to the left of an arrow in the type of a constructor
+  argument.}
+\end{quote}
+
+Inductive type definitions obey the strict positivity requirement, if
+for all constructors its recursive occurrences only occur strictly
+positive in all argument types.
+That is, in case of \cinl{NonStrictlyPos} we need to inspect the types
+of the arguments of its only constructor \cinl{con}.
+The only argument of \cinl{con} is the function type
+\cinl{NonStrictlyPos -> nat}.
+Taking the quote of Chlipala to a more formal ground, we can describe
+a strict positive occurrence of a type as follows: a type $\tau$
+occurs strictly positively in a type $\tau_1\rightarrow \dots
+\rightarrow \tau_n \rightarrow tau$, if and only if $\tau$ does not
+occur in any of the types $\tau_i$ with $i$ ranging from $1$ to $n$.
+
+Again, think about the definition of \cinl{NonStrictlyPos}, we now
+know that \cinl{NonStrictlyPos} occurs ``left of an arrow'' in the
+function type \cinl{NonStrictlyPos -> nat} that is the first argument
+of the \cinl{con}-constructor.
+Due to this non-strictly positive occurence, the overall data type
+definition of \cinl{NonStrictlyPos} is non-strictly positive as well,
+that is, fails the strict positivity requirement for data type
+definitions.
+In contrast, the following definition is not problematic.
+
+\begin{minted}{coq}
+Inductive StrictlyPos :=
+| con : StrictlyPos -> (nat -> StrictlyPos) -> StrictlyPos.
+\end{minted}
+
+Here, both argument of the constructor \cinl{con} are strictly positive:
+the first argument is of type \cinl{StrictlyPos}, thus, trivially
+strictly positive; and in the second argument's type \cinl{StrictlyPos}
+does not occur to the left, but to the right of an arrow, fulfilling
+the positivity requirement as well.
+
+This little excursus explains the origin of the error message Coq
+presents us when we try to define data types likes
+\cinl{NonStrictlyPos} and \cinl{List}, but two question still remain
+open: (1) Why is our definition \cinl{List} non-strictly positive as
+well, there is not even an arrow in the arguments' type of
+\cinl{cons}; (2) Why is the strict positivity of data type definition
+required in Coq?
+
+\paragraph{Why does \cinl{List} not fulfil the strict positivity requirement?}
+\paragraph{Why does Coq require the strict positivity of data type
+  definitions?}
+
+Let us for a moment assume that the definition of
+\cinl{NonStrictlyPos} was allowed.
+We then define the following function.\footnote{We use a different
+  font to distinguish the following hypothetical code from valid Coq code.}
+
+\begin{verbatim}
+Definition applyFun (t : NonStrictlyPos) : nat :=
+  match t with
+  | con f => f t
+  end.
+\end{verbatim}
+
+The function \cinl{applyFun} takes a value \cinl{t} of type
+\cinl{NonStrictlyPos} and applies the function \cinl{f} inside the
+argument of the \cinl{con}-constructor to the value \cinl{t} itself.
+A problematic example usage of this function is the expression
+\cinl{applyFun (con applyFun)}.
+Reducing the expression by using the definition of \cinl{applyFun} yields
+\cinl{applyFun (con applyFun)} again, which indicates that this expression
+will not terminate.
+
+\begin{verbatim}
+  applyFun (con applyFun)
+= {- Definition of applyFun -}
+  applyFun (con applyFun)
+= {- Definition of applyFun -}
+  ...
+= {- Definition of applyFun -}
+  applyFun (con applyFun)
+\end{verbatim}
+
+
 \subsection{Free Monad and Containers}
 \subsection{Generic Properties and Their Proofs}
 
