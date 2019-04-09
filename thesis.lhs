@@ -7,7 +7,7 @@
     openright,              % doublepage cleaning ends up right side
     parskip=false,           % spacing value / method for paragraphs
     chapterprefix=true,     % prefix for chapter marks
-    11pt,                   % font size
+    10pt,                   % font size
     headings=normal,        % size of headings
     listof=totoc,           % include listof entries in toc
     titlepage=on,           % own page for each title page
@@ -55,6 +55,9 @@
 % Overwrite rule for parindent
 \setlength{\parindent}{1em}
 \setlength{\mathindent}{0.15cm}
+
+%\usemintedstyle[haskell]{automn}
+\usemintedstyle[coq]{tango}
 
 % **************************************************
 % Document CONTENT
