@@ -155,7 +155,7 @@ We cannot use the result as an element of the newly constructed list,
 we get a type error.
 
 \begin{quote}
-The term "cons (head nil) nil" has type "list (option ?A)" while it is expected to have type "list A".
+\emph{The term "cons (head nil) nil" has type "list (option ?A)" while it is expected to have type "list A".}
 \end{quote}
 
 The list constructor \cinl{cons} expects the head element
@@ -169,19 +169,29 @@ the function \cinl{head}, however, yields a value of type
 In order to model Haskell's partiality correctly, it is crucial that
 we allow partial values at top-level as well as within the components
 of data structures, that is, within arguments of constructors.
+Instead of reusing \cinl{option}, we define a new data type
+\cinl{partial} that captures the notion that a value can be undefined
+or defined.
+
+\begin{minted}{coq}
+Inductive partial (A : Type) :=
+| undefined : partial A
+| defined   :  A -> partial A.
+\end{minted}
+
 In case of the lists we need to adapt the definition of the data type
 itself by lifting all arguments to allow partial values as well.
 
 \begin{minted}{coq}
 Inductive List (A : Type) :=
-| nil_ : List A
-| cons_ : option A -> option (List A) -> List A.
+| nil : List A
+| cons : partial A -> partial (List A) -> List A.
 
-Definition Nil (A : Type) : option (List A) :=
-  Some nil_.
-Definition Cons (A : Type) (ox : option A) (oxs : option (List A)) 
-  : option (List A) :=
-  Some (cons_ ox oxs).
+Definition Nil (A : Type) : partial (List A) :=
+  defined nil.
+Definition Cons (A : Type) (ox : partial A) (oxs : partial (List A)) 
+  : partial (List A) :=
+  defined (cons ox oxs).
 \end{minted}
 
 The data type \cinl{List} represents a Haskell list in Coq
@@ -190,42 +200,41 @@ When defining functions on lists, we need to consider that the overall
 list may already be partial.
 Hence, we define smart constructors \cinl{Nil} and
 \cinl{Cons} that wraps the list in the additional
-\cinl{Some}-constructor to indicate that the top-level
+\cinl{defined}-constructor to indicate that the top-level
 expression is defined.
 The definition of  functions like \cinl{head} adapt to the settings as
 follows: all argument as well as result types need to be lifted and
 the implementation needs to handle the partial values accordingly.
 
 \begin{minted}{coq}
-Definition head (A : Type) (oxs : option (List A)) : option A :=
+Definition head (A : Type) (oxs : partial (List A)) : partial A :=
   match oxs with
-  | None    => None
-  | Some xs => match xs with
-              | nil_       => None
-              | cons_ ox _ => ox
-              end
+  | undefined  => undefined
+  | defined xs => match xs with
+                 | nil       => undefined
+                 | cons ox _ => ox
+                 end
   end.
 \end{minted}
 
 We cannot pattern match on the list directly as in the original
 defintion.
 In order to access the list, we need to take a look at the
-\cinl{option}-layer first.
-If the input list is already undefined (\cinl{None}), the
-overall result is \cinl{None} as well.
-If the input list is defined (\cinl{Some}), we can
+\cinl{partial}-layer first.
+If the input list is already \cinl{undefined}, the
+overall result is \cinl{undefined} as well.
+If the input list \cinl{defined}, we can
 reimplement the original behaviour of the Haskell function, that is, yielding
 the first element in case of a non-empty list and yielding
-\cinl{None} as representative for undefined values in case
-of an empty list.
+\cinl{undefined} in case of an empty list.
 
 Let us take a look at another list function in Haskell and its
 counterpart in our model for Coq: concatenation of two lists.
 
 \begin{minted}{haskell}
 (++) :: [a] -> [a] -> [a]
-[]     ++ ys = ys
-x : xs ++ ys = x : (xs ++ ys)
+(++) []       ys = ys
+(++) (x : xs) ys = x : ((++) xs ys)
 \end{minted}
 
 The concatenation function on lists is a recursive and total function
@@ -235,13 +244,13 @@ increase the compositionality of both possible effects, we translate
 the append function using the same scheme as above.
 
 \begin{minted}{coq}
-Fail Fixpoint append (A : Type) (oxs oys : option (List A)) : option (List A) :=
+Fail Fixpoint append (A : Type) (oxs oys : partial (List A)) {struct oxs} : partial (List A) :=
   match oxs with
-  | None    => None
-  | Some xs => match xs with
-              | nil_         => oys
-              | cons_ oz ozs => Cons oz (append ozs oys)
-              end
+  | undefined  => undefined
+  | defined xs => match xs with
+                 | nil         => oys
+                 | cons oz ozs => Cons oz (append ozs oys)
+                 end
   end.
 \end{minted}
 
@@ -252,9 +261,9 @@ However, Coq does not accept the above definition and rejects its with
 the following message.
 
 \begin{quote}
-The command has indeed failed with message: Cannot guess decreasing
+\emph{The command has indeed failed with message: Cannot guess decreasing
 argument of fix.
-Recursive call to append has principal argument equal to "ozs" instead of a subterm of "oxs".
+Recursive call to append has principal argument equal to "ozs" instead of a subterm of "oxs".}
 \end{quote}
 
 What is going on here?
@@ -267,27 +276,27 @@ The problem is our lifted data type definition of
 Due to the lifting, the \cinl{List} becomes a so-called
 \emph{nested inductive} type, because the type we want to define
 appears nested in another inductive type.
-In this case the other inductive type is \cinl{option}.
+In this case the other inductive type is \cinl{partial}.
 
 We can fix the problem by splitting the function into a non-recursive
 and a recursive part.
 The recursive part is working only on \cinl{List A} and
-produces an \cinl{option (List A)}, while the non-recursive
-function expects and yields a value of type \cinl{option
+produces an \cinl{partial (List A)}, while the non-recursive
+function expects and yields a value of type \cinl{partial
   (List A)} and mainly calls the recursive one after unwrapping the
-\cinl{option}-layer.
+\cinl{partial}-layer.
 
 \begin{minted}{coq}
-Definition append (A : Type) (oxs oys : option (List A)) : option (List A) :=
+Definition append (A : Type) (oxs oys : partial (List A)) : partial (List A) :=
   match oxs with
-  | None    => None
-  | Some xs =>
+  | undefined  => undefined
+  | defined xs =>
     let fix append' xs oys :=
         match xs with
-        | nil_         => oys
-        | cons_ oz ozs => Cons oz (match ozs with
-                                  | None => None
-                                  | Some zs => append' zs oys
+        | nil         => oys
+        | cons oz ozs => Cons oz (match ozs with
+                                  | undefined => undefined
+                                  | defined zs => append' zs oys
                                   end)
         end
     in append' xs oys
@@ -305,25 +314,25 @@ In the remaining of this chapter we will define the two functions
 necessary to translate a recursive Haskell function on top-level to
 reuse the definitions in proofs.
 The recursive function that works directly on the nested inductive
-type will be prefixed with prime like for the local function definition.
+type will be suffixed with prime like for the local function definition.
 That is, the following code shows how the above can be split into two
 top-level functions.
 
 \begin{minted}{coq}
-Fixpoint append' (A : Type) (xs : List A) (oys : option (List A)) : option (List A) :=
+Fixpoint append' (A : Type) (xs : List A) (oys : partial (List A)) : partial (List A) :=
   match xs with
-  | nil_         => oys
-  | cons_ oz ozs => Cons oz (match ozs with
-                            | None    => None
-                            | Some zs => append' zs oys
+  | nil         => oys
+  | cons oz ozs => Cons oz (match ozs with
+                            | undefined    => undefined
+                            | defined zs => append' zs oys
                             end)
   end.
 
-Definition append (A : Type) (oxs oys : option (List A)) : option (List A) :=
+Definition append (A : Type) (oxs oys : partial (List A)) : partial (List A) :=
   match oxs with
-  | None    => None
-  | Some xs => append' xs oys
-  end.
+  | undefined  => undefined
+  | defined xs => append' xs oys
+  end
 \end{minted}
 
 \subsection{Generalisation}
