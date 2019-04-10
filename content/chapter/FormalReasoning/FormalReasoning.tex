@@ -356,15 +356,20 @@ Fail Inductive List (M : Type -> Type) (A : Type) :=
 | cons : M A -> M (List M A) -> List M A.
 \end{minted}
 
-Coq does not allow to define a type definition like \cinl{List}
-because of its \emph{strict positivity requirement}.
-When we try to compile the above definition, we get the following error message.
+Similar to \cinl{partial} that mimics the Maybe monad that we know
+from Haskell, we will be mostly interested in other monadic
+instantiations.
+Thus, we name the type parameter \cinl{M} to indicate that it is a
+placeholder for a monadic type.
+When we, however, try to compile the above definition, we get the following error message.
 
 \begin{quote}
 \emph{The command has indeed failed with message:
 Non strictly positive occurrence of "List" in "M A $\rightarrow$ M (List M A) $\rightarrow$ List M A".}
 \end{quote}
 
+Coq does not allow to define a type definition like \cinl{List}
+because of its \emph{strict positivity requirement}.
 What is going on this time?
 
 \paragraph{Strictly Positive Types}
@@ -412,8 +417,8 @@ Again, think about the definition of \cinl{NonStrictlyPos}, we now
 know that \cinl{NonStrictlyPos} occurs ``left of an arrow'' in the
 function type \cinl{NonStrictlyPos -> nat} that is the first argument
 of the \cinl{con}-constructor.
-Due to this non-strictly positive occurence, the overall data type
-definition of \cinl{NonStrictlyPos} is non-strictly positive as well,
+Due to this non strictly positive occurence, the overall data type
+definition of \cinl{NonStrictlyPos} is non strictly positive as well,
 that is, fails the strict positivity requirement for data type
 definitions.
 In contrast, the following definition is not problematic.
@@ -432,12 +437,11 @@ the positivity requirement as well.
 This little excursus explains the origin of the error message Coq
 presents us when we try to define data types likes
 \cinl{NonStrictlyPos} and \cinl{List}, but two question still remain
-open: (1) Why is our definition \cinl{List} non-strictly positive as
-well, there is not even an arrow in the arguments' type of
-\cinl{cons}; (2) Why is the strict positivity of data type definition
-required in Coq?
+open: (1) Why is the strict positivity of data type definition
+required in Coq; (2) Why is our definition \cinl{List} non strictly
+positive as well, there is not even an arrow in the arguments' type of
+\cinl{cons}?
 
-\paragraph{Why does \cinl{List} not fulfil the strict positivity requirement?}
 \paragraph{Why does Coq require the strict positivity of data type
   definitions?}
 
