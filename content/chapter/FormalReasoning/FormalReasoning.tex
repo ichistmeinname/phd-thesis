@@ -166,9 +166,16 @@ the head element needs to be of type \cinl{A};
 the function \cinl{head}, however, yields a value of type
 \cinl{option A}.
 
-In order to model Haskell's partiality correctly, it is crucial that
-we allow partial values at top-level as well as within the components
-of data structures, that is, within arguments of constructors.
+As Haskell is a non-strict language, it is crucial that we allow
+partial values at top-level as well as within the components of data
+structures, that is, within arguments of constructors in order to
+model Haskell's partiality correctly.
+Due to non-strictness, it is possible that an undefined value is never
+demanded during evaluation.
+The Haskell expression \hinl{head (1 : undefined)}, for example, does
+not trigger the \hinl{undefined} value in the tail of the list,
+because \hinl{head} only demands the first list constructor \hinl{:}
+and ignores the second argument.
 Instead of reusing \cinl{option}, we define a new data type
 \cinl{partial} that captures the notion that a value can be undefined
 or defined.
@@ -223,10 +230,10 @@ In order to access the list, we need to take a look at the
 \cinl{partial}-layer first.
 If the input list is already \cinl{undefined}, the
 overall result is \cinl{undefined} as well.
-If the input list \cinl{defined}, we can
-reimplement the original behaviour of the Haskell function, that is, yielding
-the first element in case of a non-empty list and yielding
-\cinl{undefined} in case of an empty list.
+If the input list \cinl{defined}, we can reimplement the original
+behaviour of the Haskell function, that is, yielding the first element
+in case of a non-empty list and yielding \cinl{undefined} in case of
+an empty list.
 
 Let us take a look at another list function in Haskell and its
 counterpart in our model for Coq: concatenation of two lists.
