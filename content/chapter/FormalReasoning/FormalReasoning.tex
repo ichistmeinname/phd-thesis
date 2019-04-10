@@ -501,6 +501,65 @@ general recursion and Coq's logic becomes inconsistent.
 In order to ensure the consistency of Coq's logic, the strict
 positivity requirement needs to be enforced for data type definitions.
 
+\paragraph{Why does \cinl{List} not fulfil the strict positivity requirement?}
+
+Now we know what Coq is nagging about when the error message about a
+non strictly positive occurrences for data type definitions appears.
+However, it is still not obvious why the definition of \cinl{List}
+falls under the same category.
+Recall our try to define the data type \cinl{List}.
+
+\begin{minted}{coq}
+Fail Inductive List (M : Type -> Type) (A : Type) :=
+| nil : List M A
+| cons : M A -> M (List M A) -> List M A.
+\end{minted}
+
+The type \cinl{List} does not appear to the left of an arrow in the
+argument types of its constructor \cinl{cons}, but Coq still rejects
+the definition because of the type \cinl{M (List M A)}.
+However, Coq is of course on the right track rejecting such a
+definition.
+While a concrete instantiation using \cinl{partial} instead of the
+type parameter \cinl{M} is accepted, since \cinl{List} does not appear
+to the left of an arrow, we cannot guarantee that all usages of
+\cinl{List} obey this requirement.
+
+For example, consider the following definition that we might use to
+instantiate the type parameter with.
+
+\begin{minted}{coq}
+Definition Cont R A := (A -> R) -> R.
+\end{minted}
+
+The type \cinl{Cont} represents the continuation monad.
+Now let us instantiate the type parameter \cinl{M} in the definition
+of \cinl{List} with \cinl{Cont}, a concrete monad.
+The following type definition \cinl{ListCont} inlines the definition
+of \cinl{Cont} in the constructor corresponding \cinl{cons}.
+
+\begin{minted}{coq}
+Fail Inductive ListCont R A :=
+| nilC  : ListCont R A
+| consC : ((A -> R) -> R) -> ((ListCont R A -> R) -> R) -> ListCont R A.
+\end{minted}
+
+Due to the inlining, it now becomes apparent that the type we are just
+defining, \cinl{ListCont}, appears indeed to the left of an arrow in
+one of the type argument of its constructor.
+More precisely, \cinl{ListCont} appears to the left of an arrow in the
+second argument of the \cinl{consC}-constructor.
+Summarising our findings, the type definition \cinl{List} defined
+above allows arbitrary type constructor as instances for its type
+parameter \cinl{M}.
+Since the type parameter is arbitrary, it is not safe to use this
+definition for all potential instances of \cinl{M}.
+The strict positivity restriction might be violated for a concrete
+instation of \cinl{M}, for instance for the concrete instantiation of
+\cinl{Cont} as we demonstrated in the definition of \cinl{ListCont}.
+Since we cannot guarantee by definition that the data type definition
+\cinl{List} is only used with instantiations of \cinl{M} that obey the
+strict positivity requirement, Coq rejects the definition.
 
 \subsection{Free Monad and Containers}
 \subsection{Generic Properties and Their Proofs}

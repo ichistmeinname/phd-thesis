@@ -182,3 +182,12 @@ Fail Definition applyFun (t : NonStrictlyPos) : nat :=
   match t with
   | con f => f t
   end.
+
+Fail Inductive Mu A :=
+| mu : (Mu A -> A) -> Mu A.
+
+Definition Cont R A := (A -> R) -> R.
+
+Fail Inductive ListCont R A :=
+| nilC  : ListCont R A
+| consC : ((A -> R) -> R) -> ((ListCont R A -> R) -> R) -> ListCont R A.
