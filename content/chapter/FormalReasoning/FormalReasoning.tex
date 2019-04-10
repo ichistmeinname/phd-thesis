@@ -417,6 +417,91 @@ Again, think about the definition of \cinl{NonStrictlyPos}, we now
 know that \cinl{NonStrictlyPos} occurs ``left of an arrow'' in the
 function type \cinl{NonStrictlyPos -> nat} that is the first argument
 of the \cinl{con}-constructor.
+\paragraph{Excursus: Positive and Negative Occurrences}
+For that matter, let us consider an arbitrary type $\tau = t_1
+\rightarrow \dots \rightarrow t_n$, where all $t_i$ are types as well.
+The type arguments $t_1$ to $t_n$ appear in positive or negative
+positions.
+A type argument $t_i$ has a negative position if it appears to the
+left of an odd number of type arrows.
+That is, starting from an inner position, each type arrow flips a
+negative position to a positive and vice versa.
+In particular, a type argument $t_i$ has a positions position if it
+appears to the left of an even number of type arrows or no type arrows
+at all.
+We can define the set of negative and positive positions, $Pos^{+}$
+and $Pos^{-}$, respectively, of a type $\tau$ inductively given a set of
+inductive types $I$ as described by
+\citet{blanqui2002inductivedatatype}.
+
+\begin{alignat*}{2}
+  &Pos^{+} (\tau \in I) &&= \epsilon\\
+  &Pos^{-} (\tau \in I) &&= \{\}\\
+  &Pos^{+} (t \rightarrow \tau) &&= 1 \cdot Pos^{-} (t) \cup 2 \cdot Pos^{+} (\tau)\\
+  &Pos^{-} (t \rightarrow \tau) &&= 1 \cdot Pos^{+} (t) \cup 2 \cdot Pos^{-} (\tau)
+\end{alignat*}
+
+Based on this definition, we can specify that a type $t$ occurs
+positively in $\tau$ if the set $Pos^{+} (\tau)$ contains every occurrence of $\tau$ in
+$t$.
+Moreover, a type $t$ occurs strictly positively in
+
+\[
+\tau = t_1 \rightarrow \dots \rightarrow t_n \rightarrow t
+\]
+
+if $t$ occurs in no $t_i$.
+
+Consider the following examples of possible types in Coq, where
+\cinl{A} is a type variable.
+
+\begin{enumerate}
+\item[(1)] \cinl{A -> nat}
+\item[(2)] \cinl{nat -> A}
+\item[(3)] \cinl{(A -> nat) -> nat}
+\item[(4)] \cinl{((A -> nat) -> nat) -> nat}
+\end{enumerate}
+
+The type \cinl{A} occurs positively in (2) and (3), and negatively in
+(1) and (4).
+The occurrence in (2) is also strictly positive.
+
+In dependently typed languages, the strict positivity
+requirement plays an important role for the definition of inductive
+data types.
+An inductive type t obeys the strict positivity requirement if the
+recursive occurrences of t are strictly positively in the types of all
+the arguments of its constructors.\footnote{The definition by
+  \citeauthor{blanqui2002inductivedatatype} also takes care of mutual
+  inductive types where the recursive occurrence is only implicit.}
+
+Consider once again the following exemplary type definitions in Coq.
+
+\begin{enumerate}
+\item[(1)] \cinl{Inductive T := con : T -> T -> T}
+\item[(2)] \cinl{Inductive T := con : (T -> T) -> T}
+\item[(3)] \cinl{Inductive T := con : (nat -> T) -> T}
+\item[(4)] \cinl{Inductive T := con : (nat -> T) -> (T -> T) -> T}
+\end{enumerate}
+
+The inductive type \cinl{T} obeys the strict positivity requirement in
+(1) and (3), and violates it in (2) and (4).
+In (1) we need to check the following arguments of the constructors
+\cinl{con}: \cinl{T} and \cinl{T}; both types are strictly positive.
+The argument in question for (3) is \cinl{nat -> T}, where \cinl{T}
+does not occur to the left of an arrow, thus, the type is strictly
+positive as well.
+In (2) we need to inspect the type \cinl{T -> T}; here, \cinl{T}
+occurs to the left of an arrow, thus, in a negative position.
+The overall definition, then, does not fulfil the requirement.
+The inductive type in (4) is a combination of (2) and (3), thus, the
+type of the first argument of \cinl{con} fulfils the requirement,
+whereas the second arguments violates it again.
+
+\vspace{0.5cm}
+\hrule
+\vspace{0.25cm}
+
 Due to this non strictly positive occurence, the overall data type
 definition of \cinl{NonStrictlyPos} is non strictly positive as well,
 that is, fails the strict positivity requirement for data type
