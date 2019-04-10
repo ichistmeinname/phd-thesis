@@ -463,8 +463,9 @@ argument of the \cinl{con}-constructor to the value \cinl{t} itself.
 A problematic example usage of this function is the expression
 \cinl{applyFun (con applyFun)}.
 Reducing the expression by using the definition of \cinl{applyFun} yields
-\cinl{applyFun (con applyFun)} again, which indicates that this expression
-will not terminate.
+\cinl{applyFun (con applyFun)} again.
+We can apply this reduction infinitely often, thus, we have
+constructed an infinite expression that does not terminate.
 
 \begin{verbatim}
   applyFun (con applyFun)
@@ -475,6 +476,30 @@ will not terminate.
 = {- Definition of applyFun -}
   applyFun (con applyFun)
 \end{verbatim}
+
+Taking a step back, we observe that the data type
+\cinl{NonStrictlyPos} has some resemblance with a specialised instance
+of the fix-point combinator \cinl{Mu}.
+
+\begin{minted}{coq}
+Fail Inductive Mu A :=
+| mu : (Mu A -> A) -> Mu A.
+\end{minted}
+
+Note that we cannot define the type \cinl{Mu} in Coq.
+The connection to the fix-point combinator explains why Coq needs to
+restrict such a definition: we know that all Coq programs need to
+terminate and we need to use a special keyword \cinl{Fixpoint} or
+\cinl{fix} to indicate recursive function in order to apply
+termination checks with respect to recursion.
+If we could define a data type like \cinl{Mu}, our definition of
+\cinl{applyFun} is an example that shows how we can define
+non-terminating programs without using the explicit fix-point
+combinator that Coq already provides for recursive constructions.
+That is, data types like \cinl{Mu} introduce the capability to express
+general recursion and Coq's logic becomes inconsistent.
+In order to ensure the consistency of Coq's logic, the strict
+positivity requirement needs to be enforced for data type definitions.
 
 
 \subsection{Free Monad and Containers}
