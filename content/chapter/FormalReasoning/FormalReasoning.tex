@@ -407,6 +407,7 @@ of the arguments of its only constructor \cinl{con}.
 The only argument of \cinl{con} is the function type
 \cinl{NonStrictlyPos -> nat}.
 
+\paragraph{Excursus: Positive and Negative Occurrences}
 What is a positive occurence that \cinl{List} seems to violate giving
 the error message Coq produces when we try to compile the data type
 definition?
@@ -420,7 +421,6 @@ extent, but it also opens new ones: how do we distinguish between
 \emph{positive} and \emph{strictly positive} occurrences; can an
 occurrence be \emph{negative} as well?
 
-\paragraph{Excursus: Positive and Negative Occurrences}
 For that matter, let us consider an arbitrary type $\tau = t_1
 \rightarrow \dots \rightarrow t_n$, where all $t_i$ are types as well.
 The type arguments $t_1$ to $t_n$ appear in positive or negative
