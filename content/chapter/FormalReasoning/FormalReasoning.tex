@@ -372,7 +372,6 @@ Coq does not allow to define a type definition like \cinl{List}
 because of its \emph{strict positivity requirement}.
 What is going on this time?
 
-\paragraph{Strictly Positive Types}
 As a first step to understand what is going on here, we will reduce
 the above definition to the simplest definition that still triggers
 the same error message.
@@ -407,16 +406,20 @@ That is, in case of \cinl{NonStrictlyPos} we need to inspect the types
 of the arguments of its only constructor \cinl{con}.
 The only argument of \cinl{con} is the function type
 \cinl{NonStrictlyPos -> nat}.
+
+What is a positive occurence that \cinl{List} seems to violate giving
+the error message Coq produces when we try to compile the data type
+definition?
 Taking the quote of Chlipala to a more formal ground, we can describe
-a strict positive occurrence of a type as follows: a type $\tau$
+a strictly positive occurrence of a type as follows: a type $\tau$
 occurs strictly positively in a type $\tau_1\rightarrow \dots
 \rightarrow \tau_n \rightarrow tau$, if and only if $\tau$ does not
 occur in any of the types $\tau_i$ with $i$ ranging from $1$ to $n$.
+Although this description might answer the question we raised to some
+extent, but it also opens new ones: how do we distinguish between
+\emph{positive} and \emph{strictly positive} occurrences; can an
+occurrence be \emph{negative} as well?
 
-Again, think about the definition of \cinl{NonStrictlyPos}, we now
-know that \cinl{NonStrictlyPos} occurs ``left of an arrow'' in the
-function type \cinl{NonStrictlyPos -> nat} that is the first argument
-of the \cinl{con}-constructor.
 \paragraph{Excursus: Positive and Negative Occurrences}
 For that matter, let us consider an arbitrary type $\tau = t_1
 \rightarrow \dots \rightarrow t_n$, where all $t_i$ are types as well.
@@ -502,6 +505,11 @@ whereas the second arguments violates it again.
 \hrule
 \vspace{0.25cm}
 
+Let us think again about the definition of \cinl{NonStrictlyPos}.
+With the excursus above, we now know that \cinl{NonStrictlyPos}
+occurs ``left of an arrow''  in the first argument of the
+\cinl{con}-constructor, namely in the function type
+\cinl{NonStrictlyPos -> nat}.
 Due to this non strictly positive occurence, the overall data type
 definition of \cinl{NonStrictlyPos} is non strictly positive as well,
 that is, fails the strict positivity requirement for data type
