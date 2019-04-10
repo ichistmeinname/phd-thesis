@@ -244,7 +244,7 @@ increase the compositionality of both possible effects, we translate
 the append function using the same scheme as above.
 
 \begin{minted}{coq}
-Fail Fixpoint append (A : Type) (oxs oys : partial (List A)) {struct oxs} : partial (List A) :=
+Fail Fixpoint append (A : Type) (oxs oys : partial (List A)) : partial (List A) :=
   match oxs with
   | undefined  => undefined
   | defined xs => match xs with
