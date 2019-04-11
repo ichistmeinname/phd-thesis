@@ -666,6 +666,101 @@ Since we cannot guarantee by definition that the data type definition
 strict positivity requirement, Coq rejects the definition.
 
 \subsection{Free Monad and Containers}
+
+In order to summarise the situation so far: we want to model effectful
+data types and functions, for example representing non-strict partial
+programs, in a generic way, but cannot use a type constructor variable
+to represent this generic effect in Coq due to the strict positivity
+requirement.
+If we use, however, a concrete effect, like \cinl{partial}, the strict
+positivity is guaranteed again.
+That is, we want to represent effects using a concrete data type
+representation in order to satisfy Coq's requirement.
+Recall that the effects we want to represent are all a superset of a
+pure value; partiality, for example, adds [undefined] to the set of
+[defined] values.
+The other mechanism the effects need to offer is a way to apply
+functions to the pure value; in case of \cinl{partial} we have used pattern
+matching to unwrap the pure values in order the define [head] and
+[append].
+Fortunately, a monadic abstraction gives us exactly these
+capabilities.
+A monad describes a type constructor \cinl{M} that allows to define
+functions \cinl{return : A -> M A} and \cinl{bind : M A -> (A -> M B)
+  -> M B}, where former lifts a pure value into the monadic structure
+--- in case of \cinl{partial} we implement the function using [defined] ---
+and the latter allows us to apply a function to a pure value within
+the monadic structure.
+Note that the function that we apply yields a monadic structure as
+well, that is, we cannot unwrap the monadic layer for good, but only
+to apply the function.
+
+The main goal is to retain the generality to model arbitrary monads,
+but to use a concrete data type in order to fulfil the strict
+positivity requirement.
+We can achieve this goal by using a data type that represents all
+strictly positive types in a constructive manner.
+Fortunately, \cite{abbott2005containers} introduced the notion of
+containers to represent exactly all strictly positive types.
+A container is described as a product of shapes and a position function.
+The shape is a type \cinl{S} and the position function \cinl{P} is a type
+function that maps shapes to types.
+Using these two components we can define a container extension that
+gives rise to a functor.
+
+\begin{minted}{coq}
+Inductive Ext (Shape : Type) (Pos : Shape -> Type) A :=
+| ext : forall s, (Pos s -> A) -> Ext Pos A.
+\end{minted}
+
+A container extension \cinl{Ext S P} is then isomorphic to a functor \cinl{F}.
+Since we are mainly interested in monads, we can go even further and use
+monadic containers as proposed by \cite{monadic2018altenkirch} and
+\cite{partiality2017uustalu}.
+However, we decided against using monadic containers directly, as
+they, as far as we know, cannot be implemented in a constructive way,
+but are an extension of \cinl{Ext} that are modelled using a type
+class.
+
+Taking one step back, let us recap again the pieces we have identified
+so far.
+Since we know that all monads have a constructor that represent
+\emph{pure} values, the effect we want to model is actually
+everything that we gain on top of these defined values.
+We can define a data type to model this property more explicitly: we
+either have a pure or an effectful value.
+
+\begin{minted}{coq}
+Fail Inductive Free F A :=
+| pure   : A -> Free F A
+| impure : F (Free F A) -> Free F A.
+\end{minted}
+
+This representation is known as free monad \citep{swierstra2008data}.
+As the effect is once again represented by a type constructor
+variable \cinl{F} that has the data type to be defined as argument,
+Coq does not accept the definition.
+Fortunately, the type parameter \cinl{F} needs to be functor in order
+to make a \cinl{Free F} a monad.
+Or to it put differently, given a functor \cinl{F} the free monad
+construction lifts \cinl{F} to a monad.
+Now we can apply the insight about representing strictly positive
+types as containers again: since containers are isomorphic to
+functors, there are a variety of functors that we can represent using
+containers.
+We change the definition of \cinl{Free} as follows to fulfil Coq's
+strict positivity requirement.
+
+\begin{minted}{coq}
+Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
+| pure   : A -> Free Pos A
+| impure : Ext Pos A -> Free Pos A.
+\end{minted}
+
+Now we defined the free monad using the container extension instead of
+a generic functor \cinl{F}, that is, we are still generic: not
+over all possible type constructors but over all strictly positive types.
+
 \subsection{Generic Properties and Their Proofs}
 
 \section{Partiality as Effect to Model Haskell Programs}

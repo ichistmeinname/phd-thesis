@@ -191,3 +191,33 @@ Definition Cont R A := (A -> R) -> R.
 Fail Inductive ListCont R A :=
 | nilC  : ListCont R A
 | consC : ((A -> R) -> R) -> ((ListCont R A -> R) -> R) -> ListCont R A.
+
+Module SigmaUniverse.
+
+  Variable U : Type.
+  Variable El : U -> Type.
+
+  Inductive ExtSigma :=
+  | extsigma : forall (a : U), ((El a -> U) -> U) -> ExtSigma.
+
+Module Free.
+
+Fail Inductive Free F A :=
+| pure   : A -> Free F A
+| impure : F (Free F A) -> Free F A.
+
+Inductive Ext (Shape : Type) (Pos : Shape -> Type) A :=
+| ext : forall s, (Pos s -> A) -> Ext Pos A.
+
+Inductive FreeInline (Shape : Type) (Pos : Shape -> Type) A :=
+| pureI   : A -> FreeInline Pos A
+| impureI : forall s, (Pos s -> FreeInline Pos A) -> FreeInline Pos A.
+
+Definition call {Shape Pos} (s : Shape) : FreeInline Pos (Pos s) :=
+  impureI s (fun x => pureI _ x).
+
+Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
+| pure   : A -> Free Pos A
+| impure : Ext Pos A -> Free Pos A.
+
+End Free.
