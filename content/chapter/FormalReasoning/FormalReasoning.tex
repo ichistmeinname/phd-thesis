@@ -765,7 +765,251 @@ Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
 
 Now we defined the free monad using the container extension instead of
 a generic functor \cinl{F}, that is, we are still generic: not
-over all possible type constructors but over all strictly positive types.
+over all possible type constructors but over all strictly positive
+types.
+
+\paragraph{Representing Partiality using Free Monads and Containers}
+
+Let us take a look at how we can represent \cinl{partial} using
+\cinl{Free}.
+As already mentioned, we use free monads by applying a functor
+\cinl{F} that describes the effect we want to model, i.e., the
+additional constructs on top of pure values.
+In case of \cinl{partial} the additional effect is the undefinedness
+of values; hence, we need a type with one nullary constructor.
+We use the same name for the used functor as \citet{swierstra2008data}
+that captures the number of representable values quite well.
+
+\begin{minted}{coq}
+Inductive One (A : Type) :=
+| one : One A.
+\end{minted}
+
+In case of our definition of \cinl{Free}, the functor was exchanged by
+a container representation.
+That is, we have to represent \cinl{One} as a container
+describes as a type of shapes and a position type function.
+The data type \cinl{One} has only one constructor, that is,
+there is only one shape that we need to represent.
+
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition One!$_\text{S}$! := unit.
+\end{minted}
+
+The position type function, on the other hand, describes the possible
+positions of polymorphic arguments.
+In case of \cinl{One} its constructors does not have any
+polymorphic arguments, so we need to use the empty type.
+
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition One!$_\text{P}$! (s : One!$_\text{S}$!) := Empty.
+\end{minted}
+
+Recall that the position type function depends on the corresponding
+shape.
+Here, however, the shape does not matter as we do not have any
+position anyhow.
+
+Using Coq's ability to prove properties about programs, we can show
+that the container representation is isomorphic to the original data
+type.
+More precisely, we define two functions \cinl{from_One} and
+\cinl{to_One}, and show that both compositions yield the
+identity.
+
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition from_One A (o : One A) : Ext One!$_\text{S}$! One!$_\text{P}$! A :=
+  ext tt (fun (p : One!$_\text{P}$! tt) => match p with end).
+
+Definition to_One A (e : Ext One!$_\text{S}$! One!$_\text{P}$! A) : One A :=
+  one.
+
+Lemma from_to_One : forall (A : Type) (e : Ext One!$_\text{S}$! One!$_\text{P}$! A),
+    from_One (to_One e) = e.
+Proof.
+  intros A e.
+  destruct e as [[] pf]; simpl.
+  f_equal. extensionality p. destruct p.
+Qed.
+
+Lemma to_from_One : forall (A : Type) (o : One A),
+    to_One (from_One o) = o.
+Proof.
+  intros A o.
+  destruct o; reflexivity.
+Qed.\end{minted}
+
+Note that we need to use functional extensionality to compare the
+position functions in the second argument of \cinl{ext} in Lemma
+\cinl{from_to_One}.
+
+Now we have the container that we want to use as to instantiate
+\cinl{Free} with in place.
+Next up, we can also show that the resulting \cinl{Free One__S One__P}
+is isomorphic to the monadic structure \cinl{partial}.
+First, we define the conversion functions \cinl{to_partial} and
+\cinl{from_partial} analogues to the setup for \cinl{One} above.
+
+\begin{minted}{coq}
+Definition to_partial A (fx : Free One__S One__P A) : partial A :=
+  match fx with
+  | pure x   => defined x
+  | impure e => undefined
+  end.
+
+Definition from_partial A (p : partial A) : Free One__S One__P A :=
+  match p with
+  | undefined => impure (from_One one)
+  | defined x => pure x
+  end.
+\end{minted}
+
+Based on the conversion functions, we prove to lemmas that state that
+the possible compositions of these functions is the identity.
+
+\begin{minted}{coq}
+Lemma from_to_partial : forall (A : Type) (fx : Free One__S One__P A),
+    from_partial (to_partial fx) = fx.
+Proof.
+  intros A fx.
+  destruct fx as [x | [[] pf]]; simpl.
+  - reflexivity.
+  - do 2 f_equal. extensionality p. destruct p.
+Qed.
+
+Lemma to_from_partial : forall (A : Type) (p : partial A),
+    to_partial (from_partial p) = p.
+Proof.
+  intros A p.
+  destruct p; reflexivity.
+Qed.
+\end{minted}
+
+\paragraph{Representing Totality using Free Monads and Containers}
+In order to see a second effect, we find some inspiration by
+\citet{abel2005verifying} who are interested in two effects:
+partiality and totality.
+Since we have already discussed partiality, we will now take a look at
+how to model totality.
+Totality describes the absence of any additional effects, we have pure
+values only.
+A suitable monad to represent totality is the identity monad; in order
+to match our naming scheme used for partiality, we name the data type
+\cinl{total}.
+
+\begin{minted}{coq}
+Inductive total (A : Type) :=
+| totality : A -> total A.
+\end{minted}
+
+When using a free monad to represent \cinl{total}, we only need to
+give a functor for the additional effect on top of pure values.
+Since totality does not add any effects and describes pure values
+only, we need to model this absence of effects with the functor.
+In terms of defining values using \cinl{Free F} that represent total
+values only, we only want to be able to use the
+\cinl{pure}-constructor.
+The \cinl{impure}-constructor, on the other hand, should not be
+available, it should be impossible to construct a value using
+\cinl{impure}.
+That is, we need a functor without any constructors.
+When an inductive type has no constructors, there is no way to
+construct a value of that type.
+Once again, we use the naming scheme as \citeauthor{swierstra2008data}
+and define the type constructor \cinl{Zero} that has no values.
+
+\begin{minted}{coq}
+Inductive Zero (A : Type) := .
+\end{minted}
+
+Note that, in contrast to the \cinl{Empty} type, \cinl{Zero} is a type
+constructor as it has an additional type parameter \cinl{A}.
+Similar to the definition of \cinl{One}, we do not use this type
+parameter.
+A type variable that appears on the left-hand site of a definition but
+is not used on the right-hand side is called a phantom type.\todo{cite}
+
+In order to represent \cinl{Zero} as container, we once again need to
+define the corresponding shape and position type function.
+Since \cinl{Zero} has no constructors, it has no shapes and no
+polymorphic values that we might want to access.
+For both types we can reuse \cinl{Empty}.
+
+\begin{minted}{coq}
+Definition Zero__S := Empty.
+Definition Zero__P (s : Zero__S) := Empty.
+\end{minted}
+
+For both conversion functions, \cinl{from_Zero} and \cinl{to_Zero},
+the definition simply matches on the non-existent value to define a
+function with the wanted type.
+
+\begin{minted}{coq}
+Definition from_Zero A (u : Zero A) : Ext Zero__S Zero__P A :=
+  match u with end.
+
+Definition to_Zero A (e : Ext Zero__S Zero__P A) : Zero A :=
+  match e with
+  | ext s pf => match s with end
+  end.
+\end{minted}
+
+It is quite trivial to prove that the conversion functions form an
+isomorphism as the following reasoning shows.
+
+\begin{minted}{coq}
+Lemma from_to_Zero : forall (A : Type) (e : Ext Zero__S Zero__P A),
+    from_Zero (to_Zero e) = e.
+Proof.
+  intros A e.
+  destruct e as [[] pf].
+Qed.
+
+Lemma to_from_Zero : forall (A : Type) (z : Zero A),
+    to_Zero (from_Zero z) = z.
+Proof.
+  intros A z.
+  destruct z.
+Qed.
+\end{minted}
+
+The next step is to define the conversion functions \cinl{to_total}
+and \cinl{from_total} to show that using
+the container representation for \cinl{Zero} in combination with
+\cinl{Free} yields the original monad \cinl{total} again.
+
+\begin{minted}{coq}
+Definition to_total A (fx : Free Zero__S Zero__P A) : total A :=
+  match fx with
+  | pure x   => totality x
+  | impure (ext s _) => match s with end
+  end.
+
+Definition from_total A (t : total A) : Free Zero__S Zero__P A :=
+  match t with
+  | totality x => pure x
+  end.
+\end{minted}
+
+\noindent
+In fact, similar as for the case of the partiality monad we can even
+show that the conversion functions form an isomorphism as well.
+
+\begin{minted}{coq}
+Lemma from_to_total : forall (A : Type) (fx : Free Zero__S Zero__P A),
+    from_total (to_total fx) = fx.
+Proof.
+  intros A fx.
+  destruct fx as [x | [[] pf]]; reflexivity.
+Qed.
+
+Lemma to_from_total : forall (A : Type) (t : total A),
+    to_total (from_total t) = t.
+Proof.
+  intros A t.
+  destruct t; reflexivity.
+Qed.
+\end{minted}
 
 \subsection{Generic Properties and Their Proofs}
 
