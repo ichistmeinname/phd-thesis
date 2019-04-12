@@ -368,7 +368,12 @@ from Haskell, we will be mostly interested in other monadic
 instantiations.
 Thus, we name the type parameter \cinl{M} to indicate that it is a
 placeholder for a monadic type.
-When we, however, try to compile the above definition, we get the following error message.
+This representation was already suggested by
+\citet{abel2005verifying}, who translated Haskell code into Agda code
+in order to prove propositions about Haskell functions.
+Their approach, however, is not applicable in recent versions of Agda
+nor Coq anymore.
+When we try to compile the above definition, we get the following error message.
 
 \begin{quote}
 \emph{The command has indeed failed with message:
