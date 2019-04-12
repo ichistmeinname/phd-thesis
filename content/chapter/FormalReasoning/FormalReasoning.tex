@@ -713,10 +713,11 @@ Inductive Ext (Shape : Type) (Pos : Shape -> Type) A :=
 | ext : forall s, (Pos s -> A) -> Ext Pos A.
 \end{minted}
 
-A container extension \cinl{Ext S P} is then isomorphic to a functor \cinl{F}.
-Since we are mainly interested in monads, we can go even further and use
-monadic containers as proposed by \cite{monadic2018altenkirch} and
-\cite{partiality2017uustalu}.
+A container extension \cinl{Ext S P} is then isomorphic to a functor
+\cinl{F}.
+Since we are mainly interested in monads, we can go even further and
+use monadic containers as proposed by \citet{altenkirch2017monadic} and
+\citet{uustalu2017partiality}.
 However, we decided against using monadic containers directly, as
 they, as far as we know, cannot be implemented in a constructive way,
 but are an extension of \cinl{Ext} that are modelled using a type
