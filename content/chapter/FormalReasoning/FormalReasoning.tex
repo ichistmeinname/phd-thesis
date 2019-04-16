@@ -706,7 +706,8 @@ positivity requirement.
 We can achieve this goal by using a data type that represents all
 strictly positive types in a constructive manner.
 Fortunately, \cite{abbott2003categories} introduced the notion of
-containers to represent exactly all strictly positive types.
+containers to represent strictly positive types; their main insight is
+that all strictly positive types can be expressed using containers.
 A container is described as a product of shapes and a position function.
 The shape is a type \cinl{S} and the position function \cinl{P} is a type
 function that maps shapes to types.
@@ -1010,6 +1011,53 @@ Proof.
   destruct t; reflexivity.
 Qed.
 \end{minted}
+
+\paragraph{Other Containers and Limitations}
+
+We will later see that monads like tree and list, which are usually
+used when modelling non-determinism, can be represented using our
+approach as well.
+There also common monads from Haskell like writer or state that are
+used to model tracing or I/O-interactions with the user, that have
+corresponding effects that are interesting to reason about and
+possible to model using \cinl{Free} and the suitable container
+representation of the underlying effect.
+
+Since we use container to ensure Coq that we do not define a
+potentially non-strictly positive type, the class of strictly positive
+types is the natural limitation when using our approach.
+An example for a monad that we cannot represent with our approach is
+the continuation monad.
+If we recall the concrete instantiation that we used to understand the
+problem when defining a monadically lifted version of \cinl{List},
+this limitation should not come with a surprise.
+The continuation monad \cinl{Cont} was an exemplary instantiation of
+the type constructor variable \cinl{M}, such that \cinl{List} became
+non-strictly positive.
+The goal was to convince Coq that we won't use an instantiation like
+\cinl{Cont}, so it makes sense that we indeed cannot define a data
+type that is isomorphic to \cinl{Cont}. \todo{Is it?}
+The other thing that we can observe is that the other monads we looked
+at had at least two constructors, where one of them represents the
+pure value.
+With one representative for pure values as constructor, it was a
+rather simple task to figure out how to represent only the additional
+effect: we basically defined a data type with the remaining
+constructors.
+In case of \cinl{Cont}, there is not representative constructor for
+pure values --- there are even no constructors at all, because
+\cinl{Cont} is a function.\footnote{Strictly speaking, the definition
+  for the continuation monad in Haskell is based on a \hinl{newtype}
+  definition with exactly one constructor. This representation is due
+  to the fact that we can only define an instance of a type classes
+  for data types, not for type synonyms. Defining an instance of a type
+synonym is only allowed when enabling the language extension
+\hinl{TypeSynonymInstances}.}
+
+In the end, we have to keep in mind that our approach using
+\cinl{Free} as representative for a generic monadic parametrisation
+can only represent monad that correspond to strictly positive types.
+
 
 \subsection{Generic Properties and Their Proofs}
 
