@@ -762,9 +762,20 @@ Now we defined the free monad using the container extension instead of
 a generic functor \cinl{F}, that is, we are still generic: not
 over all possible type constructors but over all strictly positive
 types.
+With \cinl{Free} we are well-suited to define a lifted version of
+\cinl{List} as we wished to do at the beginning of this section.
+
+\begin{minted}{coq}
+Inductive List (Shape : Type) (Pos : Shape -> Type) A :=
+| nil : List Shape Pos A
+| cons : Free Shape Pos A -> Free Shape Pos (List Pos A) -> List Shape Pos A.
+\end{minted}
 
 \paragraph{Representing Partiality using Free Monads and Containers}
 
+In order to understand better how we can work with our lifted data
+types based on \cinl{Free}, we will start with a representation of
+partiality.
 Let us take a look at how we can represent \cinl{partial} using
 \cinl{Free}.
 As already mentioned, we use free monads by applying a functor
