@@ -256,11 +256,7 @@ Module General.
   
 End General.
   
-Module Free.
-
-Fail Inductive Free F A :=
-| pure   : A -> Free F A
-| impure : F (Free F A) -> Free F A.
+Module Container.
 
 Inductive Ext (Shape : Type) (Pos : Shape -> Type) A :=
 | ext : forall s, (Pos s -> A) -> Ext Pos A.
@@ -268,13 +264,54 @@ Inductive Ext (Shape : Type) (Pos : Shape -> Type) A :=
 Arguments Ext Shape Pos A : clear implicits.
 Arguments ext {_} {_} {_}.
 
+End Container.
+
+
+Module Free.
+
+Fail Inductive Free F A :=
+| pure   : A -> Free F A
+| impure : F (Free F A) -> Free F A.
+
+Import Container.
+
 Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
 | pure   : A -> Free Pos A
-| impure : Ext Shape Pos A -> Free Pos A.
+| impure : Ext Shape Pos (Free Pos A) -> Free Pos A.
 
 Arguments Free : clear implicits.
 
 Arguments pure {_} {_} {_}.
+
+Section bind.
+
+  Variable Shape : Type.
+  Variable Pos : Shape -> Type.
+
+  Section local.
+
+    Variable A B : Type.
+    Variable f : A -> Free Shape Pos B.
+
+    Fixpoint free_bind (fx : Free Shape Pos A) : Free Shape Pos B :=
+      match fx with
+      | pure x => f x
+      | impure (ext s pf) => impure (ext s (fun p => free_bind (pf p)))
+      end.
+
+  End local.
+
+End bind.
+
+Notation "fx >>= f" := (free_bind f fx) (at level 40, left associativity).
+
+End Free.
+
+Inductive Empty : Type := .
+
+Module Partiality.
+
+Import Container.
 
 Inductive One (A : Type) :=
 | one : One A.
@@ -282,7 +319,6 @@ Inductive One (A : Type) :=
 Arguments one {_}.
 
 Definition One__S := unit.
-Inductive Empty : Type := .
 Definition One__P (s : One__S) := Empty.
 
 Definition from_One A (o : One A) : Ext One__S One__P A :=
@@ -310,6 +346,7 @@ Proof.
 Qed.
 
 Import Partial.
+Import Free.
 
 Definition to_partial A (fx : Free One__S One__P A) : partial A :=
   match fx with
@@ -338,6 +375,12 @@ Proof.
   intros A p.
   destruct p; reflexivity.
 Qed.
+
+End Partiality.
+
+Module Totality.
+
+Import Container.
 
 Inductive Zero (A : Type) := .
 
@@ -370,6 +413,7 @@ Proof.
 Qed.
 
 Import Total.
+Import Free.
 
 Definition to_total A (fx : Free Zero__S Zero__P A) : total A :=
   match fx with
@@ -396,4 +440,55 @@ Proof.
   destruct t; reflexivity.
 Qed.
 
-End Free.
+End Totality.
+
+Section FreeList.
+
+Import Free.
+Import Container.
+
+Inductive List (Shape : Type) (Pos : Shape -> Type) A :=
+| nil : List Pos A
+| cons : Free Shape Pos A -> Free Shape Pos (List Pos A) -> List Pos A.
+
+Arguments List Shape Pos A : clear implicits.
+Arguments nil {_} {_} {_}.
+
+Section append.
+
+Variable S : Type.
+Variable P : S -> Type.
+
+Fail Fixpoint append' A (xs : List S P A) (fys : Free S P (List S P A)) :=
+  match xs with
+  | nil => fys
+  | cons fz fzs => pure (cons fz (match fzs with
+                                 | pure zs           => append' zs fys
+                                 | impure (ext s pf) => _ (* what to do here? *)
+                                 end))
+  end.
+
+Fixpoint free_bind A B (fx : Free S P A) (f : A -> Free S P B) : Free S P B :=
+  match fx with
+  | pure x            => f x
+  | impure (ext s pf) => impure (ext s (fun p => free_bind (pf p) f))
+  end.
+
+Fail Fixpoint append' A (xs : List S P A) (fys : Free S P (List S P A)) {struct xs}:=
+  match xs with
+  | nil => fys
+  | cons fz fzs => pure (cons fz (free_bind fzs (fun zs => append' zs fys)))
+  end.
+
+Fixpoint append' A (xs : List S P A) (fys : Free S P (List S P A)) :=
+  match xs with
+  | nil => fys
+  | cons fz fzs => pure (cons fz (fzs >>= fun zs => append' zs fys))
+  end.
+
+Definition append A (fxs fys : Free S P (List S P A)) : Free S P (List S P A) :=
+  fxs >>= fun xs => append' xs fys.
+
+End append.
+
+End FreeList.

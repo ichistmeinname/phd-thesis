@@ -82,6 +82,7 @@ That is, this section tries to explain the obstacles and their
 solutions to a beginner-friendly Coq audience.
 
 \subsection{Representation of Partial Programs}
+\label{subsec:partial}
 The first obstacle that arises when we model Haskell programs in Coq
 is the fact that Coq is a total language and most Haskell programs are
 not.
@@ -1063,8 +1064,118 @@ In the end, we have to keep in mind that our approach using
 \cinl{Free} as representative for a generic monadic parametrisation
 can only represent monad that correspond to strictly positive types.
 
+\subsection{Working with Free to Define Lifted Functions}
 
-\subsection{Generic Properties and Their Proofs}
+With the definition of \cinl{List} using \cinl{Free} to model generic
+effectful lists at hand, we can take a look at the definition of the
+function \cinl{append} again.
+Analogous to the definition of \cinl{append} at the end of
+\autoref{subsec:partial}, we need to split function into two parts:
+one part works on pure \cinl{List}s in case of the demanded argument
+while the second part handles \cinl{Free}-lifted arguments only.
+In order to compare the differences to our concrete representation
+using \cinl{partial}, recall the definition of \cinl{append} and
+\cinl{append'}, respectively.
+
+\begin{minted}{coq}
+Fixpoint appendP' (A : Type) (xs : List A) (oys : partial (List A)) : partial (List A) :=
+  match xs with
+  | nil         => oys
+  | cons oz ozs => Cons oz (match ozs with
+                            | undefined    => undefined
+                            | defined zs => appendP' zs oys
+                            end)
+  end.
+
+Definition appendP (A : Type) (oxs oys : partial (List A)) : partial (List A) :=
+  match oxs with
+  | undefined  => undefined
+  | defined xs => appendP' xs oys
+  end.
+\end{minted}
+
+For a better readiblity, we added the suffix \cinl{P} for this version
+of \cinl{append} that uses \cinl{partial}.
+Let us now try to transfer the general idea of \cinl{appendP'} to
+define a version using \cinl{Free}.
+In the following we assume --- for convenience reasons only --- that
+all functions are parametrised over variables \cinl{Shape} and
+\cinl{Pos} of suitable type.
+More particular, we will write types parametrised by these types, like
+\cinl{Free} or \cinl{List}, without the type parameters when they are
+polymorphic.
+
+\begin{minted}{coq}
+Fail Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
+  match xs with
+  | nil => fys
+  | cons fz fzs => pure (cons fz (match fzs with
+                                 | pure zs           => append' zs fys
+                                 | impure (ext s pf) => _ (* what to do here? *)
+                                 end))
+  end.
+\end{minted}
+
+A case distinction on the concrete constuctors of \cinl{partial} was
+quite simple, in the case of \cinl{Free} and its representation using
+\cinl{Ext}, however, the second constructor \cinl{impure} has
+recursive occurrences of values of type \cinl{Free}.
+That is, a case distinction like in the definition of \cinl{appendP'}
+needs to be defined as recursive function when using \cinl{Free}.
+
+Recall that the basic idea is to model monadically lifted data types,
+that is, \cinl{Free} is a representative for a monad.
+The case distinction we uusing in the definition of \cinl{appendP'} is
+the monadic \emph{bind} function (\cinl{(>>=)}) in disguise.
+Hence, we need to define bind for \cinl{Free} in order to transfer the
+above definition successfully.
+
+\begin{minted}{coq}
+Fixpoint free_bind A B (fx : Free A) (f : A -> Free B) : Free B :=
+  match fx with
+  | pure x            => f x
+  | impure (ext s pf) => impure (ext s (fun p => free_bind (pf p) f))
+  end.
+\end{minted}
+
+The definition of \cinl{free_bind} distinguishes between the two
+possible constructors \cinl{pure} and \cinl{impure}; in the former
+case we have a value \cinl{x} in place that \cinl{f} can be applied
+to.
+In the latter case we additionallymatch on the constructor \cinl{ext}
+and have variable bindings \cinl{s} and \cinl{pf} for the shape and
+position function to work with.
+Note that the position function applied to a position
+yields a \cinl{Free}-value again, that is, \cinl{pf} has type
+\cinl{Pos s -> Free A}.
+The clou now is that we just need to reconstruct the effect that we
+have seen, characterised by its shape \cinl{s}, and apply the function
+\cinl{f} recursively for all recursive occurences of the effect that
+we can access using the position function \cinl{pf}.
+
+With the definition of \cinl{free_bind} at hand, we can go ahead and
+start the second try to define \cinl{append'}: now we know that we need
+to use \cinl{free_bind} instead of an explicit case distinction.
+
+\begin{minted}{coq}
+Fail Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
+  match xs with
+  | nil => fys
+  | cons fz fzs => pure (cons fz (free_bind fzs (fun zs => append' zs fys)))
+  end.
+\end{minted}
+
+Unfortunately, the definition of \cinl{append'} is not accepted by
+Coq; Coq cannot guess the decreasing argument of the provided fixpoint
+function.
+More precisely, Coq gives the following error message when we
+provide the information that the list \cinl{xs} is supposed to be the
+decreasing argument.
+
+\begin{quote}
+\emph{Recursive call to append' has principal argument equal to "zs" instead of
+"fzs".}
+\end{quote}
 
 \section{Partiality as Effect to Model Haskell Programs}
 \subsection{Translation of Haskell Programs}
