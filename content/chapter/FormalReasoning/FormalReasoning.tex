@@ -754,8 +754,8 @@ strict positivity requirement.
 
 \begin{minted}{coq}
 Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
-| pure   : A -> Free Pos A
-| impure : Ext Pos A -> Free Pos A.
+| pure   : A -> Free Shape Pos A
+| impure : Ext Shape Pos (Free Shape Pos A) -> Free Shape Pos A.
 \end{minted}
 
 Now we defined the free monad using the container extension instead of
