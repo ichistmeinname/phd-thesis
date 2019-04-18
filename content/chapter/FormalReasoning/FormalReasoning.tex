@@ -1177,6 +1177,122 @@ decreasing argument.
 \end{quote}
 
 What is the problem now?
+
+\begin{excursus}[Definition of recursive, higher-order functions]
+
+Once again Coq is not content with the way we define our programs.
+In this case, the fault is not with \cinl{append}, but with the
+definition of \cinl{free_bind}.
+As a recursive, higher-order function that uses the same function as its
+functional argument for each recursive call, we need to convince Coq
+that the function indeed stays the same.
+That way, Coq comprehends that the fact if the overall function
+terminates does not depend on the function we pass as higher-order
+argument.
+That is, the problem is not specific to \cinl{free_bind} and our usage
+of \cinl{Free}, but a general problem for recursive, higher-order
+functions.
+Consider, for example, the definition of \cinl{map} for ordinary
+lists as well as a definition for rose trees.
+
+\begin{minted}{coq}
+Inductive List A :=
+| Nil  : List A
+| Cons : A -> List A -> List A.
+
+Fixpoint map A B (f : A -> B) (xs : List A) : List B :=
+ match xs with
+ | Nil       => Nil
+ | Cons x xs => Cons (f x) (map f xs)
+ end.
+
+Inductive Rose A :=
+| Leaf     : A -> Rose A
+| Branches : List (Rose A) -> Rose A.
+\end{minted}
+
+In order to now define a map-like function for \cinl{Rose} as well, we
+might be tempted to just reuse the \cinl{map} functions for lists to
+handle the \cinl{Branches}-constructor.
+
+\begin{minted}{coq}
+Fail Fixpoint mapRose A B (f : A -> B) (r : Rose A) : Rose B :=
+ match r with
+ | Leaf x      => Leaf (f x)
+ | Branches rs => Branches (map (mapRose f) rs)
+ end.
+\end{minted}
+
+However, Coq once again does not recognise that this definition of
+\cinl{mapRose} terminates.
+It arises the following error message.
+
+\begin{quote}
+\emph{Recursive call to mapRose has principal argument equal to "x" instead of "rs".}
+ \end{quote}
+
+Due to the usage of \cinl{map}, it is not clear for Coq's termination
+checker that the recursive call of \cinl{mapRose} will eventually
+terminate.
+Fortunately, there is a simple scheme to convince Coq that the
+function \cinl{map} is inductively recursive over its list argument
+and, more importantly, the supplied function does not determine the
+termination.
+That is, \cinl{map} terminates independent of its functional argument.
+Consider the following alternative definition of \cinl{map}.
+
+\begin{minted}{coq}
+Definition map A B (f : A -> B) (xs : List A) : List B :=
+ let fix map' xs :=
+     match xs with
+     | Nil       => Nil
+     | Cons x xs => Cons (f x) (map' xs)
+     end in
+ map' xs.
+\end{minted}
+
+Instead of declaring a recursive function on top-level using the
+keyword \cinl{Fixpoint}, we declare a local fixpoint only.
+In this case, the local recursive function \cinl{map'} has only one
+parameter, name the list argument, and reuses the function \cinl{f}
+that is passed to the top-level function \cinl{map}.
+Due to the explicit fixpoint definition that does not have the
+higher-order function as argument anymore, Coq's termination checker
+can realise that the termination of \cinl{map} does not depend on the
+function \cinl{f}.
+
+An alternative, but equivalent definition, uses section variables to
+introduce the type parameters and the higher-order argument.
+
+\begin{minted}{coq}
+Section map.
+
+ Variable A B : Type.
+ Variable f : A -> B.
+
+ Fixpoint map (xs : List A) : List B :=
+   match xs with
+   | Nil       => Nil
+   | Cons x xs => Cons (f x) (map xs)
+   end.
+
+End map.
+\end{minted}
+
+In fact, the code that Coq generates for the second version with
+section variables is exactly the first implementation given above.
+
+Whatever implementation version we chose, we can now use \cinl{map} to
+define \cinl{mapRose} and Coq accepts the definition as terminating.
+
+\begin{minted}{coq}
+Fixpoint mapRose A B (f : A -> B) (r : Rose A) : Rose B :=
+ match r with
+ | Leaf x      => Leaf (f x)
+ | Branches rs => Branches (map (mapRose f) rs)
+ end.
+\end{minted}
+\end{excursus}
 \section{Partiality as Effect to Model Haskell Programs}
 \subsection{Translation of Haskell Programs}
 \subsection{Generic Properties and Their Proofs}
