@@ -59,10 +59,11 @@
 %\usemintedstyle[haskell]{automn}
 \usemintedstyle[coq]{tango}
 
-\newenvironment{excursus}
+\newenvironment{excursus}[1]
 {\vspace{0.5cm}
 \hrule
-\vspace{0.3cm}}
+\vspace{0.3cm}
+\paragraph{Excursus: #1}}
 {\vspace{0.3cm}
 \hrule
 \vspace{0.5cm}}
