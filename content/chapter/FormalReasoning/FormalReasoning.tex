@@ -1165,8 +1165,8 @@ Fail Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
 \end{minted}
 
 Unfortunately, the definition of \cinl{append'} is not accepted by
-Coq; Coq cannot guess the decreasing argument of the provided fixpoint
-function.
+Coq, because it cannot guess the decreasing argument of the provided
+fixpoint function.
 More precisely, Coq gives the following error message when we
 provide the information that the list \cinl{xs} is supposed to be the
 decreasing argument.
@@ -1176,6 +1176,7 @@ decreasing argument.
 "fzs".}
 \end{quote}
 
+What is the problem now?
 \section{Partiality as Effect to Model Haskell Programs}
 \subsection{Translation of Haskell Programs}
 \subsection{Generic Properties and Their Proofs}
