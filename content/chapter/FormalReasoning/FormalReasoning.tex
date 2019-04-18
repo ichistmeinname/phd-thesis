@@ -1293,6 +1293,51 @@ Fixpoint mapRose A B (f : A -> B) (r : Rose A) : Rose B :=
  end.
 \end{minted}
 \end{excursus}
+
+Now let us go back to our initial problem with the definition of
+\cinl{append'} using the higher-order, polymorphic auxiliary function
+\cinl{free_bind}.
+The problem that arose for the definition of \cinl{append'} using
+\cinl{free_bind} is analogous to the definition of \cinl{roseMap}
+using \cinl{map}.
+That is, we need an alternative implementation of \cinl{free_bind}
+that follows the scheme above: the recursion of \cinl{Free} needs to
+be explicitly independent of the functional argument.
+We then end up with the following definition of \cinl{free_bind}.
+
+\begin{minted}{coq}
+Definition free_bind A B (f : A -> Free B) (fx : Free A) : Free B :=
+ let fix free_bind' fx :=
+     match fx with
+     | pure x            => f x
+     | impure (ext s pf) => impure (ext s (fun p => free_bind' (pf p)))
+     end
+ in free_bind' fx.
+\end{minted}
+
+In order to use \cinl{free_bind} as an operator \cinl{(>>=)} as known
+from Haskell, we additionally define the following notation.
+
+\begin{minted}{coq}
+Notation "fx >>= f" := (free_bind f fx) (at level 40, left associativity).
+\end{minted}
+
+Last but not least, we are finally equipped to define the auxiliary
+function \cinl{append'} as well as the final \cinl{append}-function
+that is the generically lifted version of the corresponding Haskell
+function.
+
+\begin{minted}{coq}
+Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
+  match xs with
+  | nil => fys
+  | cons fz fzs => pure (cons fz (fzs >>= fun zs => append' zs fys))
+  end.
+
+Definition append A (fxs fys : Free (List A)) : Free (List A) :=
+  fxs >>= fun xs => append' xs fys.
+\end{minted}
+
 \section{Partiality as Effect to Model Haskell Programs}
 \subsection{Translation of Haskell Programs}
 \subsection{Generic Properties and Their Proofs}
