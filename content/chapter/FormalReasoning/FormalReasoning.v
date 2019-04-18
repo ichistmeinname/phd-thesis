@@ -488,7 +488,70 @@ Fixpoint append' A (xs : List S P A) (fys : Free S P (List S P A)) :=
 
 Definition append A (fxs fys : Free S P (List S P A)) : Free S P (List S P A) :=
   fxs >>= fun xs => append' xs fys.
+Module rose_map.
+
+  Inductive List A :=
+  | Nil  : List A
+  | Cons : A -> List A -> List A.
+  Arguments Nil {_}.
+
+  Inductive Rose A :=
+  | Leaf     : A -> Rose A
+  | Branches : List (Rose A) -> Rose A.
+
+  Module wo_section.
+
+    Fixpoint map A B (f : A -> B) (xs : List A) : List B :=
+      match xs with
+      | Nil       => Nil
+      | Cons x xs => Cons (f x) (map f xs)
+      end.
+
+    Fail Fixpoint mapRose A B (f : A -> B) (r : Rose A) {struct r} : Rose B :=
+      match r with
+      | Leaf x      => Leaf (f x)
+  End wo_section.
+
+  Module w_section.
+
+    Section map.
+
+      Variable A B : Type.
+      Variable f : A -> B.
+    
+      Fixpoint map (xs : List A) : List B :=
+        match xs with
+        | Nil       => Nil
+        | Cons x xs => Cons (f x) (map xs)
+        end.
+
+    End map.
+
+    Fixpoint mapRose A B (f : A -> B) (r : Rose A) : Rose B :=
+      match r with
+      | Leaf x      => Leaf (f x)
+      | Branches rs => Branches (map (mapRose f) rs)
+      end.
+
+  End w_section.
+
+  Module local_fix.
+
+    Definition map A B (f : A -> B) (xs : List A) : List B :=
+      let fix map' xs :=
+          match xs with
+          | Nil       => Nil
+          | Cons x xs => Cons (f x) (map' xs)
+          end in
+      map' xs.
+
+    Fixpoint mapRose A B (f : A -> B) (r : Rose A) : Rose B :=
+      match r with
+      | Leaf x      => Leaf (f x)
+      | Branches rs => Branches (map (mapRose f) rs)
+      end.
 
 End append.
+  End local_fix.
 
-End FreeList.
+End FreeList.End rose_map.
