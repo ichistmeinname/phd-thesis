@@ -56,7 +56,7 @@
 \setlength{\parindent}{1em}
 \setlength{\mathindent}{0.15cm}
 
-%\usemintedstyle[haskell]{automn}
+\usemintedstyle[haskell]{automn}
 \usemintedstyle[coq]{tango}
 
 \newenvironment{excursus}[1]
