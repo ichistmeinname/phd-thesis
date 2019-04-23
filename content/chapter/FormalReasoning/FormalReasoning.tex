@@ -892,6 +892,7 @@ Qed.
 \end{minted}
 
 \paragraph{Representing Totality using Free Monads and Containers}
+\label{par:totality_container}
 In order to see a second effect, we find some inspiration by
 \citet{abel2005verifying} who are interested in two effects:
 partiality and totality.
@@ -1340,9 +1341,121 @@ Definition append A (fxs fys : Free (List A)) : Free (List A) :=
 \end{minted}
 
 \section{Partiality as Effect to Model Haskell Programs}
-\subsection{Translation of Haskell Programs}
-\subsection{Generic Properties and Their Proofs}
-\subsection{Case Study on List-Related Functions}
+
+While we discussed the overall infrastructure and necessary
+preliminaries for a general framework to model non-strict effectful
+programs, we will focus on two effects occurring in Haskel: totality
+and partiality.
+Of course, totality is, strictly speaking, not an effect, but the
+absense of any effect, as we have already seen in the previous
+section.
+Nevertheless, in this section both instantiations are of interest to
+motivate our effect-generic reasoning.
+That is, we follow the idea of \citet{abel2005verifying} and prove
+general propositions about Haskell functions in three steps: first, we
+show that the proposition holds in the total setting and then show that it
+also holds in the partial setting.
+On top of these both proofs, the last step is to make the case for our
+generic approach and show our framework allows to prove properties
+once and for all for a whole class of effects.
+
+\subsection{Three Proofs for the Associativity of Append}
+
+Since it took as a whole section to define the function \cinl{append}
+for an effect-generic \cinl{List} data types, it seems reasonable to
+first prove a property for that function.
+Thus, in this subsection we will focus on the associativity of append
+and prove this proposition in the total, partial and generic setting.
+We will postpone technical details to the end of this subsection.
+Thus, we explain the details of the proof from a more abstract
+perspective rather than diving deep into the technical details of the
+used tactics.
+
+\paragraph{Totality}
+In order to refresh the memory, the definition of the
+container to represent total programs shown in
+\autoref{par:totality_container} looks as follows.
+
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition Zero!$_\text{S}$! := Empty.
+Definition Zero!$_\text{P}$! (s : Zero!$_\text{S}$!) := Empty.
+\end{minted}
+
+That is, the container representing totality has neither a position
+nor a shape, thus, programs modeled as \cinl{Free Zero__S Zero__P} do
+not have any \cinl{impure} values by construction.
+Whenever we encounter an \cinl{impure}-constructor, we know that the
+accompanying shape \cinl{s : Zero__S} cannot exist.
+Let us now take a look at the associativity of append in the total
+setting and see how we use this observation about the corresponding
+container when proving a proposition.
+
+\begin{minted}{coq}
+Lemma append_assoc_total :
+ forall (A : Type) (fxs fys fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)),
+   append fxs (append fys fzs) = append (append fxs fys) fzs.
+Proof.
+ intros A fxs fys fzs.
+ destruct fxs as [ xs | [ s pf ] ]; simpl.
+ (* fxs = pure xs *)
+\end{minted}
+
+In order to evaluate \cinl{append}, we make a case distinction on the
+first list argument \cinl{fxs}.
+In case of a pure value, we have the following goal and assumptions.
+
+\begin{minted}{coq}
+  A : Type
+  xs : List Zero__S Zero__P A
+  fys, fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)
+  ============================
+  append' xs (append fys fzs) = append (append' xs fys) fzs
+\end{minted}
+
+Now we can proceed as if we were working with ordinary list: we need
+to do induction on the \cinl{List} argument \cinl{xs}.
+
+\begin{minted}{coq}
+ - induction xs as [ | fx fxs IH ]; simpl.
+   (* xs = nil *)
+   + reflexivity.
+   (* xs = cons fx fxs; induction hypothesis IH *)
+\end{minted}
+ 
+We then need to prove the proposition for \cinl{nil} and \cinl{cons}.
+The former is trivial as both sides of the terms are already equal.
+For the latter case, the goal looks as follows.
+
+\begin{minted}{coq}
+  A : Type
+  fx : Free Zero__S Zero__P A
+  fxs, fys, fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)
+  IH : ForFree (fun xs => append' xs (append fys fzs)
+                        = append (append' xs fys) fzs) fxs
+  ============================
+  Cons fx (fxs >>= (fun zs => append' zs (append fys fzs)))) =
+  Cons fx (fxs >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)))
+\end{minted}
+
+We proceed by stripping away the \cinl{Cons}-constructor
+
+\begin{minted}{coq}
+   + do 2 f_equal.
+     destruct IH; simpl.
+     * rewrite H. reflexivity.
+     * destruct s.
+ - destruct s.
+Qed.
+\end{minted}
+
+
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition One!$_\text{S}$! := unit.
+Definition One!$_\text{P}$! (s : One!$_\text{S}$!) := Empty.
+\end{minted}
+
+
+\subsection{Properties and Proofs of List-Related Functions}
 
 \section{First Ideas to Model Curry Programs}
 \subsection{Non-Determinism as Effect}

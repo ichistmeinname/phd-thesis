@@ -1,7 +1,7 @@
 Set Implicit Arguments.
 
 Require Import FunctionalExtensionality.
-
+Require Import Equality.
 (* Require Import List. *)
 
 (* Fail Definition exampleList (A : Type) : list A := cons (head (nil : list A)) nil. *)
@@ -19,7 +19,7 @@ Module Option.
   Definition Cons (A : Type) (ox : option A) (oxs : option (List A))
     : option (List A) :=
     Some (cons ox oxs).
-  
+
   Definition head (A : Type) (oxs : option (List A)) : option A :=
     match oxs with
     | None    => None
@@ -29,7 +29,8 @@ Module Option.
                 end
     end.
   
-  Fail Fixpoint append (A : Type) (oxs oys : option (List A)) {struct oxs} : option (List A) :=
+  Fail Fixpoint append (A : Type) (oxs oys : option (List A)) {struct oxs}
+    : option (List A) :=
     match oxs with
     | None    => None
     | Some xs => match xs with
@@ -38,7 +39,8 @@ Module Option.
                 end
     end.
   
-  Fail Fixpoint append (A : Type) (oxs oys : option (List A)) {struct oxs} : option (List A) :=
+  Fail Fixpoint append (A : Type) (oxs oys : option (List A)) {struct oxs}
+    : option (List A) :=
     match oxs with
     | None    => None
     | Some xs =>
@@ -50,7 +52,8 @@ Module Option.
       in append' xs oys
     end.
   
-  Definition append_ (A : Type) (oxs oys : option (List A)) : option (List A) :=
+  Definition append_ (A : Type) (oxs oys : option (List A))
+    : option (List A) :=
     match oxs with
     | None    => None
     | Some xs =>
@@ -68,7 +71,8 @@ Module Option.
   
   
   
-  Fixpoint append' (A : Type) (xs : List A) (oys : option (List A)) : option (List A) :=
+  Fixpoint append' (A : Type) (xs : List A) (oys : option (List A))
+    : option (List A) :=
     match xs with
     | nil         => oys
     | cons oz ozs => Cons oz (match ozs with
@@ -77,7 +81,8 @@ Module Option.
                               end)
     end.
   
-  Definition append (A : Type) (oxs oys : option (List A)) : option (List A) :=
+  Definition append (A : Type) (oxs oys : option (List A))
+    : option (List A) :=
     match oxs with
     | None    => None
     | Some xs => append' xs oys
@@ -114,7 +119,8 @@ Module Partial.
                    end
     end.
 
-  Fail Fixpoint append (A : Type) (oxs oys : partial (List A)) {struct oxs} : partial (List A) :=
+  Fail Fixpoint append (A : Type) (oxs oys : partial (List A)) {struct oxs}
+    : partial (List A) :=
     match oxs with
     | undefined  => undefined
     | defined xs => match xs with
@@ -123,7 +129,8 @@ Module Partial.
                    end
     end.
 
-  Fail Fixpoint append (A : Type) (oxs oys : partial (List A)) {struct oxs} : partial (List A) :=
+  Fail Fixpoint append (A : Type) (oxs oys : partial (List A)) {struct oxs}
+    : partial (List A) :=
     match oxs with
     | undefined  => undefined
     | defined xs =>
@@ -135,7 +142,8 @@ Module Partial.
       in append' xs oys
     end.
 
-  Definition append_ (A : Type) (oxs oys : partial (List A)) : partial (List A) :=
+  Definition append_ (A : Type) (oxs oys : partial (List A))
+    : partial (List A) :=
     match oxs with
     | undefined  => undefined
     | defined xs =>
@@ -150,7 +158,8 @@ Module Partial.
       in append' xs oys
     end.
 
-  Fixpoint append' (A : Type) (xs : List A) (oys : partial (List A)) : partial (List A) :=
+  Fixpoint append' (A : Type) (xs : List A) (oys : partial (List A))
+    : partial (List A) :=
     match xs with
     | nil         => oys
     | cons oz ozs => Cons oz (match ozs with
@@ -159,7 +168,8 @@ Module Partial.
                              end)
     end.
 
-  Definition append (A : Type) (oxs oys : partial (List A)) : partial (List A) :=
+  Definition append (A : Type) (oxs oys : partial (List A))
+    : partial (List A) :=
     match oxs with
     | undefined  => undefined
     | defined xs => append' xs oys
@@ -281,15 +291,72 @@ Module Free.
   | pure   : A -> Free F A
   | impure : F (Free F A) -> Free F A.
 
-  Import Container.
+  Export Container.
 
+  Unset Elimination Schemes.
   Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
   | pure   : A -> Free Pos A
   | impure : Ext Shape Pos (Free Pos A) -> Free Pos A.
+  Set Elimination Schemes.
 
   Arguments Free : clear implicits.
-
   Arguments pure {_} {_} {_}.
+
+  Section Free_ind.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+    Variable A : Type.
+    Variable P : Free Sh Ps A -> Prop.
+
+    Hypothesis pureP   : forall x, P (pure x).
+    Hypothesis impureP : forall s pf,
+        (forall p, P (pf p)) -> P (impure (ext s pf)).
+
+    Fixpoint Free_ind (fx : Free Sh Ps A) : P fx :=
+      match fx with
+      | pure x            => pureP x
+      | impure (ext s pf) => impureP pf (fun p => Free_ind (pf p))
+      end.
+
+  End Free_ind.
+
+  Section ForFree.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+    Variable A : Type.
+    Variable P : A -> Prop.
+
+    Inductive ForFree : Free Sh Ps A -> Prop :=
+    | forPure   : forall x   , P x -> ForFree (pure x)
+    | forImpure : forall s pf, (forall p, ForFree (pf p)) -> ForFree (impure (ext s pf)).
+
+    Inductive InFree (x : A) : Free Sh Ps A -> Prop :=
+    | inPure   : InFree x (pure x)
+    | inImpure : forall s pf, (exists p, InFree x (pf p)) -> InFree x (impure (ext s pf)).
+
+    Lemma ForFree_forall :
+      forall (fx : Free Sh Ps A),
+        ForFree fx <-> (forall (x : A), InFree x fx -> P x).
+    Proof.
+      intros fx.
+      split.
+      - intros HFree x HIn.
+        induction HFree; dependent destruction HIn.
+        + apply H.
+        + destruct H1 as [p HIn].
+          specialize (H0 p).
+          apply H0.
+          apply HIn.
+      - intros HxIn.
+        induction fx as [ x | s pf]; simpl.
+        + apply forPure. apply HxIn. apply inPure.
+        + apply forImpure. intros p. apply H. intros x Hin.
+          apply HxIn. apply inImpure. exists p. apply Hin.
+    Qed.
+
+  End ForFree.
 
   Module withSection.
 
@@ -337,6 +404,24 @@ Module Free.
   Import withLocal.
   
   Notation "fx >>= f" := (free_bind f fx) (at level 40, left associativity).
+
+  Section bind_lemmas.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+
+    Lemma ForFree_bind :
+      forall A B (fx : Free Sh Ps A) (f: A -> Free Sh Ps B) (g: A -> Free Sh Ps B),
+        ForFree (fun x => f x = g x) fx -> fx >>= f = fx >>= g.
+    Proof.
+      intros A B fx f g HFor.
+      induction HFor; simpl.
+      - apply H.
+      - repeat apply f_equal.
+        extensionality x. apply H0.
+    Qed.
+
+  End bind_lemmas.
 
 End Free.
 
@@ -475,17 +560,43 @@ Module Totality.
 
 End Totality.
 
-Section FreeList.
+Module FreeList.
 
   Import Free.
-  Import Container.
 
+  Unset Elimination Schemes.
   Inductive List (Shape : Type) (Pos : Shape -> Type) A :=
   | nil : List Pos A
   | cons : Free Shape Pos A -> Free Shape Pos (List Pos A) -> List Pos A.
+  Set Elimination Schemes.
 
   Arguments List Shape Pos A : clear implicits.
   Arguments nil {_} {_} {_}.
+
+  Notation Nil := (pure nil).
+  Notation Cons fx fxs := (pure (cons fx fxs)).
+
+  Section List_ind.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+    Variable A : Type.
+    Variable P : List Sh Ps A -> Prop.
+
+    Hypothesis nilP : P nil.
+    Hypothesis consP : forall fx fxs, ForFree P fxs -> P (cons fx fxs).
+
+    Fixpoint List_ind (xs : List Sh Ps A) : P xs :=
+      match xs with
+      | nil         => nilP
+      | cons fy fys => consP fy (let fix free_ind (fxs : Free Sh Ps (List Sh Ps A)) : ForFree P fxs :=
+                                    match fxs with
+                                    | pure xs => forPure _ P xs (List_ind xs)
+                                    | impure (ext s pf) => forImpure s _ (fun p => free_ind (pf p))
+                                    end in free_ind fys)
+      end.
+
+  End List_ind.
 
   Section append.
 
@@ -495,10 +606,10 @@ Section FreeList.
     Fail Fixpoint append' A (xs : List S P A) (fys : Free S P (List S P A)) :=
       match xs with
       | nil => fys
-      | cons fz fzs => pure (cons fz (match fzs with
-                                     | pure zs           => append' zs fys
-                                     | impure (ext s pf) => _ (* what to do here? *)
-                                     end))
+      | cons fz fzs => Cons fz (match fzs with
+                               | pure zs           => append' zs fys
+                               | impure (ext s pf) => _ (* what to do here? *)
+                               end)
       end.
 
     Fixpoint free_bind A B (fx : Free S P A) (f : A -> Free S P B) : Free S P B :=
@@ -510,13 +621,13 @@ Section FreeList.
     Fail Fixpoint append' A (xs : List S P A) (fys : Free S P (List S P A)) {struct xs}:=
       match xs with
       | nil => fys
-      | cons fz fzs => pure (cons fz (free_bind fzs (fun zs => append' zs fys)))
+      | cons fz fzs => Cons fz (free_bind fzs (fun zs => append' zs fys))
       end.
 
     Fixpoint append' A (xs : List S P A) (fys : Free S P (List S P A)) :=
       match xs with
       | nil => fys
-      | cons fz fzs => pure (cons fz (fzs >>= fun zs => append' zs fys))
+      | cons fz fzs => Cons fz (fzs >>= fun zs => append' zs fys)
       end.
 
     Definition append A (fxs fys : Free S P (List S P A)) : Free S P (List S P A) :=
@@ -595,3 +706,127 @@ Module rose_map.
   End local_fix.
 
 End rose_map.
+
+Module LtacGoodies.
+
+  Import Free.
+
+  Ltac simplifyInductionHypothesis ident1 ident2 :=
+    match goal with
+    | [ ident1 : ForFree ?P (pure _) |- _ ] => inversion ident1 as [ Heq ident2 |]; clear ident1; subst; simpl
+    | [ ident1 : ForFree ?P (impure (ext ?s ?pf)) |- _ ] =>
+      dependent destruction ident1;
+      match goal with
+      | [ H1 : forall p : ?T, ForFree ?P (?pf p), H0 : forall p, ForFree ?P (?pf p) -> _ = _,
+            p : ?T |- _ ] =>
+        specialize (H0 p (H1 p)) as ident2; clear H1; clear H0; simpl
+      end
+    end.
+
+  Tactic Notation "simplify" ident(H) "as" ident(IH) := (simplifyInductionHypothesis H IH).
+
+  Ltac rewriteBindInductionHypothesis ident1 :=
+    match goal with
+    | [ ident1 : ForFree ?P ?fx |- _ ] => apply ForFree_bind in ident1
+    end.
+
+  Tactic Notation "simplBind" ident(H) := (rewriteBindInductionHypothesis H).
+
+  Ltac autoInductionHypothesis :=
+    match goal with
+    | [ H : ForFree ?P (impure (ext ?s ?pf)) |- ?h (ext ?s (fun p1 => ?f)) = ?h (ext ?s (fun p2 => ?g)) ] =>
+      repeat f_equal; let x := fresh in extensionality x; simplify H as Hnew; assumption
+      (*   try apply newH) *)
+    | [ H : ForFree ?P (pure ?x) |- _ ] =>
+      let newH := fresh in simplify H as newH; rename newH into IH
+    | [ H : forall p1 : ?T, ?f = ?g |- ?h (ext ?s (fun p1 : ?T => ?f)) = ?h (ext ?s (fun p1 : ?T => ?g)) ] =>
+      repeat f_equal; let x := fresh in extensionality x; apply H
+    end.
+
+  Tactic Notation "autoIH" := (autoInductionHypothesis).
+
+  Tactic Notation "inductFree" ident(fx) "as" simple_intropattern(pat) := (induction fx as pat; simpl; try autoIH).
+
+
+End LtacGoodies.
+  
+
+Module append_assoc.
+
+  Import Free.
+  Import FreeList.
+
+  Import Totality.
+  Import Partiality.
+
+  Import LtacGoodies.
+
+  (* Require Import Setoid. *)
+
+  Lemma append_assoc_total :
+    forall (A : Type) (fxs fys fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)),
+      append fxs (append fys fzs) = append (append fxs fys) fzs.
+  Proof.
+    intros A fxs fys fzs.
+    destruct fxs as [ xs | [ s pf ] ]; simpl.
+    (* fxs = pure xs *)
+    - induction xs as [ | fx fxs IH ]; simpl.
+      (* xs = nil *)
+      + reflexivity.
+      (* xs = cons fx fxs; induction hypothesis IH *)
+      + do 2 f_equal.
+        destruct IH; simpl.
+        * rewrite H. reflexivity.
+        * destruct s.
+    (* fxs = impure (ext s pf) *)
+    - destruct s.
+  Qed.
+
+  Lemma append_assoc_partial :
+    forall (A : Type) (fxs fys fzs : Free One__S One__P (List One__S One__P A)),
+      append fxs (append fys fzs) = append (append fxs fys) fzs.
+  Proof.
+    intros A fxs fys fzs.
+    destruct fxs as [xs | [] pf]; simpl.
+    - induction xs as [ | fx fxs IH ]; simpl.
+      + reflexivity.
+      + do 2 f_equal.
+        destruct IH; simpl.
+        * rewrite H. reflexivity.
+        * do 2 f_equal. extensionality p.
+          destruct p.
+    - do 2 f_equal. extensionality p.
+      destruct p.
+  Qed.
+
+  Lemma append_assoc_generic :
+    forall (Sh : Type) (Ps : Sh -> Type) (A : Type) (fxs fys fzs : Free Sh Ps (List Sh Ps A)),
+      append fxs (append fys fzs) = append (append fxs fys) fzs.
+  Proof.
+    intros Sh Ps A fxs fys fzs.
+    induction fxs as [xs | s pf]; simpl.
+    - induction xs as [ | fx fxs IH ]; simpl.
+      + reflexivity.
+      + do 2 f_equal.
+        induction IH as [ | s pf _ IH]; simpl.
+        * rewrite H. reflexivity.
+        * do 2 f_equal. extensionality p.
+          rewrite IH. reflexivity.
+    - do 2 f_equal. extensionality p.
+      apply H.
+  Qed.
+
+  Lemma append_assoc_generic_simplified :
+    forall (Sh : Type) (Ps : Sh -> Type) (A : Type) (fxs fys fzs : Free Sh Ps (List Sh Ps A)),
+      append fxs (append fys fzs) = append (append fxs fys) fzs.
+  Proof.
+    intros Sh Ps A fxs fys fzs.
+    inductFree fxs as [xs |].
+    induction xs as [ | fx fxs IH ]; simpl.
+    - reflexivity.
+    - do 2 f_equal.
+      inductFree fxs as [xs |].
+      rewrite IH. reflexivity.
+  Qed.
+  
+End append_assoc.
