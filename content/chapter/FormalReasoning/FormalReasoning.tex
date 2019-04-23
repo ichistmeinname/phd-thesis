@@ -325,7 +325,8 @@ That is, the following code shows how the above can be split into two
 top-level functions.
 
 \begin{minted}{coq}
-Fixpoint append' (A : Type) (xs : List A) (oys : partial (List A)) : partial (List A) :=
+Fixpoint append' (A : Type) (xs : List A) (oys : partial (List A))
+  : partial (List A) :=
   match xs with
   | nil         => oys
   | cons oz ozs => Cons oz (match ozs with
@@ -334,11 +335,12 @@ Fixpoint append' (A : Type) (xs : List A) (oys : partial (List A)) : partial (Li
                             end)
   end.
 
-Definition append (A : Type) (oxs oys : partial (List A)) : partial (List A) :=
+Definition append (A : Type) (oxs oys : partial (List A))
+  : partial (List A) :=
   match oxs with
   | undefined  => undefined
   | defined xs => append' xs oys
-  end
+  end.
 \end{minted}
 
 \subsection{Generalisation Attempt}
@@ -1075,7 +1077,8 @@ using \cinl{partial}, recall the definition of \cinl{append} and
 \cinl{append'}, respectively.
 
 \begin{minted}{coq}
-Fixpoint appendP' (A : Type) (xs : List A) (oys : partial (List A)) : partial (List A) :=
+Fixpoint appendP' (A : Type) (xs : List A) (oys : partial (List A))
+  : partial (List A) :=
   match xs with
   | nil         => oys
   | cons oz ozs => Cons oz (match ozs with
