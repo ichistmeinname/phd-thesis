@@ -775,7 +775,7 @@ Module append_assoc.
       + reflexivity.
       (* xs = cons fx fxs; induction hypothesis IH *)
       + do 2 f_equal.
-        destruct IH; simpl.
+        destruct IH as [ xs H | s pf ]; simpl.
         * rewrite H. reflexivity.
         * contradiction.
     (* fxs = impure (ext s pf) *)
@@ -787,11 +787,11 @@ Module append_assoc.
       append fxs (append fys fzs) = append (append fxs fys) fzs.
   Proof.
     intros A fxs fys fzs.
-    destruct fxs as [xs | [] pf]; simpl.
+    destruct fxs as [ xs | [ [] pf ] ]; simpl.
     - induction xs as [ | fx fxs IH ]; simpl.
       + reflexivity.
       + do 2 f_equal.
-        destruct IH; simpl.
+        destruct IH as [ xs H | [] pf ]; simpl.
         * rewrite H. reflexivity.
         * do 2 f_equal. extensionality p.
           contradiction.
@@ -800,20 +800,21 @@ Module append_assoc.
   Qed.
 
   Lemma append_assoc_generic :
-    forall (Sh : Type) (Ps : Sh -> Type) (A : Type) (fxs fys fzs : Free Sh Ps (List Sh Ps A)),
+    forall (Sh : Type) (Ps : Sh -> Type) (A : Type)
+      (fxs fys fzs : Free Sh Ps (List Sh Ps A)),
       append fxs (append fys fzs) = append (append fxs fys) fzs.
   Proof.
     intros Sh Ps A fxs fys fzs.
-    induction fxs as [xs | s pf]; simpl.
-    - induction xs as [ | fx fxs IH ]; simpl.
-      + reflexivity.
-      + do 2 f_equal.
-        induction IH as [ | s pf _ IH]; simpl.
-        * rewrite H. reflexivity.
-        * do 2 f_equal. extensionality p.
-          rewrite IH. reflexivity.
-    - do 2 f_equal. extensionality p.
-      apply H.
+    induction fxs as [ xs | s pf IH ]; simpl.
+    - (* fxs = pure xs *) induction xs as [ | fx fxs IH ]; simpl.
+      + (* xs = nil *) reflexivity.
+      + (* xs = cons fx fxs *) do 2 f_equal.
+        induction IH as [ xs H | s pf _ IH' ]; simpl.
+        * (* fxs = pure xs *) rewrite H. reflexivity.
+        * (* fxs = impure (ext s pf) *) do 2 f_equal. extensionality p.
+          apply IH'.
+    - (* fxs = impure (ext s pf) *) do 2 f_equal. extensionality p.
+      apply IH.
   Qed.
 
   Lemma append_assoc_generic_simplified :
