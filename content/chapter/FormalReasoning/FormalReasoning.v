@@ -777,9 +777,9 @@ Module append_assoc.
       + do 2 f_equal.
         destruct IH; simpl.
         * rewrite H. reflexivity.
-        * destruct s.
+        * contradiction.
     (* fxs = impure (ext s pf) *)
-    - destruct s.
+    - contradiction.
   Qed.
 
   Lemma append_assoc_partial :
@@ -794,9 +794,9 @@ Module append_assoc.
         destruct IH; simpl.
         * rewrite H. reflexivity.
         * do 2 f_equal. extensionality p.
-          destruct p.
+          contradiction.
     - do 2 f_equal. extensionality p.
-      destruct p.
+      contradiction.
   Qed.
 
   Lemma append_assoc_generic :

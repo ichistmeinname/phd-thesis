@@ -1366,7 +1366,10 @@ for an effect-generic \cinl{List} data types, it seems reasonable to
 first prove a property for that function.
 Thus, in this subsection we will focus on the associativity of append
 and prove this proposition in the total, partial and generic setting.
-We will postpone technical details to the end of this subsection.
+Since we encounter proofs for lifted data types and functions for the
+first time, we will present the proofs step-by-step.
+We will, however, postpone technical details to the end of this
+subsection.
 Thus, we explain the details of the proof from a more abstract
 perspective rather than diving deep into the technical details of the
 used tactics.
@@ -1419,7 +1422,6 @@ to do induction on the \cinl{List} argument \cinl{xs}.
  - induction xs as [ | fx fxs IH ]; simpl.
    (* xs = nil *)
    + reflexivity.
-   (* xs = cons fx fxs; induction hypothesis IH *)
 \end{minted}
  
 We then need to prove the proposition for \cinl{nil} and \cinl{cons}.
@@ -1437,16 +1439,89 @@ For the latter case, the goal looks as follows.
   Cons fx (fxs >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)))
 \end{minted}
 
-We proceed by stripping away the \cinl{Cons}-constructor
+We proceed by stripping away the \cinl{Cons}-constructor and take
+another look at \cinl{fxs} by destructing the induction hypothesis
+\cinl{IH}, which produces to cases: one for \cinl{pure} and one for
+\cinl{impure}.
 
 \begin{minted}{coq}
+   (* xs = cons fx fxs; induction hypothesis IH *)
    + do 2 f_equal.
      destruct IH; simpl.
      * rewrite H. reflexivity.
-     * destruct s.
- - destruct s.
+     * contradiction.
+\end{minted}
+
+In the former case, the induction hypothesis brings our current goal
+in the right form such that we can finish the subproof easily using
+\cinl{reflexivity}.
+For the latter case we only need to focus on one of the assumptions,
+namely, \cinl{s : Zero__S}.
+
+\begin{minted}{coq}
+  ...
+  s : Zero__S
+  ...
+  ============================
+  ...
+\end{minted}
+
+Since there cannot exist any value of type \cinl{Zero__S}, the subgoal
+is trivially true as one of the assumptions is a contradiction.
+There are several to actually finish the proof, here we use
+\cinl{contradiction}, we could also use \cinl{destruct s} in order to
+force Coq to produce subgoals for all constructors.
+As no constructors exist, there are no more subgoals and we have
+successfully proven the current goal.
+
+The same reasoning applies for the last open goal.
+We started with a case distinction on the original first list
+arguments \cinl{fxs} and are now in the \cinl{impure}-case.
+
+\begin{minted}{coq}
+  A : Type
+  s : Zero__S
+  pf : Zero__P s -> Free Zero__S Zero__P (List Zero__S Zero__P A)
+  fys, fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)
+  ============================
+  impure (ext s (fun p : Zero__P s => append (pf p) (append fys fzs))) =
+  impure (ext s (fun p : Zero__P s => append (append (pf p) fys) fzs))
+\end{minted}
+
+The assumption \cinl{s : Zero__S} is once again a bogus assumptions,
+so we clear the last remaining goal by using \cinl{contradiction} again.
+
+\begin{minted}{coq}
+  (* fxs = impure (ext s pf) *)
+  - contradiction.
 Qed.
 \end{minted}
+
+Now that we have successfully proven this statement, we will take a
+second look at the complete proof script, without the additional
+remarks and assumptions.
+We improved the scripts a little bit and moved the
+\cinl{contradiction} tactic directly after destructing the
+\cinl{Free}-values, to finish the second subgoal immediately.
+
+\begin{minted}{coq}
+Lemma append_assoc_total :
+ forall (A : Type) (fxs fys fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)),
+   append fxs (append fys fzs) = append (append fxs fys) fzs.
+Proof.
+ intros A fxs fys fzs.
+ destruct fxs as [ xs | [ s pf ] ]; try contradiction; simpl.
+ - (* fxs = pure xs *) induction xs as [ | fx fxs IH ]; simpl.
+   + (* xs = nil *) reflexivity.
+   + (* xs = cons fx fxs; induction hypothesis IH *)
+     do 2 f_equal. destruct IH; try contradiction; simpl;
+     * (* fxs = pure xs *) rewrite H. reflexivity.
+Qed.
+\end{minted}
+
+The main difference between the above proof and a proof for
+associativity of the append function ordinary lists is the unboxing of
+the additional \cinl{Free}-layer of the list argument.
 
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
