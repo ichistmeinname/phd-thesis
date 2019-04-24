@@ -1695,6 +1695,36 @@ This last subgoal then finishes the proof.
 Qed.
 \end{minted}
 
+\paragraph{The Generic Proof Owns them All}
+
+Now comes the best part.
+The generic proof is applicable for the concrete proofs in the total
+and partial setting as well.
+That is, instead of proving the proposition for all concrete effects
+again and again, as necessary in the approach introduced by
+\cite{abel2005verifying}, we prove the proposition once and for all.
+
+Of course, if we want to prove a property in a concrete setting, we
+can still reuse the generic propositions as the following alternative
+proofs for the concrete settings of totality and partiality
+illustrate.
+
+\begin{minted}{coq}
+Lemma append_assoc_total' :
+ forall (A : Type) (fxs fys fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)),
+   append fxs (append fys fzs) = append (append fxs fys) fzs.
+Proof.
+ apply append_assoc_generic.
+Qed.
+
+Lemma append_assoc_partial' :
+ forall (A : Type) (fxs fys fzs : Free One__S One__P (List One__S One__P A)),
+   append fxs (append fys fzs) = append (append fxs fys) fzs.
+Proof.
+ apply append_assoc_generic.
+Qed.
+\end{minted}
+
 \subsection{Properties and Proofs of List-Related Functions}
 
 \section{First Ideas to Model Curry Programs}

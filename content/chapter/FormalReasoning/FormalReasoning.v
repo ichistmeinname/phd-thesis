@@ -817,6 +817,20 @@ Module append_assoc.
       apply IH.
   Qed.
 
+  Lemma append_assoc_total' :
+    forall (A : Type) (fxs fys fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)),
+      append fxs (append fys fzs) = append (append fxs fys) fzs.
+  Proof.
+    apply append_assoc_generic.
+  Qed.
+
+  Lemma append_assoc_partial' :
+    forall (A : Type) (fxs fys fzs : Free One__S One__P (List One__S One__P A)),
+      append fxs (append fys fzs) = append (append fxs fys) fzs.
+  Proof.
+    apply append_assoc_generic.
+  Qed.
+
   Lemma append_assoc_generic_simplified :
     forall (Sh : Type) (Ps : Sh -> Type) (A : Type) (fxs fys fzs : Free Sh Ps (List Sh Ps A)),
       append fxs (append fys fzs) = append (append fxs fys) fzs.
