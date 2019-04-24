@@ -772,6 +772,7 @@ Inductive List (Shape : Type) (Pos : Shape -> Type) A :=
 \end{minted}
 
 \paragraph{Representing Partiality using Free Monads and Containers}
+\label{par:partiality_container}
 
 In order to understand better how we can work with our lifted data
 types based on \cinl{Free}, we will start with a representation of
@@ -1523,12 +1524,91 @@ The main difference between the above proof and a proof for
 associativity of the append function ordinary lists is the unboxing of
 the additional \cinl{Free}-layer of the list argument.
 
+\paragraph{Partiality}
+As next step, we consider an actual effect: partiality.
+Again, we recall the definition of the container to represent partiality
+when using \cinl{Free} as introduced in
+\autoref{par:partial_container}.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition One!$_\text{S}$! := unit.
 Definition One!$_\text{P}$! (s : One!$_\text{S}$!) := Empty.
 \end{minted}
 
+This time, the corresponding container has one possible shape, but no
+positions.
+The additional effect of representing undefined values does not
+contain any recursive occurence of the \cinl{Free} values, thus, the
+effect does not have any polymorphic components in its constructors.
+
+Let us take look at the proof for the associativity of append; we
+focus on the differences, as most of the proof is actually the same.
+Hence, this time we show the entire proof script first and take a
+closer look at some subgoals afterwards.
+
+\begin{minted}{coq}
+Lemma append_assoc_partial :
+ forall (A : Type) (fxs fys fzs : Free One__S One__P (List One__S One__P A)),
+   append fxs (append fys fzs) = append (append fxs fys) fzs.
+Proof.
+ intros A fxs fys fzs.
+ destruct fxs as [xs | [] pf]; simpl.
+ - (* fxs = pure xs *) induction xs as [ | fx fxs IH ]; simpl.
+   + (* xs = nil *) reflexivity.
+   + (* xs = cons fx fxs; induction hypothesis IH *)
+     do 2 f_equal. destruct IH; simpl.
+     * (* fxs = pure xs *) rewrite H. reflexivity.
+     * (* fxs = impure (ext s pf) *)
+       do 2 f_equal. extensionality p. contradiction.
+  - (* fxs = impure (ext s pf) *)
+    do 2 f_equal. extensionality p. contradiction.
+Qed.
+\end{minted}
+
+We observe that both cases of \cinl{impure}-values, we do not have a
+contradiction in place as we had in the total setting.
+The contradiction in the total setting was introduced by the shape of
+the container that did not have any constructors.
+Now, we are working with \cinl{One__S}, which is a renaming for the
+\cinl{unit} type and has exactly one constructor, namely \cinl{tt}.
+We can, however, finish the \cinl{impure}-cases using
+\cinl{contradiction} again, but we need to have a position as an
+assumption.
+The position is introduced as assumption when we strip away the prefix
+of \cinl{impure (ext s pf)} on both sides of the equation, such that
+only the position functions \cinl{pf} remain to be proven equivalent.
+
+The initial situation for the first \cinl{impure}-case looks as
+follows.
+
+\begin{minted}{coq}
+  ...
+  s : One__S
+  ============================
+  impure (ext s (fun p => ...)) =
+  impure (ext s (fun p => ...))
+\end{minted}
+
+As mentioned above, after stripping away the prefix both expressions
+have in common, we end up with two functions that we need to prove
+equal.
+We introduce the function argument \cinl{p} using \cinl{extensionality
+  p} and end up with \cinl{p : One__P s} added to the assumptions and a changed
+goal as follows.
+
+\begin{minted}{coq}
+  s : One__S
+  p : One__P s
+  ============================
+  pf p >>= (fun zs => append' zs (append fys fzs)) =
+  pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
+\end{minted}
+
+With \cinl{One__P s} being a renaming for \cinl{Empty}, the position
+\cinl{p} has no constructors and we can finish the proof using
+\cinl{contradiction}, again.
+
+We follow the same approach to finish the second \cinl{impure}-case.
 
 \subsection{Properties and Proofs of List-Related Functions}
 
