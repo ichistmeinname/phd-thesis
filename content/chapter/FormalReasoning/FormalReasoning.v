@@ -636,6 +636,18 @@ Module FreeList.
 
   End append.
 
+  Notation "xs +++ ys" := (append xs ys) (at level 40, left associativity).
+
+  Section Utilities.
+
+    Variable S : Type.
+    Variable P : S -> Type.
+
+    Definition singleton A (fx : Free S P A) : Free S P (List S P A) :=
+      Cons fx Nil.
+
+  End Utilities.    
+
 End FreeList.
 
 Module rose_map.
@@ -748,6 +760,16 @@ Module LtacGoodies.
 
   Tactic Notation "inductFree" ident(fx) "as" simple_intropattern(pat) := (induction fx as pat; simpl; try autoIH).
 
+  Import FreeList.
+
+  Ltac inductionFreeCons :=
+    match goal with
+    | [ |- Cons ?fx (?fxs >>= ?g1) = Cons ?fx ?g2 ] => do 2 f_equal; try inductionFreeCons
+    | [ |- (?fxs >>= ?f) = ?f1 (?fxs >>= ?g) ] => inductFree fxs as [xs|]; simpl
+    end.
+
+  Tactic Notation "inductFreeList" ident(fxs) "as" simple_intropattern(pat) :=
+    (induction fxs as [xs|]; simpl; try autoIH; try induction xs as pat; simpl; try inductionFreeCons).
 
 End LtacGoodies.
   
@@ -846,3 +868,454 @@ Module append_assoc.
   Qed.
   
 End append_assoc.
+
+
+Module list_properties.
+
+  Import Free.
+  Import FreeList.
+
+  Import LtacGoodies.
+
+  Section Definitions.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+
+    Fixpoint map' A B (f : Free Sh Ps A -> Free Sh Ps B) (xs : List Sh Ps A)
+      : Free Sh Ps (List Sh Ps B) :=
+      match xs with
+      | nil         => Nil
+      | cons fx fxs => Cons (f fx) (fxs >>= fun xs => map' f xs)
+      end.
+
+    Definition map A B (f : Free Sh Ps A -> Free Sh Ps B) (fxs : Free Sh Ps (List Sh Ps A))
+      : Free Sh Ps (List Sh Ps B) :=
+      fxs >>= fun xs => map' f xs.
+
+  End Definitions.
+
+  Section Properties.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+
+    Lemma map_id : forall (A : Type) (fxs : Free Sh Ps (List Sh Ps A)),
+        map (fun fx => fx) fxs = fxs.
+    Proof.
+      intros A fxs.
+      inductFree fxs as [xs |]; simpl.
+      induction xs as [ | fx fxs IH]; simpl.
+      + reflexivity.
+      + do 2 f_equal.
+        inductFree fxs as [xs |].
+        apply IH.
+    Qed.
+
+    Lemma map_compose : forall (A B C : Type)
+                          (f : Free Sh Ps A -> Free Sh Ps B)
+                          (g : Free Sh Ps B -> Free Sh Ps C)
+                          (fxs : Free Sh Ps (List Sh Ps A)),
+        map (fun fx => g (f fx)) fxs = map g (map f fxs).
+    Proof.
+      intros A B C f g fxs.
+      inductFree fxs as [xs |]; simpl.
+      induction xs as [ | fx fxs IH]; simpl.
+      + reflexivity.
+      + do 2 f_equal.
+        inductFree fxs as [xs |].
+        apply IH.
+    Qed.
+
+    Lemma map_compose' : forall (A B C : Type)
+                           (f : Free Sh Ps A -> Free Sh Ps B)
+                           (g : Free Sh Ps B -> Free Sh Ps C)
+                           (fxs : Free Sh Ps (List Sh Ps A)),
+        map (fun fx => g (f fx)) fxs = map g (map f fxs).
+    Proof.
+      intros A B C f g fxs.
+      inductFreeList fxs as [| fx fxs IH]; simpl.
+      + reflexivity.
+      + apply IH.
+    Qed.
+
+    Lemma append_assoc_generic' :
+      forall (A : Type) (fxs fys fzs : Free Sh Ps (List Sh Ps A)),
+        append fxs (append fys fzs) = append (append fxs fys) fzs.
+    Proof.
+      intros A fxs fys fzs.
+      inductFreeList fxs as [ | fx fxs IH ]; simpl.
+      - reflexivity.
+      - apply IH.
+    Qed.
+
+  End Properties.
+
+End list_properties.
+
+Module Primitives.
+
+  Import Free.
+
+  Section Definitions.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+
+    Definition liftM1 A R (f : A -> R) (x : Free Sh Ps A) : Free Sh Ps R :=
+      x >>= fun x' => pure (f x').
+    Definition liftM2 A B R (f : A -> B -> R) (x : Free Sh Ps A) (y : Free Sh Ps B) : Free Sh Ps R :=
+      x >>= fun x' => y >>= fun y' => pure (f x' y').
+    Definition liftM3 A B C R (f : A -> B -> C -> R) (x : Free Sh Ps A) (y : Free Sh Ps B) (z : Free Sh Ps C) : Free Sh Ps R :=
+      x >>= fun x' => y >>= fun y' => z >>= fun z' => pure (f x' y' z').
+
+  End Definitions.
+
+End Primitives.
+
+Module Razor.
+
+  Import Free.
+  Import Primitives.
+  Import FreeList.
+
+  Import LtacGoodies.
+
+  Section Polymorphic_Definitions.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+
+    Unset Elimination Schemes.
+    Inductive Expr :=
+    | val : Free Sh Ps nat -> Expr
+    | add : Free Sh Ps Expr -> Free Sh Ps Expr -> Expr.
+    Set Elimination Schemes.
+
+    Section Expr_ind.
+
+      Variable P : Expr -> Prop.
+
+      Hypothesis valP : forall fn, P (val fn).
+      Hypothesis addP : forall fe1 fe2, ForFree P fe1 -> ForFree P fe2 -> P (add fe1 fe2).
+
+      Fixpoint Expr_ind (e : Expr) : P e :=
+        match e with
+        | val fn => valP fn
+        | add fe1 fe2 =>
+          let fix free_ind (fe : Free Sh Ps Expr) : ForFree P fe :=
+              match fe with
+              | pure e      => forPure _ P e (Expr_ind e)
+              | impure s pf => forImpure s _ (fun p => free_ind (pf p))
+              end in
+          addP (free_ind fe1) (free_ind fe2)
+        end.
+
+    End Expr_ind.
+
+    Definition Val (fn : Free Sh Ps nat) : Free Sh Ps Expr :=
+      pure (val fn).
+
+    Definition Add (fe1 fe2 : Free Sh Ps Expr) : Free Sh Ps Expr :=
+      pure (add fe1 fe2).
+
+    Fixpoint eval' (e : Expr) : Free Sh Ps nat :=
+      match e with
+      | val fn    => fn
+      | add fx fy => liftM2 plus (fx >>= eval') (fy >>= eval')
+      end.
+
+    Definition eval (fe : Free Sh Ps Expr) : Free Sh Ps nat :=
+      fe >>= eval'.
+
+    Definition Stack := List Sh Ps nat.
+
+    Unset Elimination Schemes.
+    Inductive Op :=
+    | push_ : Free Sh Ps nat -> Op
+    | add_  : Op.
+    Set Elimination Schemes.
+
+    Section Op_ind.
+
+      Variable P : Op -> Prop.
+
+      Hypothesis add_P : P add_.
+      Hypothesis push_P : forall fn, P (push_ fn).
+
+      Fixpoint Op_ind (op : Op) : P op :=
+        match op with
+        | add_ => add_P
+        | push_ fn => push_P fn
+        end.
+
+    End Op_ind.
+
+    Definition PUSH (fn : Free Sh Ps nat) : Free Sh Ps Op :=
+      pure (push_ fn).
+
+    Definition ADD : Free Sh Ps Op :=
+      pure add_.
+
+    Definition Code := List Sh Ps Op.
+
+    Fixpoint comp' (e : Expr) : Free Sh Ps Code :=
+      match e with
+      | val fn    => singleton (PUSH fn)
+      | add fx fy => append (fx >>= comp') (append (fy >>= comp') (singleton ADD))
+      end.
+
+    Definition comp (fe : Free Sh Ps Expr) : Free Sh Ps Code :=
+      fe >>= comp'.
+
+  End Polymorphic_Definitions.
+
+  Arguments add_ {_} {_}.
+  Import Partiality.
+
+  Section Partial_Definitions.
+
+    Definition undefined (A : Type) : Free One__S One__P A :=
+      let '(ext s pf) := from_One one in impure s pf.
+
+    Definition FreeP := Free One__S One__P.
+    Definition StackP := Stack One__P.
+    Definition CodeP  := Code One__P.
+    
+    Fixpoint exec' (fs : FreeP StackP) (c : CodeP) : FreeP StackP :=
+      match c with
+      | nil          => fs
+      | cons fc fops => fc >>= fun c =>
+          match c with
+          | push_ fn => fops >>= exec' (Cons fn fs)
+          | add_     => fs >>= fun s =>
+              match s with
+              | nil => @undefined StackP
+              | cons fn fxs => fxs >>= fun xs =>
+                  match xs with
+                  | nil => @undefined StackP
+                  | cons fm fs' => fops >>= exec' (Cons (liftM2 plus fm fn) fs')
+                  end
+              end
+          end
+      end.
+
+    Definition exec (fs : FreeP StackP) (fc : FreeP CodeP) : FreeP StackP :=
+      fc >>= exec' fs.
+
+    (* Fixpoint exec2' (s : StackP) (fc : FreeP CodeP) : FreeP StackP := *)
+    (*   let help fc fs := fc >>= fun c => match c with *)
+    (*                                 | nil          => fs *)
+    (*                                 | cons fc fops => fc >>= fun c1 => *)
+    (*                                                           match c1 with *)
+    (*                                                           | push_ fn => fops >>= exec' (Cons fn fs) *)
+    (*                                                           | add_     => @undefined StackP *)
+    (*                                                           end *)
+    (*                                 end in *)
+    (*   match s with *)
+    (*   | nil => help fc Nil *)
+    (*   | cons fn fxs => *)
+    (*     fxs >>= fun xs => *)
+    (*               match xs with *)
+    (*               | nil => help fc (Cons fn Nil) *)
+    (*               | cons fm fs' => *)
+    (*                 fc >>= fun c => match c with *)
+    (*                              | nil          => Cons fn (Cons fm fs') *)
+    (*                              | cons fc fops => *)
+    (*                                fc >>= fun c1 => match c1 with *)
+    (*                                              | push_ fn =>fops >>= exec' (Cons fn (Cons fn (Cons fm fs'))) *)
+    (*                                              | add_     => fops >>= exec' (Cons (liftM2 plus fm fn) fs') *)
+    (*                                              end *)
+    (*                              end *)
+    (*               end *)
+    (*   end. *)
+
+    Fixpoint exec2' (s : StackP) (c : CodeP) : FreeP StackP :=
+      match c with
+      | nil          => pure s
+      | cons fc fops => fc >>= fun c =>
+          match c with
+          | push_ fn => fops >>= exec2' (cons fn (pure s))
+          | add_     => match s with
+                       | nil => @undefined StackP
+                       | cons fn fxs => fxs >>= fun xs =>
+                                                 match xs with
+                                                 | nil => @undefined StackP
+                                                 | cons fm fs' => fops >>= exec' (Cons (liftM2 plus fm fn) fs')
+                                                 end
+                       end
+          end
+      end.
+    
+    Definition exec2 (fs : FreeP StackP) (fc : FreeP CodeP) : FreeP StackP :=
+      fc >>= fun c => fs >>= fun s => exec2' s c.
+
+  End Partial_Definitions.
+
+  Section Propositions.
+
+    Inductive ListEffectFree (Sh : Type) (Ps : Sh -> Type) (A : Type) (P__A : Free Sh Ps A -> Prop)
+      : Free Sh Ps (List Sh Ps A) -> Prop :=
+    | free_nil : ListEffectFree P__A (pure nil)
+    | free_cons : forall fx fxs, P__A fx -> ListEffectFree P__A fxs -> ListEffectFree P__A (pure (cons fx fxs)).
+    
+    Lemma append_effectFree :
+      forall (A : Type) (Sh : Type) (Ps : Sh -> Type) (P__A : Free Sh Ps A -> Prop)
+        (fxs fys : Free Sh Ps (List Sh Ps A)),
+        ListEffectFree P__A fxs -> ListEffectFree P__A fys -> ListEffectFree P__A (fxs +++ fys).
+    Proof.
+      intros A Sh Ps P__A fxs fys Hxs Hys.
+      inductFree Hxs as [ | fz fzs IH ]; eauto; try econstructor; try assumption.
+    Qed.
+
+    Lemma append_effectFree_and :
+      forall (A : Type) (Sh : Type) (Ps : Sh -> Type) (P__A : Free Sh Ps A -> Prop)
+        (fxs fys : Free Sh Ps (List Sh Ps A)),
+        ListEffectFree P__A (fxs +++ fys) ->
+        ListEffectFree P__A fxs /\ ListEffectFree P__A fys.
+    Proof.
+      intros A Sh Ps P__A fxs fys Hfree.
+      split.
+      - inductFree fxs as [ xs | fz fzs IH ].
+        + induction xs as [ | fx fxs IH ];
+            try econstructor; simpl in *;
+              inversion Hfree; clear Hfree; subst;
+                try assumption.
+          induction IH; simpl in *.
+          * apply H. apply H2.
+          * inversion H2.
+        + inversion Hfree.
+      - inductFree fxs as [ xs | fz fzs IH ].
+        + induction xs as [ | fx fxs IH ]; try assumption.
+          induction IH; simpl in *; inversion Hfree; clear Hfree; subst.
+          * apply H. apply H3.
+          * inversion H4.
+        + inversion Hfree.
+    Qed.
+
+    Inductive OpEffectFree (Sh : Type) (Ps : Sh -> Type) : Free Sh Ps (Op Ps) -> Prop :=
+    | free_push_ : forall fn, OpEffectFree (pure (push_ fn))
+    | free_add_ : OpEffectFree (pure add_).
+
+    Inductive ExpEffectFree (Sh : Type) (Ps : Sh -> Type)
+      : Free Sh Ps (Expr Ps) -> Prop :=
+    | free_val : forall fx, ExpEffectFree (pure (val fx))
+    | free_add : forall fx fy, ExpEffectFree fx -> ExpEffectFree fy ->
+                          ExpEffectFree (pure (add fx fy)).
+
+    Definition IdProp {A : Type} (x : A) : Prop := True.
+
+    Lemma elemProp_to_idProp :
+      forall (A : Type) (Sh : Type) (Ps : Sh -> Type) (P__A : Free Sh Ps A -> Prop)
+        (fxs : Free Sh Ps (List Sh Ps A)),
+        ListEffectFree P__A fxs -> ListEffectFree IdProp fxs.
+    Proof.
+      intros A Sh Ps P__A fxs Hfree.
+      inductFree Hfree as [ | fz fzs IH ]; eauto;
+        try econstructor; try assumption; try constructor.
+    Qed.
+
+    Axiom exec_strict : forall fxs, exec (@undefined StackP) fxs = (@undefined StackP).
+
+    Ltac find_pure_effectfree :=
+      match goal with
+      | [ Hcons4 : ListEffectFree ?P2 (?Cons ?xs) |- ListEffectFree ?P2 (Cons _ ?xs) ] =>
+        inversion Hcons4 as [| ? ? Hhead Htail]; subst; clear Hcons4;
+        try constructor; try (apply Htail); try constructor; try assumption
+      | [ Hcons3 : ListEffectFree ?P2 ?xs |- ListEffectFree ?P2 (Cons ?x ?xs) ] =>
+        try constructor; try (apply Hcons3); try constructor; try assumption
+      | [ Hcons2 : ListEffectFree ?P2 (Cons _ (pure ?xs)) |- ListEffectFree ?P2 (pure ?xs) ] =>
+        inversion Hcons2 as [| ? ? Hhead Htail]; clear Hcons2; subst;
+        apply Htail
+      | [ Hcons1 : ?P1 ?P2 (Cons (pure ?x) _) |- ?P2 (pure ?x) ] =>
+        inversion Hcons1 as [| ? ? Hhead Htail]; clear Hcons1; subst;
+        apply Hhead
+      | [ Hexp : ExpEffectFree ?arg |- ?P (pure ?x) ] => inversion Hexp; subst; try assumption
+      end.
+
+    Ltac inversion_impure :=
+      match goal with
+      | [ Himp   : context [ ?f (impure _ _) ] |- _ ] => inversion Himp; subst; inversion_impure
+      end.
+
+    Lemma exec_distr :
+      forall fxs,
+        ListEffectFree (@OpEffectFree One__S One__P) fxs ->
+        forall fys,
+          ListEffectFree IdProp fys ->
+          forall fs,
+            ListEffectFree IdProp fs ->
+            exec fs (fxs +++ fys) = exec (exec fs fxs) fys.
+    Proof with (simpl; try inversion_impure).
+      inductFree fxs as [ xs | [] pf IH ]; intros HxsFree...
+      induction xs as [ | fx fxs IH ]; simpl.
+      - reflexivity.
+      - intros fys HysFree fs HfsFree.
+        inductFree fx as [ x | [] pf IH2]...
+        + destruct x; simpl.
+          * inductFree IH as [ xs IH | [] pf IH ]...
+            fold (exec (Cons f fs) (append' xs fys)).
+            rewrite IH; try reflexivity; try assumption;
+              find_pure_effectfree.
+          * inductFree fs as [ st | [] pf IH2 ]...
+            induction st as [ | fs fsts IH2 ]; simpl.
+            -- rewrite exec_strict; reflexivity.
+            -- inductFree IH2 as [sts IH2 | s pf IH2]...
+               destruct sts; simpl.
+               ++ apply IH2; find_pure_effectfree.
+               ++ inductFree fxs as [ xs | s pf IH3 ]...
+                  fold (exec (Cons (liftM2 Nat.add f fs) f0) (append' xs fys)).
+                  rewrite IH; try reflexivity; try assumption;
+                    try find_pure_effectfree; try (repeat constructor).
+                    inversion HxsFree; inversion HfsFree; try assumption;
+                      inversion H6; try constructor; try assumption.
+    Qed.
+
+    (* `fe` needs to be pure;
+        restrictions on `fs` and `comp fe` come from the usage of `exec_distr` *)
+    Lemma correctness : forall fe fs,
+        ExpEffectFree fe ->
+        ListEffectFree IdProp fs ->
+        ListEffectFree (@OpEffectFree One__S One__P) (comp fe) ->
+        exec fs (comp fe) = Cons (eval fe) fs.
+    Proof with (simpl; try inversion_impure).
+      intros fe.
+      inductFree fe as [exp | s pf IH]; intros fs Hfe Hfs Hcomp...
+      generalize dependent fs.
+      induction exp as [ fn | fx fy ]; simpl.
+        + reflexivity.
+        + intros fs Hfs.
+          apply append_effectFree_and in Hcomp;
+            destruct Hcomp as [ Hfx Hrest ].
+          rewrite exec_distr; try assumption; try (apply elemProp_to_idProp in Hrest; assumption).
+          inductFree fx as [ x | s pf IHx ]...
+          rewrite IH; try assumption; try constructor; try find_pure_effectfree.
+          -- clear IH.
+             apply append_effectFree_and in Hrest;
+               destruct Hrest as [ Hfy Hsingle ].
+             rewrite exec_distr; repeat (try constructor; try assumption).
+             fold (comp fy).
+             inductFree fy as [ y | s pf IHy ]...
+             rewrite IH; try reflexivity; try assumption; try find_pure_effectfree.
+    Qed.
+
+    Lemma exec_singleton : forall fe,
+        ExpEffectFree fe ->
+        ListEffectFree (@OpEffectFree One__S One__P) (comp fe) ->
+        exec Nil (comp fe) = singleton (eval fe).
+    Proof.
+      intros fe Hfe HfreeList.
+      apply correctness; try assumption; try constructor.
+    Qed.
+
+  End Propositions.
+
+End Razor.
+
+Section InductionPrinciple.
+
+  (* nat_ind *)
+  (*    : forall P : nat -> Prop, *)
+  (*      P 0 -> (forall n : nat, P n -> P (S n)) -> forall n : nat, P n *)
+
+End InductionPrinciple.
