@@ -746,10 +746,10 @@ to make a \cinl{Free F} a monad.
 Or to it put differently, given a functor \cinl{F} the free monad
 construction lifts \cinl{F} to a monad.
 Now we can apply the insight about representing strictly positive
-types as containers again: since containers are isomorphic to
-functors, there are a variety of functors that we can represent using
-containers.
-We change the definition of \cinl{Free} as follows to fulfil Coq's
+types as containers again: since container extensions are isomorphic
+to functors, there are a variety of functors that we can represent
+using containers.
+We can change the definition of \cinl{Free} as follows to fulfil Coq's
 strict positivity requirement.
 
 \begin{minted}{coq}
@@ -762,8 +762,20 @@ Now we defined the free monad using the container extension instead of
 a generic functor \cinl{F}, that is, we are still generic: not
 over all possible type constructors but over all strictly positive
 types.
-With \cinl{Free} we are well-suited to define a lifted version of
-\cinl{List} as we wished to do at the beginning of this section.
+Note, however, that we do not need the indirection using \cinl{Ext}
+explicitly, we instead define \cinl{Free} by inlining the definition
+of \cinl{Ext} in the constructor \cinl{impure} to make its usage more
+convenient.
+
+\begin{minted}{coq}
+Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
+| pure   : A -> Free Shape Pos A
+| impure : forall s,  Pos s -> Free Shape Pos A -> Free Shape Pos A.
+\end{minted}
+
+With this definition of \cinl{Free} at hand we are well-suited to
+define a lifted version of \cinl{List} as we wished to do at the
+beginning of this section.
 
 \begin{minted}{coq}
 Inductive List (Shape : Type) (Pos : Shape -> Type) A :=
@@ -859,14 +871,14 @@ First, we define the conversion functions \cinl{to_partial} and
 
 \begin{minted}{coq}
 Definition to_partial A (fx : Free One__S One__P A) : partial A :=
-  match fx with
-  | pure x   => defined x
-  | impure e => undefined
-  end.
+ match fx with
+ | pure x     => defined x
+ | impure _ _ => undefined
+ end.
 
 Definition from_partial A (p : partial A) : Free One__S One__P A :=
   match p with
-  | undefined => impure (from_One one)
+  | undefined => let '(ext s pf) := from_One one in impure s pf
   | defined x => pure x
   end.
 \end{minted}
@@ -879,7 +891,7 @@ Lemma from_to_partial : forall (A : Type) (fx : Free One__S One__P A),
     from_partial (to_partial fx) = fx.
 Proof.
   intros A fx.
-  destruct fx as [x | [[] pf]]; simpl.
+  destruct fx as [x | [] pf]; simpl.
   - reflexivity.
   - do 2 f_equal. extensionality p. destruct p.
 Qed.
@@ -1008,7 +1020,7 @@ Lemma from_to_total : forall (A : Type) (fx : Free Zero__S Zero__P A),
     from_total (to_total fx) = fx.
 Proof.
   intros A fx.
-  destruct fx as [x | [[] pf]]; reflexivity.
+  destruct fx as [x | [] pf]; reflexivity.
 Qed.
 
 Lemma to_from_total : forall (A : Type) (t : total A),
@@ -1109,13 +1121,13 @@ polymorphic.
 
 \begin{minted}{coq}
 Fail Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
-  match xs with
-  | nil => fys
-  | cons fz fzs => pure (cons fz (match fzs with
-                                 | pure zs           => append' zs fys
-                                 | impure (ext s pf) => _ (* what to do here? *)
-                                 end))
-  end.
+ match xs with
+ | nil => fys
+ | cons fz fzs => Cons fz (match fzs with
+                          | pure zs     => append' zs fys
+                          | impure s pf => _ (* what to do here? *)
+                          end)
+ end.
 \end{minted}
 
 A case distinction on the concrete constuctors of \cinl{partial} was
@@ -1127,26 +1139,25 @@ needs to be defined as recursive function when using \cinl{Free}.
 
 Recall that the basic idea is to model monadically lifted data types,
 that is, \cinl{Free} is a representative for a monad.
-The case distinction we uusing in the definition of \cinl{appendP'} is
+The case distinction we are using in the definition of \cinl{appendP'} is
 the monadic \emph{bind} function (\cinl{(>>=)}) in disguise.
 Hence, we need to define bind for \cinl{Free} in order to transfer the
 above definition successfully.
 
 \begin{minted}{coq}
 Fixpoint free_bind A B (fx : Free A) (f : A -> Free B) : Free B :=
-  match fx with
-  | pure x            => f x
-  | impure (ext s pf) => impure (ext s (fun p => free_bind (pf p) f))
-  end.
+ match fx with
+ | pure x      => f x
+ | impure s pf => impure s (fun p => free_bind (pf p) f)
+ end.
 \end{minted}
 
 The definition of \cinl{free_bind} distinguishes between the two
 possible constructors \cinl{pure} and \cinl{impure}; in the former
 case we have a value \cinl{x} in place that \cinl{f} can be applied
 to.
-In the latter case we additionallymatch on the constructor \cinl{ext}
-and have variable bindings \cinl{s} and \cinl{pf} for the shape and
-position function to work with.
+In the latter case we have variable bindings \cinl{s} and \cinl{pf}
+for the shape and position function to work with.
 Note that the position function applied to a position
 yields a \cinl{Free}-value again, that is, \cinl{pf} has type
 \cinl{Pos s -> Free A}.
@@ -1312,10 +1323,10 @@ We then end up with the following definition of \cinl{free_bind}.
 Definition free_bind A B (f : A -> Free B) (fx : Free A) : Free B :=
  let fix free_bind' fx :=
      match fx with
-     | pure x            => f x
-     | impure (ext s pf) => impure (ext s (fun p => free_bind' (pf p)))
+     | pure x      => f x
+     | impure s pf => impure s (fun p => free_bind' (pf p))
      end
- in free_bind' fx.
+     in free_bind' fx.
 \end{minted}
 
 In order to use \cinl{free_bind} as an operator \cinl{(>>=)} as known
@@ -1485,15 +1496,15 @@ arguments \cinl{fxs} and are now in the \cinl{impure}-case.
   pf : Zero__P s -> Free Zero__S Zero__P (List Zero__S Zero__P A)
   fys, fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)
   ============================
-  impure (ext s (fun p : Zero__P s => append (pf p) (append fys fzs))) =
-  impure (ext s (fun p : Zero__P s => append (append (pf p) fys) fzs))
+  impure s (fun p : Zero__P s => append (pf p) (append fys fzs)) =
+  impure s (fun p : Zero__P s => append (append (pf p) fys) fzs)
 \end{minted}
 
 The assumption \cinl{s : Zero__S} is once again a bogus assumptions,
 so we clear the last remaining goal by using \cinl{contradiction} again.
 
 \begin{minted}{coq}
-  (* fxs = impure (ext s pf) *)
+  (* fxs = impure s pf *)
   - contradiction.
 Qed.
 \end{minted}
@@ -1562,9 +1573,9 @@ Proof.
    + (* xs = cons fx fxs; induction hypothesis IH *)
      do 2 f_equal. destruct IH as [ xs | s pf ]; simpl.
      * (* fxs = pure xs *) rewrite H. reflexivity.
-     * (* fxs = impure (ext s pf) *)
+     * (* fxs = impure s pf *)
        do 2 f_equal. extensionality p. contradiction.
-  - (* fxs = impure (ext s pf) *)
+  - (* fxs = impure s pf *)
     do 2 f_equal. extensionality p. contradiction.
 Qed.
 \end{minted}
@@ -1579,7 +1590,7 @@ We can, however, finish the \cinl{impure}-cases using
 \cinl{contradiction} again, but we need to have a position as an
 assumption.
 The position is introduced as assumption when we strip away the prefix
-of \cinl{impure (ext s pf)} on both sides of the equation, such that
+of \cinl{impure s pf} on both sides of the equation, such that
 only the position functions \cinl{pf} remain to be proven equivalent.
 
 The initial situation for the first \cinl{impure}-case looks as
@@ -1589,8 +1600,8 @@ follows.
   ...
   s : One__S
   ============================
-  impure (ext s (fun p => ...)) =
-  impure (ext s (fun p => ...))
+  impure s (fun p => ...) =
+  impure s (fun p => ...)
 \end{minted}
 
 As mentioned above, after stripping away the prefix both expressions
@@ -1652,7 +1663,7 @@ consequence that a simple case distinction over the \cinl{Free}-value
    + (* xs = cons fx fxs *) do 2 f_equal.
      induction IH as [ xs H | s pf _ IH' ]; simpl.
      * (* fxs = pure xs *) rewrite H. reflexivity.
-     * (* fxs = impure (ext s pf) *) do 2 f_equal. extensionality p.
+     * (* fxs = impure s pf *) do 2 f_equal. extensionality p.
        apply IH'.
 \end{minted}
 
@@ -1681,8 +1692,8 @@ originated from the initial induction on \cinl{fxs}.
   IH : forall p : Ps s,
        append (pf p) (append fys fzs) = append (append (pf p) fys) fzs
   ============================
-  impure (ext s (fun p : Ps s => append (pf p) (append fys fzs))) =
-  impure (ext s (fun p : Ps s => append (append (pf p) fys) fzs))
+  impure s (fun p : Ps s => append (pf p) (append fys fzs)) =
+  impure s (fun p : Ps s => append (append (pf p) fys) fzs)
 \end{minted}
 
 In this case, the induction hypothesis is directly applicable when
@@ -1690,7 +1701,7 @@ proving the functions equal.
 This last subgoal then finishes the proof.
 
 \begin{minted}{coq}
- - (* fxs = impure (ext s pf) *) do 2 f_equal. extensionality p.
+ - (* fxs = impure s pf *) do 2 f_equal. extensionality p.
    apply IH.
 Qed.
 \end{minted}
@@ -1731,6 +1742,7 @@ Qed.
 \subsection{Non-Determinism as Effect}
 \subsection{Sharing as Effect}
 
+\section{Related Work}
 \section{Conclusion and Future Work}
 
 \section{Final Remarks}

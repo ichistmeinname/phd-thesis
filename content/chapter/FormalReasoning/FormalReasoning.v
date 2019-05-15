@@ -296,11 +296,12 @@ Module Free.
   Unset Elimination Schemes.
   Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
   | pure   : A -> Free Pos A
-  | impure : Ext Shape Pos (Free Pos A) -> Free Pos A.
+  | impure : forall s, (Pos s -> Free Pos A) -> Free Pos A.
   Set Elimination Schemes.
 
   Arguments Free : clear implicits.
   Arguments pure {_} {_} {_}.
+  Arguments impure {_} {_} {_}.
 
   Section Free_ind.
 
@@ -311,12 +312,12 @@ Module Free.
 
     Hypothesis pureP   : forall x, P (pure x).
     Hypothesis impureP : forall s pf,
-        (forall p, P (pf p)) -> P (impure (ext s pf)).
+        (forall p, P (pf p)) -> P (impure s pf).
 
     Fixpoint Free_ind (fx : Free Sh Ps A) : P fx :=
       match fx with
-      | pure x            => pureP x
-      | impure (ext s pf) => impureP pf (fun p => Free_ind (pf p))
+      | pure x      => pureP x
+      | impure s pf => impureP pf (fun p => Free_ind (pf p))
       end.
 
   End Free_ind.
@@ -330,11 +331,11 @@ Module Free.
 
     Inductive ForFree : Free Sh Ps A -> Prop :=
     | forPure   : forall x   , P x -> ForFree (pure x)
-    | forImpure : forall s pf, (forall p, ForFree (pf p)) -> ForFree (impure (ext s pf)).
+    | forImpure : forall s pf, (forall p, ForFree (pf p)) -> ForFree (impure s pf).
 
     Inductive InFree (x : A) : Free Sh Ps A -> Prop :=
     | inPure   : InFree x (pure x)
-    | inImpure : forall s pf, (exists p, InFree x (pf p)) -> InFree x (impure (ext s pf)).
+    | inImpure : forall s pf, (exists p, InFree x (pf p)) -> InFree x (impure s pf).
 
     Lemma ForFree_forall :
       forall (fx : Free Sh Ps A),
@@ -373,7 +374,7 @@ Module Free.
         Fixpoint free_bind (fx : Free Shape Pos A) : Free Shape Pos B :=
           match fx with
           | pure x => f x
-          | impure (ext s pf) => impure (ext s (fun p => free_bind (pf p)))
+          | impure s pf => impure s (fun p => free_bind (pf p))
           end.
 
       End free_bind.
@@ -392,8 +393,8 @@ Module Free.
       : Free Shape Pos B :=
         let fix free_bind' fx :=
             match fx with
-            | pure x            => f x
-            | impure (ext s pf) => impure (ext s (fun p => free_bind' (pf p)))
+            | pure x      => f x
+            | impure s pf => impure s (fun p => free_bind' (pf p))
             end
         in free_bind' fx.
 
@@ -468,13 +469,13 @@ Module Partiality.
 
   Definition to_partial A (fx : Free One__S One__P A) : partial A :=
     match fx with
-    | pure x   => defined x
-    | impure e => undefined
+    | pure x     => defined x
+    | impure _ _ => undefined
     end.
 
   Definition from_partial A (p : partial A) : Free One__S One__P A :=
     match p with
-    | undefined => impure (from_One one)
+    | undefined => let '(ext s pf) := from_One one in impure s pf
     | defined x => pure x
     end.
 
@@ -482,7 +483,7 @@ Module Partiality.
       from_partial (to_partial fx) = fx.
   Proof.
     intros A fx.
-    destruct fx as [x | [[] pf]]; simpl.
+    destruct fx as [x | [] pf]; simpl.
     - reflexivity.
     - do 2 f_equal. extensionality p. destruct p.
   Qed.
@@ -536,7 +537,7 @@ Module Totality.
   Definition to_total A (fx : Free Zero__S Zero__P A) : total A :=
     match fx with
     | pure x   => totality x
-    | impure (ext s _) => match s with end
+    | impure s _ => match s with end
     end.
 
   Definition from_total A (t : total A) : Free Zero__S Zero__P A :=
@@ -548,7 +549,7 @@ Module Totality.
       from_total (to_total fx) = fx.
   Proof.
     intros A fx.
-    destruct fx as [x | [[] pf]]; reflexivity.
+    destruct fx as [x | [] pf]; reflexivity.
   Qed.
 
   Lemma to_from_total : forall (A : Type) (t : total A),
@@ -592,7 +593,7 @@ Module FreeList.
       | cons fy fys => consP fy (let fix free_ind (fxs : Free Sh Ps (List Sh Ps A)) : ForFree P fxs :=
                                     match fxs with
                                     | pure xs => forPure _ P xs (List_ind xs)
-                                    | impure (ext s pf) => forImpure s _ (fun p => free_ind (pf p))
+                                    | impure s pf => forImpure s _ (fun p => free_ind (pf p))
                                     end in free_ind fys)
       end.
 
@@ -607,15 +608,15 @@ Module FreeList.
       match xs with
       | nil => fys
       | cons fz fzs => Cons fz (match fzs with
-                               | pure zs           => append' zs fys
-                               | impure (ext s pf) => _ (* what to do here? *)
+                               | pure zs     => append' zs fys
+                               | impure s pf => _ (* what to do here? *)
                                end)
       end.
 
     Fixpoint free_bind A B (fx : Free S P A) (f : A -> Free S P B) : Free S P B :=
       match fx with
-      | pure x            => f x
-      | impure (ext s pf) => impure (ext s (fun p => free_bind (pf p) f))
+      | pure x      => f x
+      | impure s pf => impure s (fun p => free_bind (pf p) f)
       end.
 
     Fail Fixpoint append' A (xs : List S P A) (fys : Free S P (List S P A)) {struct xs}:=
@@ -714,7 +715,7 @@ Module LtacGoodies.
   Ltac simplifyInductionHypothesis ident1 ident2 :=
     match goal with
     | [ ident1 : ForFree ?P (pure _) |- _ ] => inversion ident1 as [ Heq ident2 |]; clear ident1; subst; simpl
-    | [ ident1 : ForFree ?P (impure (ext ?s ?pf)) |- _ ] =>
+    | [ ident1 : ForFree ?P (impure ?s ?pf) |- _ ] =>
       dependent destruction ident1;
       match goal with
       | [ H1 : forall p : ?T, ForFree ?P (?pf p), H0 : forall p, ForFree ?P (?pf p) -> _ = _,
@@ -734,13 +735,13 @@ Module LtacGoodies.
 
   Ltac autoInductionHypothesis :=
     match goal with
-    | [ H : ForFree ?P (impure (ext ?s ?pf)) |- ?h (ext ?s (fun p1 => ?f)) = ?h (ext ?s (fun p2 => ?g)) ] =>
-      repeat f_equal; let x := fresh in extensionality x; simplify H as Hnew; assumption
+    | [ H : ForFree ?P (impure ?s ?pf) |- ?h ?s ?pf1 = ?h ?s ?pf2 ] =>
+      f_equal; let x := fresh in extensionality x; simplify H as Hnew; assumption
       (*   try apply newH) *)
     | [ H : ForFree ?P (pure ?x) |- _ ] =>
       let newH := fresh in simplify H as newH; rename newH into IH
-    | [ H : forall p1 : ?T, ?f = ?g |- ?h (ext ?s (fun p1 : ?T => ?f)) = ?h (ext ?s (fun p1 : ?T => ?g)) ] =>
-      repeat f_equal; let x := fresh in extensionality x; apply H
+    | [ H : forall p : ?T, ?f = ?g |- ?h ?s ?pf1 = ?h ?s ?pf2 ] =>
+      f_equal; let x := fresh in extensionality x; apply H
     end.
 
   Tactic Notation "autoIH" := (autoInductionHypothesis).
@@ -768,7 +769,7 @@ Module append_assoc.
       append fxs (append fys fzs) = append (append fxs fys) fzs.
   Proof.
     intros A fxs fys fzs.
-    destruct fxs as [ xs | [ s pf ] ]; simpl.
+    destruct fxs as [ xs | s pf ]; simpl.
     (* fxs = pure xs *)
     - induction xs as [ | fx fxs IH ]; simpl.
       (* xs = nil *)
@@ -778,7 +779,7 @@ Module append_assoc.
         destruct IH as [ xs H | s pf ]; simpl.
         * rewrite H. reflexivity.
         * contradiction.
-    (* fxs = impure (ext s pf) *)
+    (* fxs = impure s pf *)
     - contradiction.
   Qed.
 
@@ -787,7 +788,7 @@ Module append_assoc.
       append fxs (append fys fzs) = append (append fxs fys) fzs.
   Proof.
     intros A fxs fys fzs.
-    destruct fxs as [ xs | [ [] pf ] ]; simpl.
+    destruct fxs as [ xs | [] pf ]; simpl.
     - induction xs as [ | fx fxs IH ]; simpl.
       + reflexivity.
       + do 2 f_equal.
@@ -811,9 +812,9 @@ Module append_assoc.
       + (* xs = cons fx fxs *) do 2 f_equal.
         induction IH as [ xs H | s pf _ IH' ]; simpl.
         * (* fxs = pure xs *) rewrite H. reflexivity.
-        * (* fxs = impure (ext s pf) *) do 2 f_equal. extensionality p.
+        * (* fxs = impure s pf *) do 2 f_equal. extensionality p.
           apply IH'.
-    - (* fxs = impure (ext s pf) *) do 2 f_equal. extensionality p.
+    - (* fxs = impure s pf *) do 2 f_equal. extensionality p.
       apply IH.
   Qed.
 
@@ -841,7 +842,7 @@ Module append_assoc.
     - reflexivity.
     - do 2 f_equal.
       inductFree fxs as [xs |].
-      rewrite IH. reflexivity.
+      apply IH.
   Qed.
   
 End append_assoc.
