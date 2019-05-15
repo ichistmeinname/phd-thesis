@@ -1314,8 +1314,37 @@ End Razor.
 
 Section InductionPrinciple.
 
-  (* nat_ind *)
-  (*    : forall P : nat -> Prop, *)
-  (*      P 0 -> (forall n : nat, P n -> P (S n)) -> forall n : nat, P n *)
+  (* nat_ind : forall P : nat -> Prop, *)
+  (*   P 0 -> *)
+  (*   (forall n : nat, P n -> P (S n)) -> *)
+  (*   forall n : nat, P n *)
+
+  Fixpoint even (n : nat) : bool :=
+    match n with
+    | 0   => true
+    | S 0 => false
+    | S (S n) => even n
+    end.
+
+  Definition double (n : nat) : nat :=
+    n * 2.
+
+  Lemma even_double : forall (n : nat),
+      even (double n) = true.
+  Proof.
+    intros n.
+    induction n as [ | n' IH ]; simpl.
+    - reflexivity.
+    - apply IH.
+  Qed.
+
+  Lemma even_double' : forall (n : nat),
+      even (double n) = true.
+  Proof.
+    apply nat_ind.
+    - reflexivity.
+    - intros n IH. apply IH.
+  Qed.
+  
 
 End InductionPrinciple.
