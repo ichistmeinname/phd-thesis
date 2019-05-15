@@ -151,7 +151,7 @@
 \cleardoublepage
 
 \appendix\cleardoublepage
-\input{content/appendix}
+%\input{content/appendix}
 
 % **************************************************
 % End of Document CONTENT
