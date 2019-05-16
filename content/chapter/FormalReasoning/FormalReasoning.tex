@@ -1086,6 +1086,14 @@ Analogous to the definition of \cinl{append} at the end of
 \autoref{subsec:partial}, we need to split function into two parts:
 one part works on pure \cinl{List}s in case of the demanded argument
 while the second part handles \cinl{Free}-lifted arguments only.
+
+For the remainder of this chapter, we will use \cinl{Free} and
+data types like \cinl{List} as type constructors of kind \cinl{Type ->
+  Type} when used with a generic container, that is, we do not pass
+the corresponding shape and position function as argument.
+Note, however, that this convention is a simplification for better
+readability only and the resulting definition would not compile in
+
 In order to compare the differences to our concrete representation
 using \cinl{partial}, recall the definition of \cinl{append} and
 \cinl{append'}, respectively.
