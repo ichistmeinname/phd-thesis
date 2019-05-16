@@ -665,6 +665,7 @@ Since we cannot guarantee by definition that the data type definition
 strict positivity requirement, Coq rejects the definition.
 
 \subsection{Free Monad and Containers}
+\label{subsec:freeAndContainers}
 
 In order to summarise the situation so far: we want to model effectful
 data types and functions, for example representing non-strict partial
@@ -1850,6 +1851,144 @@ quantified for us, the direct variant is not as comfortable.
 That is, we need to introduce these variables ourselves, but can then
 prove the goal using the induction hypothesis like in the first
 variant.
+
+\paragraph{Induction on Free and List}
+
+Since our proofs depend on induction on values of type \cinl{Free}, we
+will now consider the corresponding induction principle that Coq
+generates.
+
+\begin{minted}{coq}
+Free_ind : forall (Sh: Type) (Pos : Sh -> Type) A (P : Free A -> Prop),
+   (forall x : A, P (pure x)) ->
+   (forall (s : Sh) (pf : Pos s -> Free A),
+     (forall p : Pos s, P (pf p)) -> P (impure s pf)) ->
+   forall fx : Free A, P fx
+\end{minted}
+
+For the base case we need to show that a given predicate \cinl{P}
+holds for \cinl{pure x} for all \cinl{x : A}.
+The \cinl{impure} case is a bit more interesting: given a shape
+\cinl{s} and a position function \cinl{pf}, we need to prove that the
+predicate holds for \cinl{impure s pf} with an additional induction
+hypothesis in place.
+The hypothesis states that for all possible positions \cinl{p} the
+predicate already holds for all recursive values we can access using
+the position function \cinl{pf}.
+Note that these arguments correspond to the variables introduced in
+the patterns when using the \cinl{induction} tactic.
+
+\begin{minted}{coq}
+induction fx as [ x | s pf IH ].
+\end{minted}
+
+The variable \cinl{xs} in the left branch of the introduction pattern
+corresponds to the pure value, while \cinl{s} \cinl{pf} are the
+arguments of the \cinl{impure} constructor and \cinl{IH} is the
+generated induction hypothesis.
+
+In case of data types that contain arguments of type \cinl{Free} due
+to the lifting of the constructors, the induction principle generated
+by Coq is not strong enough to fulfil its purpose.
+Consider, for example, the induction principle Coq generates for the
+\cinl{List} data type defined in \autoref{subsec:freeAndContainers}.
+
+\begin{minted}{coq}
+List_ind : forall (Sh : Type) (Pos : Sh -> Type) A (P : List A -> Prop),
+      P nil ->
+      (forall (fx : Free A) (fxs : Free (List A)), P (cons fx fxs)) ->
+      forall l : List Pos A, P l
+\end{minted}
+
+While the base case for \cinl{nil} looks fine, the generated function
+for the \cinl{cons} constructor looks a bit odd.
+More precisely, the second function misses an induction hypothesis for
+the list \cinl{fxs}; without such a hypothesis at hand, there are not
+much propositions that we would be able to prove.
+Fortunately, we can define a custom induction principle for
+\cinl{List} and other data types that we might define.
+Since an induction principle is an ordinary proposition, that is,
+function of type \cinl{Prop}, we just need to implement a function of
+the right type.
+By enabling some options\footnote{\cinl{Unset Elimination Schemes.}},
+we deactivate the automatic generation and define the custom induction
+principle named \cinl{List_ind}.
+That way, we can use \cinl{induction} as usual the tactic always
+applies the \cinl{_ind}-function of the corresponding type.
+
+First of all, we declare the types and the functions we want to use in
+the induction principle.
+
+\begin{minted}{coq}
+Variable A : Type.
+Variable P : List A -> Prop.
+
+Hypothesis nilP : P nil.
+Hypothesis consP : forall fx fxs, ?IH -> P (cons fx fxs).
+\end{minted}
+
+In order to specify the missing induction hypothesis in case of
+\cinl{cons}, we need to work out how this hypothesis looks like in the
+lifted case.
+When we consider ordinary lists, we demand that the predicate holds
+for a list \cinl{fxs} in order to prove that it also holds for the list
+\cinl{cons fx fxs} for an arbitrary \cinl{fx} of appropriate type as
+well.
+In case of a lifted list, the predicate is supposed to hold for all
+pure and effectful lists.
+The needed property is similar to stating that a predicate of type
+\cinl{A -> Prop} should hold for all elements of a list-like
+structure.
+In our case the list-like structure is the \cinl{Free} wrapper coming
+with its two constructors \cinl{pure} and \cinl{impure}.
+We define an auxiliary proposition \cinl{ForFree} that states when a
+predicate of type \cinl{A -> Prop} holds for all elements occurring in
+a value wrapped using \cinl{Free}.
+
+\begin{minted}{coq}
+Inductive ForFree (P : A -> Prop) : Free A -> Prop :=
+| forPure   : forall x   , P x -> ForFree P (pure x)
+| forImpure : forall s pf, (forall p, ForFree P (pf p)) -> ForFree P (impure s pf).
+\end{minted}
+
+In case of \cinl{pure x} we can directly apply the predicate on the
+element \cinl{x}.
+The \cinl{impure} constructor, on the other hand, embeds values of
+type \cinl{Free A}, again, thus, we can apply the overall proposition
+\cinl{ForFree} recursively.
+We access the values of type \cinl{Free A} by applying the position
+function to all valid positions with respect to the used container.
+That is, the predicate holds for \cinl{impure s pf} if it already if
+\cinl{ForFree P} already holds for all elements that can be accessed
+using the position function.
+
+Now we use the proposition \cinl{ForFree} to redeclare the necessary
+induction hypothesis in case of the \cinl{cons} constructor.
+
+\begin{minted}{coq}
+Hypothesis consP : forall fx fxs, ForFree P fxs -> P (cons fx fxs).
+\end{minted}
+
+Note that the predicate \cinl{P} is of type \cinl{List A -> Prop},
+that is, is a predicate on lists.
+Based on these hypothesis we define our custom induction principle by
+implementing a function of the following type.
+
+\begin{minted}{coq}
+List_ind : forall (xs : List A), P xs
+\end{minted}
+
+\begin{minted}{coq}
+Fixpoint List_ind (xs : List Sh Ps A) : P xs :=
+ match xs with
+ | nil         => nilP
+ | cons fy fys => consP fy (let fix free_ind (fxs : Free Sh Ps (List Sh Ps A)) : ForFree P fxs :=
+                               match fxs with
+                               | pure xs => forPure _ P xs (List_ind xs)
+                               | impure s pf => forImpure s _ (fun p => free_ind (pf p))
+                               end in free_ind fys)
+ end.
+\end{minted}
 
 \section{First Ideas to Model Curry Programs}
 \subsection{Non-Determinism as Effect}
