@@ -1948,7 +1948,8 @@ a value wrapped using \cinl{Free}.
 \begin{minted}{coq}
 Inductive ForFree (P : A -> Prop) : Free A -> Prop :=
 | forPure   : forall x   , P x -> ForFree P (pure x)
-| forImpure : forall s pf, (forall p, ForFree P (pf p)) -> ForFree P (impure s pf).
+| forImpure : forall s pf,
+    (forall p, ForFree P (pf p)) -> ForFree P (impure s pf).
 \end{minted}
 
 In case of \cinl{pure x} we can directly apply the predicate on the
@@ -1970,25 +1971,155 @@ Hypothesis consP : forall fx fxs, ForFree P fxs -> P (cons fx fxs).
 \end{minted}
 
 Note that the predicate \cinl{P} is of type \cinl{List A -> Prop},
-that is, is a predicate on lists.
+that is, it is a predicate on lists.
 Based on these hypothesis we define our custom induction principle by
-implementing a function of the following type.
+implementing a function with the following type signature.
 
 \begin{minted}{coq}
-List_ind : forall (xs : List A), P xs
+Fixpoint List_ind (xs : List A) : P xs.
 \end{minted}
 
+\noindent%
+Due to the declared hypothesis the goal and associated assumptions
+looks as follows.
+
 \begin{minted}{coq}
-Fixpoint List_ind (xs : List Sh Ps A) : P xs :=
+  A : Type
+  P : List A -> Prop
+  nilP : P nil
+  consP : forall (fx : Free A) (fxs : Free (List A)),
+    ForFree P fxs -> P (cons fx fxs)
+  List_ind : forall xs : List A, P xs
+  xs : List A
+  ============================
+  P xs
+\end{minted}
+
+In order to show that the predicate \cinl{P} holds for the list
+\cinl{xs}, we make a case distinction using the tactic \cinl{destruct
+  xs as [ | fy fys ]}.
+The case distinction leads to the following two subgoals.
+
+\begin{minted}{coq}
+  ...
+  nilP : P nil
+  ============================
+  P nil
+
+  ...
+  consP : forall (fx : Free A) (fxs : Free (List A)),
+    ForFree P fxs -> P (cons fx fxs)
+  List_ind : forall xs : List A, P xs
+  fy : Free A
+  fys : Free  (List A)
+  ============================
+  P (cons fy fys)
+\end{minted}
+
+We finish the first subgoal by applying the hypotheses \cinl{apply
+  nilP}; for the second goal we proceed by applying the hypothesis
+\cinl{consP}.
+The new subgoal is not the precondition of the hypothesis
+\cinl{consP}, namely \cinl{ForFree P fys}.
+We proceed by induction on \cinl{fys} since the proposition
+\cinl{ForFree} is an inductively defined proposition with constructors
+in case of \cinl{pure} and \cinl{impure} values.
+Applying the tactic \cinl{induction fys as [ ys | s pf IH ]} yields
+two new subgoals.
+
+\begin{minted}{coq}
+  ...
+  List_ind : forall xs : List A, P xs
+  ys : List A
+  ============================
+  ForFree P (pure ys)
+
+  ...
+  IH : forall (p : Ps s), ForFree P (pf p)
+  ============================
+  ForFree P (impure s pf)
+\end{minted}
+
+In both cases we apply the corresponding constructor of the
+proposition \cinl{ForFree}, namely, \cinl{forPure} and
+\cinl{forImpure}.
+
+\begin{minted}{coq}
+  ...
+  List_ind : forall xs : List A, P xs
+  ============================
+  P ys
+
+  ...
+  IH : forall (p : Ps s), ForFree P (pf p)
+  ============================
+  forall p : Ps s, ForFree P (pf p)
+\end{minted}
+
+We finish both subgoals by simply applying the appropriate assumption.
+In the first case we apply the recursive function \cinl{List_ind} that
+we are currently defining.
+In the \cinl{impure} case we use the induction hypothesis generated
+for \cinl{Free}.
+The complete proof script is finalised by using \cinl{Defined} and
+looks as follows.
+
+\begin{minted}{coq}
+Fixpoint List_ind (xs : List Sh Ps A) : P xs.
+ destruct xs as [ | fy fys ].
+ - apply nilP.
+ - apply consP.
+   induction fys as [ ys | s pf IH ].
+   + apply forPure.
+     apply List_ind.
+   + apply forImpure.
+     apply IH.
+Defined.
+\end{minted}
+
+Note that the difference between \cinl{Defined} and \cinl{Qed} to
+finalise a proof influences the visibility (mostly called
+\emph{opacity}) of the associated function.
+As the difference is rather technical, let us rely on the description
+by \cite{chlipala2011certified}.
+
+\begin{quote}
+We end the "proof" with \cinl{Defined} instead of \cinl{Qed}, so that
+the definition we constructed remains visible.
+This contrasts to the case of ending a proof with \cinl{Qed}, where
+the details of the proof are hidden afterward.
+(More formally, \cinl{Defined} marks an identifier as transparent,
+allowing it to be unfolded; while \cinl{Qed} marks an identifier as
+opaque, preventing unfolding.)
+\end{quote}
+
+Alternatively, we can define the induction principle as function
+definition directly.
+In that case, instead of using induction on \cinl{Free}, we need a
+recursive helper function \cinl{free_ind} to work as induction
+hypothesis in case of \cinl{impure} values.
+
+\begin{minted}{coq}
+Fixpoint List_ind (xs : List A) : P xs :=
  match xs with
  | nil         => nilP
- | cons fy fys => consP fy (let fix free_ind (fxs : Free Sh Ps (List Sh Ps A)) : ForFree P fxs :=
-                               match fxs with
-                               | pure xs => forPure _ P xs (List_ind xs)
-                               | impure s pf => forImpure s _ (fun p => free_ind (pf p))
-                               end in free_ind fys)
+ | cons fy fys =>
+   consP fy (let fix free_ind (fxs : Free (List A)) : ForFree P fxs :=
+                 match fxs with
+                 | pure xs => forPure P xs (List_ind xs)
+                 | impure s pf => forImpure (fun p => free_ind (pf p))
+                 end in free_ind fys)
  end.
 \end{minted}
+
+Note that the preceding sections used this definition of
+\cinl{List_ind} whenever we used the tactic \cinl{induction} on list
+value.
+Hence, using introduction pattern \cinl{[ | fy fys IH ]} corresponds
+to the arguments of the \cinl{cons} constructor and the induction
+hypothesis of type \cinl{ForFree}.
+
+\subsection{A Little Case Study on Something}
 
 \section{First Ideas to Model Curry Programs}
 \subsection{Non-Determinism as Effect}

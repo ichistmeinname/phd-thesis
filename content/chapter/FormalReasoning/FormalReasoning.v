@@ -340,6 +340,9 @@ Module Free.
 
   End ForFree.
 
+  Arguments forPure {_} {_} {_}.
+  Arguments forImpure {_} {_} {_} {_} {_} {_}.
+
   Module withSection.
 
     Section Args.
@@ -568,14 +571,26 @@ Module FreeList.
     Hypothesis nilP : P nil.
     Hypothesis consP : forall fx fxs, ForFree P fxs -> P (cons fx fxs).
 
+    Fixpoint List_ind' (xs : List Sh Ps A) : P xs.
+      destruct xs as [ | fy fys ].
+      - apply nilP.
+      - apply consP.
+        induction fys as [ ys | s pf IH ].
+        + apply forPure.
+          apply List_ind'.
+        + apply forImpure.
+          apply IH.
+    Defined.
+    
     Fixpoint List_ind (xs : List Sh Ps A) : P xs :=
       match xs with
       | nil         => nilP
-      | cons fy fys => consP fy (let fix free_ind (fxs : Free Sh Ps (List Sh Ps A)) : ForFree P fxs :=
-                                    match fxs with
-                                    | pure xs => forPure _ P xs (List_ind xs)
-                                    | impure s pf => forImpure s _ (fun p => free_ind (pf p))
-                                    end in free_ind fys)
+      | cons fy fys =>
+        consP fy (let fix free_ind (fxs : Free Sh Ps (List Sh Ps A)) : ForFree P fxs :=
+                      match fxs with
+                      | pure xs => forPure P xs (List_ind xs)
+                      | impure s pf => forImpure (fun p => free_ind (pf p))
+                      end in free_ind fys)
       end.
 
   End List_ind.
@@ -986,8 +1001,8 @@ Module Razor.
         | add fe1 fe2 =>
           let fix free_ind (fe : Free Sh Ps Expr) : ForFree P fe :=
               match fe with
-              | pure e      => forPure _ P e (Expr_ind e)
-              | impure s pf => forImpure s _ (fun p => free_ind (pf p))
+              | pure e      => forPure P e (Expr_ind e)
+              | impure s pf => forImpure (fun p => free_ind (pf p))
               end in
           addP (free_ind fe1) (free_ind fe2)
         end.
@@ -1326,6 +1341,5 @@ Section InductionPrinciple.
     - reflexivity.
     - intros n IH. apply IH.
   Qed.
-  
 
 End InductionPrinciple.
