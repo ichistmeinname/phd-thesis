@@ -303,25 +303,6 @@ Module Free.
   Arguments pure {_} {_} {_}.
   Arguments impure {_} {_} {_}.
 
-  Section Free_ind.
-
-    Variable Sh : Type.
-    Variable Ps : Sh -> Type.
-    Variable A : Type.
-    Variable P : Free Sh Ps A -> Prop.
-
-    Hypothesis pureP   : forall x, P (pure x).
-    Hypothesis impureP : forall s pf,
-        (forall p, P (pf p)) -> P (impure s pf).
-
-    Fixpoint Free_ind (fx : Free Sh Ps A) : P fx :=
-      match fx with
-      | pure x      => pureP x
-      | impure s pf => impureP pf (fun p => Free_ind (pf p))
-      end.
-
-  End Free_ind.
-
   Section ForFree.
 
     Variable Sh : Type.
