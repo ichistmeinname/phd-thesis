@@ -2122,6 +2122,47 @@ hypothesis of type \cinl{ForFree}.
 \subsection{A Little Case Study on Something}
 
 \section{First Ideas to Model Curry Programs}
+
+In this section we want to take a look at how to model the functional
+logic language Curry.
+As we have seen in previous chapters Curry combines the functional
+programming paradigm with concepts known from logic programming.
+More precisely, Curry combines non-strictness and non-determinism
+leading to a call-time-choice semantics.
+The approach we illustrated in the first sections enables to reason
+about non-strict functional programs.
+The difference that we want to illuminate in this section is that
+sharing expression via let-bindings in a model of Haskell with
+\hinl{undefined} values is an optimisation only, but cannot be
+observed by the programmer.
+In Curry, on the other side, we can observe the difference between
+sharing a non-deterministic computation that is evaluated once and
+duplicating non-deterministic computations due to Curry's call-time
+choice semantics.
+
+Before we dive deep into a potential implementation of call-time
+choice, we first model Curry's non-determinism effect using
+\cinl{Free}.
+Based on this implementation, we discuss why the models cannot express
+call-time choice and possible ideas to implement the intended semantics.
+
+There are two aspects we want to note here.
+
+First, the ideas we illustrate to model call-time choice can be used
+to incorporate sharing for other effects as well.
+For instance, a common extension of Haskell is the function
+\hinl{trace} that enables to track information of type \hinl{String}
+while evaluating a program.
+The effect of tracing results in an observable difference between
+sharing and duplicating an effectful expression.
+Hence, we need a similar technique for more involved effects than we
+have seen so far.
+
+Second, the ideas about how to model sharing are still
+work-in-progress.
+That is, we illustrate the motivation only and then reference related work that
+tackle similar problems and we think is applicable for our problem.
+
 \subsection{Non-Determinism as Effect}
 \subsection{Sharing as Effect}
 
