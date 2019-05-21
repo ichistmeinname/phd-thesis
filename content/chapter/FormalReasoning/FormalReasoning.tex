@@ -2164,6 +2164,93 @@ That is, we illustrate the motivation only and then reference related work that
 tackle similar problems and we think is applicable for our problem.
 
 \subsection{Non-Determinism as Effect}
+
+We discussed how to model totality and partiality using \cinl{Free} in
+\autoref{par:totality_container} and
+\autoref{par:partiality_container}, respectively.
+In the same manner, we now take a look at how to model
+non-determinism.
+With these definitions at hand, we define simple non-deterministic
+functions and prove exemplary properties.
+
+\paragraph{Representing Non-determinism using Containers}
+In Curry the built-in non-determinism effects comes with two
+primitives: \hinl{failed} to represent finite failures as known from
+logic programming as well as an operator \hinl{(?) :: a -> a -> a} to
+construct a non-deterministic choice between two expressions.
+
+That is, we define the functor representing the non-determinism effect
+using two constructors as follows. 
+
+\begin{minted}{coq}
+Inductive ND (A : Type) :=
+| choice : A -> A -> ND A
+| failed : ND A.
+\end{minted}
+
+In order to transfer this functor to its isomorphic container
+representation, we need to define the shapes and positions functions
+involved.
+As we have two constructor to represent, the corresponding type of
+shape is \cinl{bool}; here, we use \cinl{true} to represent
+\cinl{choice} and \cinl{false} to represent \cinl{failed}.
+In contrast to definitions of positions functions we have seen before,
+due to the two different shapes, we have to take the shape into
+account to determine the position type.
+That is, for the first time the dependently typed position function
+actually depends on the given shape.
+There are no position to access in case of the \cinl{failed}
+constructor and two possible positions --- the left or right argument
+--- in case of \cinl{choice}.
+Hence, we use \cinl{Empty} and \cinl{bool} as position types.
+
+\begin{minted}{coq}
+Definition ND__S := bool.
+Definition ND__P (s : ND__S) :=
+ match s with
+ | true  => bool
+ | false => Empty
+ end.
+\end{minted}
+
+As preparation to show that the constructed container is indeed
+isomorphic to the introduced functor, we define functions to transform
+values from one type to another and vice versa.
+
+\begin{minted}{coq}
+Definition from_ND A (nd : ND A) : Ext ND__S ND__P A :=
+ match nd with
+ | choice x y => ext true (fun (p : ND__P true) => if p then x else y)
+ | failed     => ext false (fun (p : ND__P false) => match p with end)
+ end.
+
+Definition to_ND A (e : Ext ND__S ND__P A) : ND A :=
+ match e with
+ | ext true  pf => choice (pf true) (pf false)
+ | ext false pf => failed
+ end.
+\end{minted}
+
+The only interesting part is the case of \cinl{choice}.
+In the definition of \cinl{from_ND} we decide between the left
+argument \cinl{x} and right argument \cinl{y} depending on the given
+position \cinl{p} that is of type \cinl{bool}.
+We then implement \cinl{to_ND} that complies to the its counterpart
+\cinl{from_ND}, i.e., we access the left argument using \cinl{true}
+and the right argument using \cinl{false}.
+
+These definitions indeed form an isomorphism; since we have already
+seen quite a few of these proofs, we refrain from showing the whole
+proof script here.
+
+\begin{minted}{coq}
+Lemma from_to_ND : forall (A : Type) (e : Ext ND__S ND__P A),
+   from_ND (to_ND e) = e.
+
+Lemma to_from_ND : forall (A : Type) (nd : ND A),
+   to_ND (from_ND nd) = nd.
+\end{minted}
+
 \subsection{Sharing as Effect}
 
 \section{Related Work}

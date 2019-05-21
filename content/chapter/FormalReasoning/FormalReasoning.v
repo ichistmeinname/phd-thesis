@@ -293,11 +293,9 @@ Module Free.
 
   Export Container.
 
-  Unset Elimination Schemes.
   Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
   | pure   : A -> Free Pos A
   | impure : forall s, (Pos s -> Free Pos A) -> Free Pos A.
-  Set Elimination Schemes.
 
   Arguments Free : clear implicits.
   Arguments pure {_} {_} {_}.
@@ -594,6 +592,7 @@ Module FreeList.
       end.
 
   End List_ind.
+
 
   Section append.
 
@@ -1343,3 +1342,103 @@ Section InductionPrinciple.
   Qed.
 
 End InductionPrinciple.
+
+Module Tree.
+
+  Inductive tree (A : Type) :=
+  | empty  : tree A
+  | leaf   : A -> tree A
+  | branch : tree A -> tree A -> tree A.
+
+  Arguments empty {_}.
+
+End Tree.    
+
+Module Nondeterminism.
+
+  Import Container.
+
+  Inductive ND (A : Type) :=
+  | choice : A -> A -> ND A
+  | failed : ND A.
+
+  Arguments failed {_}.
+
+  Definition ND__S := bool.
+  Definition ND__P (s : ND__S) :=
+    match s with
+    | true  => bool
+    | false => Empty
+    end.
+
+  Definition from_ND A (nd : ND A) : Ext ND__S ND__P A :=
+    match nd with
+    | choice x y => ext true (fun (p : ND__P true) => if p then x else y)
+    | failed     => ext false (fun (p : ND__P false) => match p with end)
+    end.
+
+  Definition to_ND A (e : Ext ND__S ND__P A) : ND A :=
+    match e with
+    | ext true  pf => choice (pf true) (pf false)
+    | ext false pf => failed
+    end.
+
+  Arguments from_ND / _ _ .
+  Arguments to_ND / _ _.
+
+  Lemma from_to_ND : forall (A : Type) (e : Ext ND__S ND__P A),
+      from_ND (to_ND e) = e.
+  Proof.
+    intros A e.
+    destruct e as [s pf]; simpl.
+    dependent destruction s; simpl.
+    - f_equal; extensionality p; destruct p;
+      reflexivity.
+    - f_equal; extensionality p; destruct p.
+  Qed.
+
+  Lemma to_from_ND : forall (A : Type) (nd : ND A),
+      to_ND (from_ND nd) = nd.
+  Proof.
+    intros A nd.
+    destruct nd; reflexivity.
+  Qed.
+
+  Import Tree.
+  Import Free.
+
+  Fixpoint to_tree A (fx : Free ND__S ND__P A) : tree A :=
+    match fx with
+    | pure x          => leaf x
+    | impure true  pf => branch (to_tree (pf true)) (to_tree (pf false))
+    | impure false pf => empty
+    end.
+
+  Fixpoint from_tree A (t : tree A) : Free ND__S ND__P A :=
+    match t with
+    | empty        => let '(ext s pf) := from_ND failed in impure s pf
+    | leaf x       => pure x
+    | branch t1 t2 => let '(ext s pf) := from_ND (choice (from_tree t1) (from_tree t2)) in impure s pf
+    end.
+
+  Lemma from_to_tree : forall (A : Type) (fx : Free ND__S ND__P A),
+      from_tree (to_tree fx) = fx.
+  Proof.
+    intros A fx.
+    induction fx as [x | s pf]; simpl;
+      try reflexivity.
+    dependent destruction s; simpl;
+      do 2 f_equal; extensionality p; destruct p;
+        apply H.
+  Qed.
+
+  Lemma to_from_tree : forall (A : Type) (t : tree A),
+      to_tree (from_tree t) = t.
+  Proof.
+    intros A t.
+    induction t as [ | x | t1 IHt1 t2 IHt2 ]; simpl;
+      try rewrite IHt1, IHt2; reflexivity.
+  Qed.
+
+End Nondeterminism.
+
