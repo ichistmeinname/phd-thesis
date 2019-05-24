@@ -957,6 +957,9 @@ Module Primitives.
     Variable Sh : Type.
     Variable Ps : Sh -> Type.
 
+    Definition TTrue  : Free Sh Ps bool := pure true.
+    Definition FFalse : Free Sh Ps bool := pure false.
+
     Definition liftM1 A R (f : A -> R) (x : Free Sh Ps A) : Free Sh Ps R :=
       x >>= fun x' => pure (f x').
     Definition liftM2 A B R (f : A -> B -> R) (x : Free Sh Ps A) (y : Free Sh Ps B) : Free Sh Ps R :=
@@ -965,6 +968,9 @@ Module Primitives.
       x >>= fun x' => y >>= fun y' => z >>= fun z' => pure (f x' y' z').
 
   End Definitions.
+
+  Arguments TTrue {_} {_}.
+  Arguments FFalse {_} {_}.
 
 End Primitives.
 
@@ -1442,3 +1448,241 @@ Module Nondeterminism.
 
 End Nondeterminism.
 
+Module ND_Examples.
+
+  Import LtacGoodies.
+  Import Nondeterminism.
+  Import Free.
+  Import FreeList.
+  Import Primitives.
+
+  Definition FreeND := Free ND__S ND__P.
+  Definition ListND := List ND__S ND__P.
+
+  Definition Failed (A : Type) : FreeND A := impure false (fun (p : ND__P false) => match p with end).
+  Notation "x ? y" := (impure true (fun (p : ND__P true) => if p then x else y)) (at level 28, right associativity).
+
+  Arguments Failed {_}.
+  
+  Definition coin : FreeND bool :=
+    TTrue ? FFalse.
+
+  Definition oneOrTwo : FreeND nat :=
+    pure 1 ? pure 2.
+  
+  Section Generic.
+
+    Variable Sh : Type.
+    Variable Pos : Sh -> Type.
+    Definition Free' := Free Sh Pos.
+    Definition List' := List Sh Pos.
+
+    Fixpoint insert' (fx : Free' nat) (xs : List' nat) : Free' (List' nat) :=
+      match xs with
+      | nil         => Cons fx Nil
+      | cons fy fys => fx >>= fun x => fy >>= fun y =>
+                                            if Nat.leb x y
+                                            then Cons (pure x) (Cons (pure y) fys)
+                                            else Cons (pure y) (fys >>= fun ys => insert' fx ys)
+      end.
+    
+    Definition insert (fx : Free' nat) (fxs : Free' (List' nat)) : Free' (List' nat) :=
+      fxs >>= fun xs => insert' fx xs.
+
+    Fixpoint sort' (xs : List' nat) : Free' (List' nat) :=
+      match xs with
+      | nil => Nil
+      | cons fx fxs => insert fx (fxs >>= sort')
+      end.
+
+    Definition sort (fxs : Free' (List' nat)) : Free' (List' nat) :=
+      fxs >>= sort'.
+
+    Fixpoint length' (A : Type) (xs : List' A) : Free' nat :=
+      match xs with
+      | nil        => pure 0
+      | cons _ fxs => liftM1 (fun n => S n) (fxs >>= fun xs => length' xs)
+      end.
+
+    Definition length (A : Type) (fxs : Free' (List' A)) : Free' nat :=
+      fxs >>= fun xs => length' xs.
+
+    Fixpoint replicate' (A : Type) (n : nat) (fx : Free' A) : Free' (List' A) :=
+      match n with
+      | 0   => Nil
+      | S n => Cons fx (replicate' n fx)
+      end.
+
+    Definition replicate (A : Type) (fn : Free' nat) (fx : Free' A) : Free' (List' A) :=
+      fn >>= fun n => replicate' n fx.
+
+    Definition even (fn : Free' nat) : Free' bool :=
+      liftM1 Nat.even fn.
+
+    Definition inc (fn : Free' nat) : Free' nat :=
+      liftM1 (fun n => S n) fn.
+
+    Section Normalform.
+
+      Variable A : Type.
+      Variable nfA : Free' A -> Free' A.
+
+      Fixpoint nfList' (xs : List' A) : Free' (List' A) :=
+        match xs with
+        | nil         => Nil
+        | cons fx fxs => nfA fx >>= fun x' => fxs >>= fun xs => nfList' xs >>= fun xs' => Cons (pure x') (pure xs')
+        end.
+
+      Definition nfList (fxs : Free' (List' A)) : Free' (List' A) :=
+        fxs >>= nfList'.
+
+      Definition nfNat (fn : Free' nat) : Free' nat :=
+        fn >>= fun n =>
+                 match n with
+                 | 0   => pure 0
+                 | S n => pure (S n)
+                 end.
+
+    End Normalform.
+
+  End Generic.
+
+
+  Section ND_specific.
+
+    Fixpoint ndInsert' (A : Type) (fx : FreeND A) (xs : ListND A)
+      : FreeND (ListND A) :=
+      match xs with
+      | nil         => Cons fx Nil
+      | cons fy fys => (Cons fx (Cons fy fys))
+                    ? (Cons fy (fys >>= fun ys => ndInsert' fx ys))
+      end.
+
+    Definition ndInsert (A : Type) (fx : FreeND A) (fxs : FreeND (ListND A))
+      : FreeND (ListND A) :=
+      fxs >>= fun xs => ndInsert' fx xs.
+
+    Fixpoint perm' (A : Type) (xs : ListND A) : FreeND (ListND A) :=
+      match xs with
+      | nil         => Nil
+      | cons fx fxs => ndInsert fx (fxs >>= fun xs => perm' xs)
+      end.
+
+    Definition perm (A : Type) (fxs : FreeND (ListND A)) : FreeND (ListND A) :=
+      fxs >>= fun xs => perm' xs.
+
+    Fixpoint replicateND' (A : Type) (n : nat) (fx : FreeND A) : FreeND A :=
+      match n with
+      | 0   => fx
+      | S n => fx ? (replicateND' n fx)
+      end.
+
+    Definition replicateND (A : Type) (fn : FreeND nat) (fx : FreeND A) : FreeND A :=
+      fn >>= fun n => replicateND' n fx.
+
+
+  End ND_specific.
+  Section Examples.
+
+    Lemma hInFreeNDCoin : InFreeND eq TTrue coin.
+    Proof.
+      repeat constructor.
+    Qed.
+
+    Import Primitives.
+    Import ListEffectFree.
+
+    Lemma even_coin' :
+      even (liftM2 mult oneOrTwo (pure 2)) = TTrue ? TTrue.
+    Proof.
+      simpl.
+      f_equal; extensionality p.
+      destruct p; reflexivity.
+    Qed.
+
+    Lemma even_coin :
+      even (liftM2 mult oneOrTwo (pure 2)) = TTrue ? TTrue.
+    Proof.
+      simpl even.
+      f_equal; extensionality p.
+      destruct p.
+      + simpl liftM2.
+        simpl even.
+        reflexivity.
+      + simpl liftM2.
+        simpl even.
+        reflexivity.
+    Qed.
+
+    Lemma even_coin_forFree :
+      ForFree (fun b => b = true) (even (liftM2 mult oneOrTwo (pure 2))).
+    Proof.
+      simpl; constructor.
+      intros p; destruct p; repeat constructor.
+    Qed.
+
+    Lemma even_coin_allND :
+      AllND (fun fb => fb = TTrue) (even (liftM2 mult oneOrTwo (pure 2))).
+    Proof.
+      simpl; constructor.
+      intros p; destruct p; repeat constructor.
+    Qed.
+
+    Lemma pulltab_inc :
+      forall (fx fy : FreeND nat),
+        inc (fx ? fy) = inc fx ? inc fy.
+    Proof with (simpl).
+      intros fx fy...
+      f_equal; extensionality p.
+      destruct p; reflexivity.
+    Qed.
+      
+    Lemma pulltab_f_strict :
+      forall (A B : Type) (f : FreeND A -> FreeND B) (fx fy : FreeND A),
+        (forall fz, f fz = fz >>= fun z => f (pure z)) ->
+        f (fx ? fy) = f fx ? f fy.
+    Proof with (simpl).
+      intros A B f fx fy Hstrict.
+      rewrite (Hstrict (fx ? fy))...
+      f_equal; extensionality p.
+      destruct p; rewrite Hstrict; reflexivity.
+    Qed.
+
+    Lemma length_Cons : forall (fx : FreeND nat) fxs,
+        length (Cons fx fxs) = liftM1 (fun n => S n) (length fxs).
+    Proof.
+      intros fx fxs.
+      inductFree fxs as [xs |].
+      induction xs; reflexivity.
+    Qed.
+
+    Lemma ndInsert_inc :
+      AllND (fun fxs => length fxs = pure 3)
+            (ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil))).
+    Proof.
+      simpl. apply forImpure.
+      intros p; destruct p.
+      - apply forPure. reflexivity.
+      - apply forPure.
+        rewrite length_Cons.
+        rewrite pulltab_f_strict
+          with (f := fun fx => liftM1 (fun n => S n) (length fx)); simpl.
+          * admit.
+          * intros fxs; inductFree fxs as [ xs| ]; reflexivity.
+    Abort.
+    
+    Lemma ndInsert_inc :
+      AllND (fun fxs => length fxs = pure 3) (nfList (fun x => x) (ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)))).
+    Proof with (simpl).
+      simpl; constructor.
+      intros p; destruct p...
+      - constructor; reflexivity.
+      - constructor...
+        intros p; destruct p...
+        + constructor; reflexivity.
+        + constructor; reflexivity.
+    Qed.
+
+  End Examples.
+
+End ND_Examples.

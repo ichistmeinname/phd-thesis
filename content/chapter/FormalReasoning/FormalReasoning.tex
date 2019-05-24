@@ -2251,6 +2251,295 @@ Lemma to_from_ND : forall (A : Type) (nd : ND A),
    to_ND (from_ND nd) = nd.
 \end{minted}
 
+\subsubsection{Proving Properties About Non-deterministic Functions}
+
+In the following sections the suffix \cinl{ND} for types is used as synonym
+for the concrete instantiation of data typues with the non-determinism
+effect, e.g., \cinl{FreeND = Free ND__S ND__P} and \cinl{ListND = List
+  ND__S ND__P}.
+
+We define the following primitives \cinl{Failed} and \cinl{Choice} to
+construct values introduced by the non-determinism effect; we use the
+operation \cinl{?} as notation for the latter primitive.
+
+\begin{minted}{coq}
+Definition Failed (A : Type) : FreeND A :=
+  impure false (fun (p : ND__P false) => match p with end).
+Definition Choice (A : Type) (fx : FreeND A) (fy : FreeND A) :=
+  impure true (fun (p : ND__P true) => if p then fx else fy).
+\end{minted}
+
+\paragraph{First Example}
+For our first example we will work on a non-deterministic (positive)
+number that is the choice between \cinl{1} and \cinl{2}.
+Note, that we work with (positive) numbers as representatives for
+\hinl{Int} values in Curry, that is, these numbers are primitive and
+only need to be lifted at the top-level constructor.
+Thus, we reuse Coq's type for Peano numbers \cinl{nat} to model
+positive numbers.
+
+\begin{minted}{coq}
+Definition oneOrTwo : FreeND nat :=
+  pure 1 ? pure 2.
+\end{minted}
+
+We define the following function \cinl{even} for arbitrary effects
+based on primitive operations already predefined in Coq on \cinl{nat}
+values.
+
+\begin{minted}{coq}
+Definition even (fn : Free nat) : Free bool :=
+  liftM1 Nat.even fn.
+
+Definition liftM1 A R (f : A -> R) (x : Free A) : Free R :=
+  x >>= fun x' => pure (f x').
+\end{minted}
+
+Here, the auxiliary function \cinl{liftM1} is used to lift primitive
+functions --- like addition on Peano numbers.
+We will additionally use the notations \cinl{TTrue} and \cinl{FFalse},
+respectively, for lifted Boolean values to distinguish them more
+comfortably from Coq's primitive Boolean values.
+
+Now we are ready for some simple propositions about the defined
+functions.
+In the first example we prove that multiplying the non-deterministic
+computation \cinl{oneOrTwo} yields \cinl{TTrue} and \cinl{TTrue}
+non-deterministically.
+That is, doubling the value \cinl{oneOrTwo} is always even.
+
+\begin{minted}{coq}
+Lemma even_coin' : even (liftM2 mult oneOrTwo (pure 2)) = TTrue ? TTrue.
+\end{minted}
+
+As an alternative formulation of this proposition, we can reuse the
+relation \cinl{ForFree} to define a relation \cinl{AllND} to check a
+given predicate for all values of a non-deterministic computation.
+
+\begin{minted}{coq}
+Definition AllND (A : Type) (P : FreeND A -> Prop) (fx : FreeND A) : Prop :=
+  ForFree (fun x => P (pure x)) fx.
+\end{minted}
+
+Given the relation \cinl{AllND}, we can simplify the statement above
+using a suitable proposition instead of reconstructing all
+non-deterministic choices on the right-hand side manually.
+
+\begin{minted}{coq}
+Lemma even_coin_allND :
+  AllND (fun fb => fb = TTrue) (even (liftM2 mult oneOrTwo (pure 2))).
+\end{minted}
+
+\paragraph{Second Example}
+For the second example we consider the function \cinl{inc}.
+
+\begin{minted}{coq}
+Definition inc (fn : Free nat) : Free nat :=
+  liftM1 (fun n => S n) fn.
+\end{minted}
+
+We prove that applying the function \cinl{inc} to a non-deterministic
+choice between two values is equivalent to applying the function to
+both sides of the choice.
+
+\begin{minted}{coq}
+Lemma pulltab_inc : forall (fx fy : FreeND nat),
+  inc (fx ? fy) = inc fx ? inc fy.
+\end{minted}
+
+We can generalise this property of Curry's evaluation, sometimes
+called \emph{pull-tabbing}, for any strict function.
+The strictness property states that applying the function to an
+argument is equivalent to evaluating its argument to head-normal-form
+first and applying the function the pure value.
+
+\begin{minted}{coq}
+Lemma pulltab_if_strict : forall (A B : Type)
+  (f : FreeND A -> FreeND B) (fx fy : FreeND A)
+  (Hstrict : forall fz, f fz = fz >>= fun z => f (pure z)),
+   f (fx ? fy) = f fx ? f fy.
+\end{minted}
+
+
+\paragraph{Third Example}
+The third example considers not only a non-deterministic computation
+but a non-deterministic function.
+The function \cinl{ndInsert} non-deterministically inserts a value at
+each position of a list.
+
+\begin{minted}{coq}
+Fixpoint ndInsert' (A : Type) (fx : FreeND A) (xs : ListND A)
+ : FreeND (ListND A) :=
+ match xs with
+ | nil         => Cons fx Nil
+ | cons fy fys => Cons fx (Cons fy fys)
+                ? Cons fy (fys >>= fun ys => ndInsert' fx ys)
+ end.
+
+Definition ndInsert (A : Type) (fx : FreeND A) (fxs : FreeND (ListND A))
+ : FreeND (ListND A) :=
+ fxs >>= fun xs => ndInsert' fx xs.
+\end{minted}
+
+Note, that due to the recursive structure of the function, we need to
+split the definition into two parts as already described
+in \autoref{subsec:partial} and \autoref{subsec:liftedFunctions}.
+
+The property we want to define about \cinl{ndInsert} states that for
+each resulting list, the length of the list increases by one in
+contrast to the original list.
+The used definition for \cinl{length} is defined as follows for an
+arbitrary effect.
+
+\begin{minted}{coq}
+Fixpoint length' (A : Type) (xs : List' A) : Free nat :=
+  match xs with
+  | nil        => pure 0
+  | cons _ fxs => liftM1 (fun n => S n) (fxs >>= fun xs => length' xs)
+  end.
+
+Definition length (A : Type) (fxs : Free (List A)) : Free nat :=
+  fxs >>= fun xs => length' xs.
+\end{minted}
+  
+More precisely, the property we define is more specific, as we do not
+generalise of the list argument, but show it for a concrete list only.
+Let's take a more detailed look at this example, as the first try to
+prove the property fails.
+After simplifying the expression, that is, evaluating the expression
+\begin{minted}{coq}
+  ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil))
+\end{minted}
+the goal looks as follows.
+
+\begin{minted}{coq}
+AllND (fun fxs => length fxs = pure 3)
+      (ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil))).
+Proof.
+ simpl.
+
+  ============================
+  AllND (fun fxs => length fxs = pure 3)
+    (Cons (pure 1) (Cons (pure 1) (Cons (pure 2) Nil))
+     ? Cons (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)
+     ? Cons (pure 2) (Cons (pure 1) Nil)))
+ \end{minted}
+
+As \cinl{AllND} is defined via \cinl{ForFree}, we can use the second
+rule of the relation to process the goal.
+Based on the decision for the non-deterministic choice, we get the
+first resulting list for the left branch and the recursive call for
+the right branch.
+We make a case distinction on that decision to proceed, which results
+in two subgoals.
+
+\begin{minted}{coq}
+ apply forImpure.
+ intros p; destruct p.
+
+  ============================
+  ForFree (fun x => length' x = pure 3)
+            (Cons (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)))
+
+  ForFree (fun x => length' x = pure 3)
+           (Cons (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)
+           ? Cons (pure 2) (Cons (pure 1) Nil)))
+\end{minted}
+
+For the first subgoal, we use the first rule of the
+\cinl{ForFree}-relation to handle the pure list constructor and then
+only need to show that the list has indeed \cinl{pure 3} elements.
+
+\begin{minted}{coq}
+ - apply forPure. reflexivity.
+\end{minted}
+
+In the second subgal the outermost constructor is the pure list
+constructor \cinl{Const}, that is, we use the first rule of the
+\cinl{ForFree}-relation again to process the goal.
+
+\begin{minted}{coq}
+ - apply forPure.
+
+  ============================
+  length (Cons (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)
+         ? Cons (pure 2) (Cons (pure 1) Nil)))
+  = pure 3
+\end{minted}
+
+When restructuring the left-hand side of the goal, we can unroll the
+definition of \cinl{length} once\footnote{This unrolling is a
+  simplified illustration for the reader and not exactly the
+  expression that Coq yields when using the tactic \cinl{simpl}
+  here. We can, however, define a lemma that proves the simplification
+is valid.}, yielding the following expression.
+
+\begin{minted}{coq}
+  ============================
+  liftM1 (fun n => S n) (length (Cons (pure 1) (Cons (pure 2) Nil)
+                                ? Cons (pure 2) (Cons (pure 1) Nil)))
+  = pure 3
+\end{minted}
+
+Fortunately, we know from one of the preceding examples that a strict
+functions applied to non-deterministic perform a pull-tab step.
+That is, we can rewrite the above equation as follows.
+Note that we can prove the hypothesis about the strictness of the
+applied function \cinl{liftM1 (fun n => S n) . length} by induction on
+the argument of type \cinl{FreeND (ListND nat)}.
+
+\begin{minted}{coq}
+  rewrite pulltab_f_strict
+    with (f := fun fxs => liftM1 (fun n => S n) (length fxs)); simpl.
+
+  ============================
+  pure 3 ? pure 3 = pure 3
+\end{minted}
+
+We finally realise that we have a non-deterministic choice on the
+left-hand side, while we have a pure value on the right-hand side.
+That is, we cannot prove this property.
+The problem with the original property is that we disregarded that the
+non-determinism introduced by the function \cinl{ndInsert} occurs
+nested in the list constructors.
+
+We regain the correctness of the property we initially wanted to state
+by evaluating the resulting list to normal-form, that is, pulling all
+nested occurrences of non-deterministic choices to the top-level.
+Remember that in our setting the usage of the operator \cinl{>>=}
+mimics the evaluation to head-normal-form, that is, we can define the
+evaluation to normal-form by traversing a given data structure and
+evaluating all constructor arguments to head-normal-form.
+Here, we only present the definition for \cinl{ListND nat}, but note that
+the nature of the functions is more generic, that is, we can use the
+same definition for arbitrary effects and arbitrary types.
+Taking this idea one step further, we could define an overloaded
+function \cinl{nf} using a type class and implement instances for all
+translated data types.
+
+\begin{minted}{coq}
+Fixpoint nfList' (ns : ListND nat) : FreeND (ListND nat) :=
+ match ns with
+ | nil         => Nil
+ | cons fn fns => fn >>= fun x' =>
+                  (fns >>= fun ns => nfList' ns) >>= fun ns' =>
+                  Cons (pure n') (pure ns')
+ end.
+
+Definition nfList (fns : FreeND (ListND nat)) : FreeND (ListND nat) :=
+ fns >>= nfList'.
+\end{minted}
+
+Using the function \cinl{nfList}, we redefine the property by
+evaluating the list argument to normal-form and finally succeed with
+the proof.
+
+\begin{minted}{coq}
+Lemma ndInsert_inc :
+  AllND (fun fxs => length fxs = pure 3)
+        (nfList (ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)))).
+\end{minted}
+
 \subsection{Sharing as Effect}
 
 \section{Related Work}
