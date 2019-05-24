@@ -344,6 +344,7 @@ Definition append (A : Type) (oxs oys : partial (List A))
 \end{minted}
 
 \subsection{Generalisation Attempt}
+\label{subsec:genericLifting}
 
 Up to now, we have seen an encoding of Haskell programs in Coq that
 lifts all Haskell values to \cinl{partial} values.
@@ -545,7 +546,7 @@ required in Coq; (2) Why is our definition \cinl{List} non strictly
 positive as well, there is not even an arrow in the arguments' type of
 \cinl{cons}?
 
-\paragraph{Why does Coq require the strict positivity of data type
+\subsubsection{Why does Coq require the strict positivity of data type
   definitions?}
 
 Let us for a moment assume that the definition of
@@ -604,7 +605,7 @@ general recursion and Coq's logic becomes inconsistent.
 In order to ensure the consistency of Coq's logic, the strict
 positivity requirement needs to be enforced for data type definitions.
 
-\paragraph{Why does \cinl{List} not fulfil the strict positivity requirement?}
+\subsubsection{Why does \cinl{List} not fulfil the strict positivity requirement?}
 
 Now we know what Coq is nagging about when the error message about a
 non strictly positive occurrences for data type definitions appears.
@@ -784,8 +785,8 @@ Inductive List (Shape : Type) (Pos : Shape -> Type) A :=
 | cons : Free Shape Pos A -> Free Shape Pos (List Pos A) -> List Shape Pos A.
 \end{minted}
 
-\paragraph{Representing Partiality using Free Monads and Containers}
-\label{par:partiality_container}
+\subsubsection{Representing Partiality using Free Monads and Containers}
+\label{subsub:partiality_container}
 
 In order to understand better how we can work with our lifted data
 types based on \cinl{Free}, we will start with a representation of
@@ -905,8 +906,8 @@ Proof.
 Qed.
 \end{minted}
 
-\paragraph{Representing Totality using Free Monads and Containers}
-\label{par:totality_container}
+\subsubsection{Representing Totality using Free Monads and Containers}
+\label{subsub:totality_container}
 In order to see a second effect, we find some inspiration by
 \citet{abel2005verifying} who are interested in two effects:
 partiality and totality.
@@ -1032,7 +1033,7 @@ Proof.
 Qed.
 \end{minted}
 
-\paragraph{Other Containers and Limitations}
+\subsubsection{Other Containers and Limitations}
 
 We will later see that monads like tree and list, which are usually
 used when modelling non-determinism, can be represented using our
@@ -1079,6 +1080,7 @@ In the end, we have to keep in mind that our approach using
 can only represent monad that correspond to strictly positive types.
 
 \subsection{Working with Free to Define Lifted Functions}
+\label{subsec:liftedFunctions}
 
 With the definition of \cinl{List} using \cinl{Free} to model generic
 effectful lists at hand, we can take a look at the definition of the
@@ -1395,10 +1397,10 @@ Thus, we explain the details of the proof from a more abstract
 perspective rather than diving deep into the technical details of the
 used tactics.
 
-\paragraph{Totality}
+\subsubsection{Totality}
 In order to refresh the memory, the definition of the
 container to represent total programs shown in
-\autoref{par:totality_container} looks as follows.
+\autoref{subsub:totality_container} looks as follows.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition Zero!$_\text{S}$! := Empty.
@@ -1548,11 +1550,11 @@ The main difference between the above proof and a proof for
 associativity of the append function ordinary lists is the unboxing of
 the additional \cinl{Free}-layer of the list argument.
 
-\paragraph{Partiality}
+\subsubsection{Partiality}
 As next step, we consider an actual effect: partiality.
 Again, we recall the definition of the container to represent partiality
 when using \cinl{Free} as introduced in
-\autoref{par:partial_container}.
+\autoref{subsub:partial_container}.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition One!$_\text{S}$! := unit.
@@ -1634,7 +1636,7 @@ With \cinl{One__P s} being a renaming for \cinl{Empty}, the position
 
 We follow the same approach to finish the second \cinl{impure}-case.
 
-\paragraph{Generic Effect}
+\subsubsection{Generic Effect}
 Last but not least, we take a look at a generic proof for the
 associativity of append.
 
@@ -1715,7 +1717,7 @@ This last subgoal then finishes the proof.
 Qed.
 \end{minted}
 
-\paragraph{The Generic Proof Owns them All}
+\subsubsection{The Generic Proof Owns them All}
 
 Now comes the best part.
 The generic proof is applicable for the concrete proofs in the total
@@ -1760,7 +1762,7 @@ each data type declaration using \cinl{Inductive}.
 The induction principle for a inductive type \cinl{T} is available as
 function named \cinl{T_ind}.
 
-\paragraph{Induction on Peano Numbers}
+\subsubsection{Induction on Peano Numbers}
 Let us take a look at an example: the induction principle for Peano
 numbers \cinl{nat}.
 
@@ -1852,7 +1854,7 @@ That is, we need to introduce these variables ourselves, but can then
 prove the goal using the induction hypothesis like in the first
 variant.
 
-\paragraph{Induction on Free and List}
+\subsubsection{Induction on Free and List}
 
 Since our proofs depend on induction on values of type \cinl{Free}, we
 will now consider the corresponding induction principle that Coq
@@ -2166,14 +2168,14 @@ tackle similar problems and we think is applicable for our problem.
 \subsection{Non-Determinism as Effect}
 
 We discussed how to model totality and partiality using \cinl{Free} in
-\autoref{par:totality_container} and
-\autoref{par:partiality_container}, respectively.
+\autoref{subsub:totality_container} and
+\autoref{subsub:partiality_container}, respectively.
 In the same manner, we now take a look at how to model
 non-determinism.
 With these definitions at hand, we define simple non-deterministic
 functions and prove exemplary properties.
 
-\paragraph{Representing Non-determinism using Containers}
+\subsubsection{Representing Non-determinism using Containers}
 In Curry the built-in non-determinism effects comes with two
 primitives: \hinl{failed} to represent finite failures as known from
 logic programming as well as an operator \hinl{(?) :: a -> a -> a} to
