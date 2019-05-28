@@ -1683,6 +1683,176 @@ Module ND_Examples.
         + constructor; reflexivity.
     Qed.
 
+    Section CallTimeChoice.
+
+      Section Definitions.
+
+        Variable Sh : Type.
+        Variable Ps : Sh -> Type.
+
+        Definition and (fb1 fb2 : Free Sh Ps bool) : Free Sh Ps bool :=
+          fb1 >>= fun b1 => match b1 with
+                         | true  => fb2
+                         | false => FFalse
+                         end.
+
+        Definition doublePlus (fx : Free Sh Ps nat) : Free Sh Ps nat :=
+          liftM2 plus fx fx.
+
+        Definition doubleMult (fx : Free Sh Ps nat) : Free Sh Ps nat :=
+          liftM2 mult fx (pure 2).
+
+      End Definitions.
+
+      Section Propositions.
+
+        Import Partiality.
+
+        Definition Undefined (A : Type) : Free One__S One__P A :=
+          impure tt (fun p : One__P tt => match p with end).
+
+        Arguments Undefined / {_}.
+
+        Lemma even_doubleMult_Undefined :
+          even (doubleMult Undefined) = Undefined.
+        Proof.
+          simpl.
+          f_equal; extensionality p.
+          destruct p.
+        Qed.
+
+        Lemma even_doublePlus_Undefined :
+          even (doublePlus Undefined) = Undefined.
+        Proof.
+          simpl.
+          f_equal; extensionality p.
+          destruct p.
+        Qed.
+
+        Lemma even_doubleMult_Failed :
+          even (doubleMult Failed) = Failed.
+        Proof.
+          simpl.
+          f_equal; extensionality p.
+          destruct p.
+        Qed.
+
+        Lemma even_doubleMult_Choice :
+          even (doubleMult oneOrTwo) = TTrue ? TTrue.
+        Proof.
+          simpl.
+          f_equal; extensionality p.
+          destruct p; reflexivity.
+        Qed.
+
+        Lemma even_doublePlus_Failed :
+          even (doublePlus Failed) = Failed.
+        Proof.
+          simpl.
+          f_equal; extensionality p.
+          destruct p.
+        Qed.
+
+        Lemma even_doublePlus_Choice :
+          even (doublePlus oneOrTwo) = TTrue ? TTrue.
+        Proof.
+          simpl.
+          f_equal; extensionality p.
+          destruct p.
+          - (* even (pure 1 + oneOrTwo) = TTrue *)
+            admit.
+          - (* even (pure 2 + oneOrTwo) = TTrue *)
+            admit.
+        Abort.
+
+        Lemma even_doublePlus_Choice :
+          even (doublePlus oneOrTwo) = (TTrue ? FFalse) ? (FFalse ? TTrue).
+        Proof.
+          simpl.
+          f_equal; extensionality p.
+          destruct p; simpl.
+          - f_equal; extensionality p.
+            destruct p; reflexivity.
+          - f_equal; extensionality p.
+            destruct p; reflexivity.
+        Qed.
+
+        Lemma doublePlus_inline :
+          doublePlus oneOrTwo = liftM2 plus oneOrTwo oneOrTwo.
+        Proof.
+          reflexivity.
+        Qed.
+
+        Lemma doubleMult_inline :
+          doubleMult oneOrTwo = pure 2 ? pure 4.
+        Proof.
+          simpl. f_equal. extensionality p.
+          destruct p; reflexivity.
+        Qed.
+
+        Definition doubleSharePos (fn : FreeND nat) : FreeND nat :=
+          match fn with
+          | pure _      => liftM2 plus fn fn
+          | impure s pf => impure s (fun p => doublePlus (pf p))
+          end.
+
+        Lemma even_doubleSharePos_Choice :
+          even (doubleSharePos oneOrTwo) = TTrue ? TTrue.
+        Proof.
+          simpl.
+          f_equal; extensionality p.
+          destruct p; reflexivity.
+        Qed.
+
+        Definition shareStrict (A : Type) (fx : FreeND A) : FreeND (FreeND A) :=
+          match fx with
+          | pure x      => pure (pure x)
+          | impure s pf => impure s (fun p => pure (pf p))
+          end.
+
+        Definition doubleShare (fn : FreeND nat) : FreeND nat :=
+          shareStrict fn >>= fun fn' => doublePlus fn'.
+
+        Lemma even_doubleShare_Choice :
+          even (doubleShare oneOrTwo) = TTrue ? TTrue.
+        Proof.
+          simpl.
+          f_equal; extensionality p.
+          destruct p; reflexivity.
+        Qed.
+
+        Definition const2 (A B C: Type)
+                   (fx : FreeND A) (fy : FreeND B) (fz : FreeND C) :=
+          fx.
+        (* const2 42 x x *)
+        Definition example_with_const2 (A B : Type) (fx : FreeND A) (fy : FreeND B) :=
+          shareStrict fy >>= fun fy' => const2 fx fy' fy'.
+
+        Lemma share_with_const2 :
+          forall (A : Type) (fx : FreeND A),
+            example_with_const2 fx oneOrTwo = fx.
+        Proof.
+          intros A fx.
+          unfold example_with_const2; simpl.
+          (* const2 fx (pure 1) (pure 1) ? const2 fx (pure 2) (pure 2) = fx *)
+          admit.
+        Abort.
+
+        Lemma share_with_const2 :
+          forall (A : Type) (fx : FreeND A),
+            example_with_const2 fx oneOrTwo = fx ? fx.
+        Proof.
+          intros A fx.
+          unfold example_with_const2; simpl.
+          f_equal; extensionality p; destruct p; reflexivity.
+          (* const2 fx (pure 1) (pure 1) = fx *)
+          (* const2 fx (pure 2) (pure 2) = fx *)
+        Qed.
+          
+      End Propositions.
+
+    End CallTimeChoice.
+
   End Examples.
 
 End ND_Examples.

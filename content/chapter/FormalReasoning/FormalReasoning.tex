@@ -2544,6 +2544,128 @@ Lemma ndInsert_inc :
 
 \subsection{Sharing as Effect}
 
+The preceding examples illustrate how to model simple
+non-deterministic values and functions and prove properties about
+them.
+The model we use so far, however, is not a suitable model for Curry's
+call-time choice semantics.
+The difference between Curry's call-time choice semantics and the
+non-strict non-determinism we are currently able to model can be
+generalised to a difference between call-by-name and call-by-need.
+In the following, we will compare our example definition of
+\cinl{double} with an alternative version to exhibit the call-by-name
+behaviour of our model.
+
+Consider the following two implementations for doubling a number: the
+first version multiplies the given value by two and the second version
+uses addition instead.
+
+\begin{minted}{coq}
+Definition doubleMult (fx : Free nat) : Free nat :=
+  liftM2 mult fx (pure 2).
+
+Definition doublePlus (fx : Free nat) : Free nat :=
+  liftM2 plus fx fx.
+\end{minted}
+
+As we know from the proof in \autoref{par:firstNDExample}, doubling
+the non-deterministic computation \cinl{oneOrTwo} yields \cinl{True}
+for both non-deterministic branches.
+
+\begin{minted}{coq}
+Lemma even_doubleMult_Choice :
+  even (doubleMult oneOrTwo) = TTrue ? TTrue.
+\end{minted}{coq}
+
+We can, however, not prove the same property for \cinl{doublePlus} as
+the expression yields four instead of two results.
+
+\begin{minted}{coq}
+Lemma even_doublePlus_Choice :
+ even (doublePlus oneOrTwo) = TTrue ? TTrue.
+Proof.
+  simpl. f_equal. extensionality p.
+  destruct p.
+  - (* even (pure 1 + oneOrTwo) = TTrue *)
+    simpl.
+    (* even (pure 2) ? even (pure 3) = TTrue *)
+    admit.
+  - (* even (pure 2 + oneOrTwo) = TTrue *)
+    simpl.
+    (* even (pure 3) ? even (pure 4) = TTrue *)
+    admit.
+Abort.
+\end{minted}
+
+The argument \cinl{oneOrTwo} is evaluated two times: once as first
+argument of the addition and once as the second one.
+The two occurrences of the variable \cinl{fx} in the
+definition of \cinl{doublePlus} result in two individual evaluations.
+That is, the expression is equivalent to the inlined version using
+addition directly on two individual calls to the non-deterministic
+computation \cinl{oneOrTwo}.
+Applying the predicate \cinl{even} to this computation then yields
+four results, which we illustrate with the second proof.
+
+\begin{minted}{coq}
+Lemma doublePlus_inline :
+  doublePlus oneOrTwo = liftM2 plus oneOrTwo oneOrTwo.
+
+Lemma even_doublePlus_Choice :
+  even (doublePlus oneOrTwo) = (TTrue ? FFalse) ? (FFalse ? TTrue).
+\end{minted}
+
+Note, that the expression \cinl{doubleMult oneOrTwo} introduces just
+one level of non-determinism and is, thus, equivalent to \cinl{pure 2
+  ? pure 4}.
+
+\begin{minted}{coq}
+Lemma doubleMult_inline :
+  doubleMult oneOrTwo = pure 2 ? pure 4.
+\end{minted}{coq}
+
+Hence, the unwanted behaviour origins from duplicating
+non-deterministic expression: in the definition of \cinl{doublePlus}
+we use the argument \cinl{fx} two times on the right-hand side of the
+definition.
+Note, that the same unwanted behaviour when using \cinl{doublePlus}
+cannot be observed when applying the function to the value \cinl{Failed}.
+
+\begin{minted}{coq}
+Lemma even_doublePlus_Failed :
+  even (doubleMult Failed) = Failed.
+
+We observe here that the difference between call-by-name and
+call-by-need, i.e., between sharing a value or duplicating its
+evaluation, cannot be observed for effects like partiality (here:
+\cinl{Failed}) but becomes observable for an effect like
+non-determinism.
+
+In order to regain the property that we want to prove, we need to
+evaluate a shared non-deterministic computation once and use the pure
+value of that computation for all occurrences in the expression.
+
+We can mimic this behaviour with the following redefinition of
+\cinl{doublePlus}.
+
+\begin{minted}{coq}
+Definition doubleSharePos (fn : FreeND nat) : FreeND nat :=
+  match fn with
+  | pure _      => liftM2 plus fn fn
+  | impure s pf => impure s (fun p => doublePlus (pf p))
+ end.
+\end{minted}
+
+If the argument \cinl{fn} is already a pure number, we apply the
+function \cinl{plus} directly.
+In case of an impure value, we reconstruct the constructor of the
+observed effect --- by using the same shape \cinl{s} --- and then
+apply \cinl{doublePlus} on all values of the position function
+\cinl{pf} yields for the given position \cinl{p}.
+
+In contrast, the implementation of \cinl{doublePlus} simplifies to the
+following expression.
+
 \section{Related Work}
 \section{Conclusion and Future Work}
 
