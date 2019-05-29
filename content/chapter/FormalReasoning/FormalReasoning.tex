@@ -2551,10 +2551,20 @@ The model we use so far, however, is not a suitable model for Curry's
 call-time choice semantics.
 The difference between Curry's call-time choice semantics and the
 non-strict non-determinism we are currently able to model can be
-generalised to a difference between call-by-name and call-by-need.
-In the following, we will compare our example definition of
+generalised to the difference between call-by-name and call-by-need.
+In the following, we will first compare our example definition of
 \cinl{double} with an alternative version to exhibit the call-by-name
 behaviour of our model.
+We discuss an ad-hoc solution to mimic call-by-need for concrete
+examples and give an examples that shows the limitations of that idea.
+Secondly, we give an outlook on how to add an explicit sharing
+operator on top of the current setting involving \cinl{Free} monads.
+On that account, we sketch the underlying mechanism of the
+\emph{KiCS2} compiler to implement Curry's call-time choice semantics
+in Haskell.
+We then discuss how the KiCS2 approach can be combined with related
+work on algebraic effects with scoped operations to implement Curry's
+call-time choice semantics.
 
 Consider the following two implementations for doubling a number: the
 first version multiplies the given value by two and the second version
