@@ -2566,6 +2566,8 @@ We then discuss how the KiCS2 approach can be combined with related
 work on algebraic effects with scoped operations to implement Curry's
 call-time choice semantics.
 
+\subsubsection{Call-by-name vs. Call-by-need}
+ 
 Consider the following two implementations for doubling a number: the
 first version multiplies the given value by two and the second version
 uses addition instead.
@@ -2585,7 +2587,7 @@ for both non-deterministic branches.
 \begin{minted}{coq}
 Lemma even_doubleMult_Choice :
   even (doubleMult oneOrTwo) = TTrue ? TTrue.
-\end{minted}{coq}
+\end{minted}
 
 We can, however, not prove the same property for \cinl{doublePlus} as
 the expression yields four instead of two results.
@@ -2632,7 +2634,7 @@ one level of non-determinism and is, thus, equivalent to \cinl{pure 2
 \begin{minted}{coq}
 Lemma doubleMult_inline :
   doubleMult oneOrTwo = pure 2 ? pure 4.
-\end{minted}{coq}
+\end{minted}
 
 Hence, the unwanted behaviour origins from duplicating
 non-deterministic expression: in the definition of \cinl{doublePlus}
@@ -2644,6 +2646,7 @@ cannot be observed when applying the function to the value \cinl{Failed}.
 \begin{minted}{coq}
 Lemma even_doublePlus_Failed :
   even (doubleMult Failed) = Failed.
+\end{minted}
 
 We observe here that the difference between call-by-name and
 call-by-need, i.e., between sharing a value or duplicating its
@@ -2670,11 +2673,111 @@ If the argument \cinl{fn} is already a pure number, we apply the
 function \cinl{plus} directly.
 In case of an impure value, we reconstruct the constructor of the
 observed effect --- by using the same shape \cinl{s} --- and then
-apply \cinl{doublePlus} on all values of the position function
-\cinl{pf} yields for the given position \cinl{p}.
+apply \cinl{doublePlus} on all values the position function \cinl{pf}
+yields for the given position \cinl{p}.
+Using this alternative definition with explicit sharing of the
+argument \cinl{fn}, we can prove the wanted property.
 
-In contrast, the implementation of \cinl{doublePlus} simplifies to the
-following expression.
+\begin{minted}{coq}
+Lemma even_doubleSharePos_Choice :
+  even (doubleSharePos oneOrTwo) = TTrue ? TTrue.
+\end{minted}
+
+Since it is inconvenient to handle the sharing of the argument
+\cinl{fn} by using and explicit pattern matching on the
+\cinl{Free}-structure, we introduce an auxiliary function for explicit
+sharing.
+
+\begin{minted}{coq}
+Definition shareStrict (A : Type) (fx : Free A) : Free (Free A) :=
+  match fx with
+  | pure x      => pure (pure x)
+  | impure s pf => impure s (fun p => pure (pf p))
+  end.
+\end{minted}
+
+Note that we can define this explicit sharing function for an
+arbitrary effect, we do not need to know about the possible shapes
+that we are reconstructing on the right-hand side.
+In order to define this functionality in a separate function, we yield
+a nested value, that is a value of type \cinl{Free (Free A)}.
+The inner layer of \cinl{Free} represent the shared computation while
+the outer layer is a reconstruction of the effect occurring in the
+argument \cinl{fx} that we want to share.
+
+We implement an additional version of \cinl{doublePlus} using the
+explicit sharing function and prove that our running example for the
+property holds as well.
+
+\begin{minted}{coq}
+Definition doubleShare (fn : FreeND nat) : FreeND nat :=
+  shareStrict fn >>= fun fn' => doublePlus fn'.
+
+Lemma even_doubleShare_Choice :
+  even (doubleShare oneOrTwo) = TTrue ? TTrue.
+\end{minted}
+
+Note that the naming of the explicit sharing function was not picked
+randomly: the above usage for the definition of \cinl{doublePlus} only
+works as expected, because \cinl{doublePlus} is strict in its
+argument.
+That is, we can only use \cinl{shareStrict} if we are sure that the
+computation that we are sharing needs to be evaluated anyway.
+Otherwise we might trigger a non-deterministic computation or a
+partial value that was not needed in the first place.
+In order to construct an example that shows the limitations of the
+explicit sharing function we consider an nested application of the
+effect-generic function \cinl{const} takes two arguments, ignores its
+latter one and yields the former.
+
+\begin{minted}{coq}
+Definition const (A B : Type) (fx : Free A) (fy : Free B) : Free A :=
+  fx.
+\end{minted}
+
+The following lemma shows a nested usage of the function \cinl{const}
+arbitrary expression as first argument and passing a shared
+non-deterministic computation as second and third argument.
+The expected property is that this nested application is equivalent to
+yielding just the first argument.
+
+\begin{minted}{coq}
+Lemma share_with_const : forall (A : Type) (fx : FreeND A),
+   shareStrict oneOrTwo >>= fun fy' => const (const fx fy') fy' = fx.
+Proof.
+  intros A fx.
+  simpl.
+  (* const (const fx (pure 1)) (pure 1) ? const (const fx (pure 2)) (pure 2) = fx *)
+  admit.
+Abort.
+\end{minted}
+
+However, when using \cinl{shareStrict} the left-hand side of the
+equality is --- as the name of the function already suggests --- too
+strict.
+When we use \cinl{shareStrict} on an expression that does not need to
+be evaluated, here \cinl{const} yields its first argument and ignores
+the second one, results in unwanted behaviour in case of an effectful
+computation.
+That is, the above example application triggers the non-deterministic
+computation \cinl{oneOrTwo} and, thus, yields its first argument
+\cinl{fx} twice.
+
+\begin{minted}{coq}
+Lemma share_with_const : forall (A : Type) (fx : FreeND A),
+  shareStrict oneOrTwo >>= fun fy' => const (const fx fy') fy' = fx ? fx.
+\end{minted}
+
+At the end, although we can use the explicit sharing function
+\cinl{shareStrict} to mimic the sharing behaviour of Curry for some
+concrete examples, the usage is limited to situation that demand the
+evaluation of the shared expression anyways.
+In order to enable a more generic version of the explicit sharing
+function that does not rely on the demand of the shared expression, a
+more sophisticated underlying model is required.
+We discuss first ideas for such a model and give an outlook on the
+implementation in the next section.
+
 
 \section{Related Work}
 \section{Conclusion and Future Work}

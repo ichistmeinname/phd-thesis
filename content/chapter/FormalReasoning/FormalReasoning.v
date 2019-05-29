@@ -1821,9 +1821,9 @@ Module ND_Examples.
           destruct p; reflexivity.
         Qed.
 
-        Definition const2 (A B C: Type)
-                   (fx : FreeND A) (fy : FreeND B) (fz : FreeND C) :=
+        Definition const2 (A B C : Type) (fx : FreeND A) (fy : FreeND B) (fz : FreeND C) : FreeND A :=
           fx.
+
         (* const2 42 x x *)
         Definition example_with_const2 (A B : Type) (fx : FreeND A) (fy : FreeND B) :=
           shareStrict fy >>= fun fy' => const2 fx fy' fy'.
@@ -1848,7 +1848,31 @@ Module ND_Examples.
           (* const2 fx (pure 1) (pure 1) = fx *)
           (* const2 fx (pure 2) (pure 2) = fx *)
         Qed.
-          
+
+        Definition const (A B : Type) (fx : FreeND A) (fy : FreeND B) : FreeND A :=
+          fx.
+        
+        Lemma share_with_const :
+          forall (A : Type) (fx : FreeND A),
+            (shareStrict oneOrTwo >>= fun fy => const (const fx fy) fy) = fx.
+        Proof.
+          intros A fx.
+          simpl.
+          (* const (const fx (pure 1)) (pure 1) ? const (const fx (pure 2)) (pure 2) = fx *)
+          admit.
+        Abort.
+
+        Lemma share_with_const :
+          forall (A : Type) (fx : FreeND A),
+            (shareStrict oneOrTwo >>= fun fy => const (const fx fy) fy) = fx ? fx.
+        Proof.
+          intros A fx.
+          simpl.
+          f_equal; extensionality p; destruct p; reflexivity.
+          (* const (const fx (pure 1)) (pure 1) = fx *)
+          (* const (const fx (pure 2)) (pure 2) = fx *)
+        Qed.
+
       End Propositions.
 
     End CallTimeChoice.
