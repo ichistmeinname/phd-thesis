@@ -2747,7 +2747,8 @@ Lemma share_with_const : forall (A : Type) (fx : FreeND A),
 Proof.
   intros A fx.
   simpl.
-  (* const (const fx (pure 1)) (pure 1) ? const (const fx (pure 2)) (pure 2) = fx *)
+  (*   const (const fx (pure 1)) (pure 1)
+     ? const (const fx (pure 2)) (pure 2) = fx *)
   admit.
 Abort.
 \end{minted}
@@ -2777,6 +2778,118 @@ function that does not rely on the demand of the shared expression, a
 more sophisticated underlying model is required.
 We discuss first ideas for such a model and give an outlook on the
 implementation in the next section.
+
+\subsubsection{Modelling Curry's Call-Time Choice}
+
+The Curry compiler \emph{KiCS2} translates Curry into Haskell code.
+For that purpose, Curry code is lifted in a similar manner as in our
+approach using \cinl{Free} and model effects using functors.
+In the case of KiCS2, the translation is more explicit, that is, all
+data types implemented in Curry are translated to data types in
+Haskell that have two additional constructors: one for a failed
+computation and one for a non-deterministic choice between two
+computations.
+Hence, all values of data types become trees: the original pure
+constructors are leaves, the failed computation is an empty tree and
+the non-deterministic choice represents a branch.
+The concrete instantiation of the effect using \cinl{ND} has the same
+effect, that is, the type \cinl{FreeND} represents the same expression
+tree that is used for KiCS2.
+
+Let us, for example, consider the Curry expression \hinl{0 ? (failed ? 1)}
+in Coq using \cinl{FreeND}.
+
+\begin{minted}{coq}
+Compute ((pure 0) ? (Failed ? pure 1)).
+(*
+impure true (fun p1 =>
+   if p1 then pure 0
+         else impure true (fun p2 =>
+                 if p2 then impure false (fun p3 => match p3 with end)
+                       else pure 1))
+*)
+\end{minted}
+
+While the not pretty-printed version does not seem that readable, we
+can instead represent the expression as tree: the constructor
+\cinl{impure} in combination with the possible shapes are nodes of the
+tree and a tree ends with \cinl{pure} values or nodes that do not have
+any children --- like for example the effectful computation \cinl{Failed}.
+
+\begin{verbatim}
+        Choice
+      /        \
+   pure 0    Choice
+            /      \
+         Failed   pure 1
+\end{verbatim}
+
+Here, the constructor \cinl{impure true} corresponds to a node labeled
+with \texttt{Choice} and \cinl{impure false} represents a node labeled
+with \texttt{Failed}.
+We can easily define a function, a so-called effect handler, that
+transforms the representation using \cinl{Free} and the effect functor
+into the concrete monad it represents.
+In case of the effect of non-determinism, the underlying monad is the
+tree monad defined as follows.
+
+\begin{minted}{coq}
+Inductive tree (A : Type) :=
+| empty  : tree A
+| leaf   : A -> tree A
+| branch : tree A -> tree A -> tree A.
+\end{minted}
+
+We have already discussed the isomorphism between the free monad
+instantiated by a concrete functor and a concrete monad when we
+introduced the partiality effect in
+\autoref{subsub:partiality_container}.
+In case of non-determinism, we can also define the isomorphism by
+implementing two functions \cinl{to_tree} and \cinl{from_tree},
+respectively.
+
+\begin{minted}{coq}
+Fixpoint to_tree A (fx : FreeND A) : tree A :=
+  match fx with
+  | pure x          => leaf x
+  | impure true  pf => branch (to_tree (pf true)) (to_tree (pf false))
+  | impure false pf => empty
+  end.
+
+Fixpoint from_tree A (t : tree A) : FreeND A :=
+  match t with
+  | empty        => let '(ext s pf) := from_ND failed in impure s pf
+  | leaf x       => pure x
+  | branch t1 t2 =>
+      let '(ext s pf) := from_ND (choice (from_tree t1) (from_tree t2))
+      in impure s pf
+  end.
+\end{minted}
+
+Based on these definitions we can then prove the isomorphism between
+\cinl{FreeND A} and \cinl{tree A} by showing the usual round-trip
+properties.
+
+\begin{minted}{coq}
+Lemma from_to_tree : forall (A : Type) (fx : FreeND A),
+  from_tree (to_tree fx) = fx.
+
+Lemma to_from_tree : forall (A : Type) (t : tree A),
+  to_tree (from_tree t) = t.
+\end{minted}
+
+The interesting examples we now want to take a look at are
+\cinl{doublePlus oneOrTwo} and \cinl{doubleShare oneOrTwo}.
+Since the representation using trees is more convenient, we will
+transform the expressions in questions in to a tree representation
+first.
+
+\begin{minted}{coq}
+Compute to_tree (doublePlus oneOrTwo).
+(* branch (branch (leaf 2) (leaf 3)) (branch (leaf 3) (leaf 4)) *)
+Compute to_tree (doubleShare oneOrTwo).
+(* branch (leaf 2) (leaf 4) *)
+\end{minted}
 
 
 \section{Related Work}

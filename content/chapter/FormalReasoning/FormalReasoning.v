@@ -1873,6 +1873,11 @@ Module ND_Examples.
           (* const (const fx (pure 2)) (pure 2) = fx *)
         Qed.
 
+        Compute to_tree (doublePlus oneOrTwo).
+        (* branch (branch (leaf 2) (leaf 3)) (branch (leaf 3) (leaf 4)) *)
+        Compute to_tree (doubleShare oneOrTwo).
+        (* branch (leaf 2) (leaf 4) *)
+        
       End Propositions.
 
     End CallTimeChoice.
