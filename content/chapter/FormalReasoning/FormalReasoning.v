@@ -1358,7 +1358,30 @@ Module Tree.
 
   Arguments empty {_}.
 
-End Tree.    
+End Tree.
+
+Module TreeIdentifier.
+
+  Inductive tree (A : Type) :=
+  | empty  : tree A
+  | leaf   : A -> tree A
+  | branch : nat -> tree A -> tree A -> tree A.
+
+  Arguments empty {_}.
+
+  Fixpoint dfs' (A : Type) (choices : nat -> option bool) (t : tree A) : list A :=
+    match t with
+    | empty           => nil
+    | leaf x          => cons x nil
+    | branch id lt rt =>
+      dfs' (fun n => if Nat.eqb n id then Some true else choices n) lt
+      ++ dfs' (fun n => if Nat.eqb n id then Some false else choices n) rt
+    end.
+
+  Definition dfs (A : Type) (t : tree A) : list A :=
+    dfs' (fun n => None) t.
+
+End TreeIdentifier.
 
 Module Nondeterminism.
 
@@ -1424,7 +1447,9 @@ Module Nondeterminism.
     match t with
     | empty        => let '(ext s pf) := from_ND failed in impure s pf
     | leaf x       => pure x
-    | branch t1 t2 => let '(ext s pf) := from_ND (choice (from_tree t1) (from_tree t2)) in impure s pf
+    | branch t1 t2 =>
+      let '(ext s pf) := from_ND (choice (from_tree t1) (from_tree t2))
+      in impure s pf
     end.
 
   Lemma from_to_tree : forall (A : Type) (fx : Free ND__S ND__P A),
@@ -1462,7 +1487,7 @@ Module ND_Examples.
   Definition Failed (A : Type) : FreeND A := impure false (fun (p : ND__P false) => match p with end).
   Notation "x ? y" := (impure true (fun (p : ND__P true) => if p then x else y)) (at level 28, right associativity).
 
-  Arguments Failed {_}.
+  Arguments Failed / {_}.
   
   Definition coin : FreeND bool :=
     TTrue ? FFalse.

@@ -2796,7 +2796,7 @@ The concrete instantiation of the effect using \cinl{ND} has the same
 effect, that is, the type \cinl{FreeND} represents the same expression
 tree that is used for KiCS2.
 
-Let us, for example, consider the Curry expression \hinl{0 ? (failed ? 1)}
+Let us, for example, consider the Curry expression \cyinl{0 ? (failed ? 1)}
 in Coq using \cinl{FreeND}.
 
 \begin{minted}{coq}
@@ -2879,17 +2879,142 @@ Lemma to_from_tree : forall (A : Type) (t : tree A),
 \end{minted}
 
 The interesting examples we now want to take a look at are
-\cinl{doublePlus oneOrTwo} and \cinl{doubleShare oneOrTwo}.
+\cinl{doublePlus oneOrTwo} and \cinl{doubleShare oneOrTwo} from the
+previous section.
+In Curry sharing of arguments in a function definitions does not need
+to be handled explicitly but happens implicitly.
+That is, the Curry version of \cinl{doublePlus} needs to encode
+run-time choice explicitly.
+A more simplified version of equivalent code using an explicit
+let-binding that also triggers an evaluation respecting call-time
+choice semantics.
+The two examples above are equivalent to the following Curry code.
+
+\begin{curry}
+doublePlus = (1 ? 2) + (1 ? 2)
+doubleShare = let x = 1 ? 2 in x + x
+\end{curry}
+
 Since the representation using trees is more convenient, we will
-transform the expressions in questions in to a tree representation
-first.
+take a look at the corresponding trees.
+The overall tree structure is the same for both resulting expression,
+the results of the computation, however, differ.
+
+\begin{verbatim}
+        Choice
+      /       \
+  Choice     Choice
+   /   \      /   \
+  2     3    3     4
+\end{verbatim}
+
+That is, the evaluation from a tree structure to a set of values ---
+results --- needs to handle the shared computation in
+\cinl{doubleShare} differently.
+The KiCS2 approach is here to introduce identifier for all choices.
+Let us consider a step-by-step reduction of the \cyinl{doubleShare}
+example.
+By inlining the let-binding the resulting tree contains the same
+subtree in both its branches.
+
+\begin{verbatim}
+  let x = 1 ? 2 in x + x
+= {- name the choice explicitly -}
+  let x = Choice (ID 1) 1 2 in x + x
+= {- inline the let-binding -}
+  Choice (ID 1) 1 2 + Choice (ID 1) 1 2
+= {- pull-tab-step on first argument because of the demand of (+) -}
+  Choice (ID 1) (1 + Choice (ID 1) 1 2) (2 + Choice (ID 1) 1 2)
+= {- pull-tab-step on second argument because of the demand of (+) -}
+  Choice (ID 1) (Choice (ID 1) (1+1) (1+2)) (Choice (ID 1) (2+1) (2+2))
+= {- evaluate (+) on pure values -}
+  Choice (ID 1) (Choice (ID 1) 2 3) (Choice (ID 1) 3 4)
+\end{verbatim}
+
+In case of the step-by-step evaluation of \cyinl{doublePlus}, we
+observe that the outermost choice's identifier differs from the
+identifier of its children.
+This identifier is introduced due to the second argument of \cyinl{(+)}
+that is independent from the first non-deterministic computation of
+\cyinl{1 ? 2}.
+
+\begin{verbatim}
+  (1 ? 2) + (1 ? 2)
+= {- name the choice explicitly -}
+  Choice (ID 1) 1 2 + Choice (ID 2) 1 2
+= {- pull-tab-step on first argument because of the demand of (+) -}
+  Choice (ID 1) (1 + Choice (ID 2) 1 2) (2 + Choice (ID 2) 1 2)
+= {- pull-tab-step on second argument because of the demand of (+) -}
+  Choice (ID 1) (Choice (ID 2) (1+1) (1+2)) (Choice (ID 2) (2+1) (2+2))
+= {- evaluate (+) on pure values -}
+  Choice (ID 1) (Choice (ID 2) 2 3) (Choice (ID 2) 3 4)
+\end{verbatim}
+
+That is, the above tree representation needs to be adapted in order to
+illustrate the difference between the two examples; the adaptions are
+illustrated in \autoref{fig:doubleShare}
+The left tree represents the expression tree produced by
+\cyinl{doubleShare} that shares the non-deterministic computation,
+whereas the right tree represents the example \cyinl{doublePlus} with
+independent calls to the non-deterministic computation.
+
+\begin{figure}[t]
+\begin{minipage}{0.49\textwidth}
+\begin{verbatim}
+       Choice 1
+      /        \
+ Choice 1    Choice 1
+  /   \       /   \
+ 2     3     3     4
+\end{verbatim}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+\begin{verbatim}
+       Choice 1
+      /        \
+ Choice 2    Choice 2
+  /   \       /   \
+ 2     3     3     4
+\end{verbatim}
+\end{minipage}
+\caption{Doubling a shared non-deterministic computation (left) and doubling two
+  individual non-deterministic computation (right)}
+\label{fig:doubleShare}
+\end{figure}
+
+In the end, the overall result is computed by a tree traversal that
+keeps track of each decision of a choice and reproduces that
+choice for all future encounters of the same identifier.
+
+A simplified version of a depth-first search traversal using an
+adapted version of \cinl{tree} with identifier in branches might look
+as follows.
 
 \begin{minted}{coq}
-Compute to_tree (doublePlus oneOrTwo).
-(* branch (branch (leaf 2) (leaf 3)) (branch (leaf 3) (leaf 4)) *)
-Compute to_tree (doubleShare oneOrTwo).
-(* branch (leaf 2) (leaf 4) *)
+Inductive tree (A : Type) :=
+| empty  : tree A
+| leaf   : A -> tree A
+| branch : nat -> tree A -> tree A -> tree A.
+
+Fixpoint dfs (A : Type) (choices : nat -> option bool) (t : tree A) : list A :=
+  match t with
+  | empty           => nil
+  | leaf x          => cons x nil
+  | branch id lt rt =>
+    dfs' (fun n => if Nat.eqb n id then Some true else choices n) lt
+    ++ dfs' (fun n => if Nat.eqb n id then Some false else choices n) rt
+  end.
 \end{minted}
+
+We use \cinl{true} as decision for the left tree and \cinl{false}
+for the right tree --- similar to the position we used in the Coq
+model.
+The first call to \cinl{dfs} does not have any information about
+decisions yet, so we use an optional value in order to represent this
+third possibility.
+That is, we add the decision \cinl{Some true} for the recursive
+traversal of the left tree and add the decision \cinl{Some false} for
+the right tree.
 
 
 \section{Related Work}
