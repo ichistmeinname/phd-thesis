@@ -46,9 +46,16 @@
 %format tau2
 %format tau3
 
-\newcommand{\hinl}[1]{\mintinline{Haskell}{#1}}
-\newcommand{\cinl}[1]{\mintinline{Coq}{#1}}
-        
+
+% minted-related definitions
+\newminted[curry]{haskell}{style=friendly}
+\newmintinline[cyinl]{haskell}{style=friendly}
+\newmintinline[hinl]{haskell}{}
+\newmintinline[cinl]{coq}{}
+
+\usemintedstyle[haskell]{automn}
+\usemintedstyle[coq]{tango}
+
 \def\commentbegin{\quad\{\ }
 \def\commentend{\}}
 
@@ -56,8 +63,6 @@
 \setlength{\parindent}{1em}
 \setlength{\mathindent}{0.15cm}
 
-\usemintedstyle[haskell]{automn}
-\usemintedstyle[coq]{tango}
 
 \newenvironment{excursus}[1]
 {\vspace{0.5cm}
