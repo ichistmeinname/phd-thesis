@@ -6,7 +6,7 @@
 \section{Example Programs in Probabilistic Programming Languages}
 \label{sec:appendix:ppl}
 
-\section{WebPPL}
+\subsection{WebPPL}
 
 \paragraph{Bayesian Network}
 \begin{minted}{javascript}
@@ -176,7 +176,7 @@ Infer({ model: function () { palindrome(5) }
 
 \paragraph{Secret Santa}
 
-\section{ProbLog}
+\subsection{ProbLog}
 
 \paragraph{Bayesian Network}
 
@@ -290,3 +290,92 @@ query(palindrome(X)) :- len(X).
 \end{minted}
 
 \paragraph{Secret Santa}
+
+\section{Formal Reasoning}
+
+\subsection{Definition of Effect to Combine Non-Determinism and
+  Sharing}
+\label{subsec:appendix:NDSharing}
+
+\begin{minted}{coq}
+Module NDSharing.
+
+  Import Container.
+
+  Inductive ND (A : Type) :=
+  | choice : option nat -> A -> A -> ND A
+  | failed : ND A.
+
+  Inductive Sharing (A : Type) :=
+  | share  : nat -> A -> Sharing A.
+
+  Arguments failed {_}.
+
+  Inductive ND__S :=
+  | choiceS : option nat -> ND__S
+  | failedS : ND__S.
+
+  Inductive Sharing__S :=
+  | shareS  : nat -> Sharing__S.
+
+  Definition Sharing__P (s : Sharing__S) := unit.
+  Definition ND__P (s : ND__S) :=
+    match s with
+    | choiceS n => bool
+    | failedS   => Empty
+    end.
+
+  Definition from_Sharing A (sh : Sharing A) : Ext Sharing__S Sharing__P A :=
+    match sh with
+    | share n x => ext (shareS n) (fun (p : Sharing__P (shareS n)) => x)
+    end.
+
+  Definition from_ND A (nd : ND A) : Ext ND__S ND__P A :=
+    match nd with
+  | choice n x y => ext (choiceS n) (fun (p : ND__P (choiceS n)) => if p then x else y)
+  | failed       => ext failedS (fun (p : ND__P failedS) => match p with end)
+  end.
+
+  Definition to_Sharing A (e : Ext Sharing__S Sharing__P A) : Sharing A :=
+    match e with
+    | ext (shareS n)  pf => share n (pf tt)
+    end.
+
+  Definition to_ND A (e : Ext ND__S ND__P A) : ND A :=
+    match e with
+    | ext (choiceS n) pf => choice n (pf true) (pf false)
+    | ext failedS     pf => failed
+    end.
+
+  Import Combination.
+
+  Definition Ext__Comb A := Ext (Comb__S ND__S Sharing__S) (Comb__P ND__P Sharing__P) A.
+
+  Definition to__Comb (A : Type) (e : Ext__Comb A) : Comb ND Sharing A :=
+    match e with
+    | ext (inl s) pf => Inl (to_ND (ext s pf))
+    | ext (inr s) pf => Inr (to_Sharing (ext s pf))
+    end.
+
+  Definition from__Comb (A : Type) (z : Comb ND Sharing A) : Ext__Comb A :=
+    match z with
+    | Inl x => let '(ext s pf) := from_ND x in ext (inl s) pf
+    | Inr x => let '(ext s pf) := from_Sharing x in ext (inr s) pf
+    end.
+
+  Lemma to_from__Comb : forall A (cx : Comb ND Sharing A), to__Comb (from__Comb cx) = cx.
+  Proof.
+    intros A cx.
+    destruct cx as [ [ ] | [ ] ]; reflexivity.
+  Qed.
+
+  Lemma from_to__Comb : forall A (e : Ext__Comb A), from__Comb (to__Comb e) = e.
+  Proof.
+    intros A [s pf].
+    destruct s as [ [ n | ] | [ n ] ]; simpl;
+      unfold Comb__S; f_equal; extensionality p;
+        destruct p; reflexivity.
+  Qed.
+
+End NDSharing.
+\end{minted}

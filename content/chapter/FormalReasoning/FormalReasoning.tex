@@ -3016,6 +3016,146 @@ That is, we add the decision \cinl{Some true} for the recursive
 traversal of the left tree and add the decision \cinl{Some false} for
 the right tree.
 
+\subsubsection{Modelling Call-Time Choice with Scoped Free Monads}
+
+The current idea to model call-time choice is based on the observation
+that let-bindings of non-deterministic computation introduce an effect
+that needs to be handled differently than an ordinary
+non-deterministic computation.
+That is, a let-binding and sharing of computations, respectively,
+needs to be modeled as an explicit effect on top of the
+non-determinism.
+The general idea is inspired by KiCS2's approach: all choices within a
+shared non-deterministic computation get identifiers that we use when
+traversing the tree-like structure to track the information about
+previous choices.
+Consider an effect \cinl{NDSharing} that adds an identifier
+to choices as well as a new primitive for sharing a computation.
+For simplifications, the identifier for choices are optional: they
+will only get identifier if they occur in shared computations.
+Moreover, we will use an explicit identifier that we pass to the
+primitive \cinl{Share}.
+That is, we have the following definitions in place where
+\cinl{FreeShare} is the concrete effect that combines non-determinism
+and sharing; the concrete implementations of the involving shape and
+position function types can be found in \autoref{subsec:appendix:NDSharing}.
+
+\begin{minted}{coq}
+Definition FreeShare := Free ShareND__S ShareND__P.
+
+Definition Failed (A : Type) : FreeShare A :=
+ let '(ext s pf) := from_ShareND failed in impure s pf.
+
+Notation "x ? y" := (let '(ext s pf) := from_ShareND (choice None x y) in impure s pf)
+                      (at level 28, right associativity).
+
+Definition Share (A : Type) (n : nat) (fx : FreeShare A) : FreeShare (FreeShare A) :=
+  let '(ext s pf) := from_ShareND (share n fx) in pure (impure s pf).
+\end{minted}
+
+The definitions for \cinl{Failed} and \cinl{?} are analogous to the
+definitions we defined for the non-determinism effect alone; the only
+difference is that the representation for a non-determinism
+computation has an additional optional identifier.
+The \cinl{Share} primitive is of the same type as before in order to
+enable usages of \cinl{>>=} without triggering the potential
+non-deterministic computation.
+
+Let us now consider our running example again: doubling the
+non-deterministic computation \cyinl{1 ? 2}.
+
+\begin{minted}{coq}
+Definition coin : FreeShare nat :=
+  pure 1 ? pure 2.
+
+Definition doubleSharePlus1 (fn : FreeShare nat) : FreeShare nat :=
+  Share 1 fn >>= fun fn' => liftM2 plus fn' fn'.
+
+Lemma doubleSharePlus :
+  doubleSharePlus coin <> pure 2 ? pure 4.
+Proof.
+  unfold doubleSharePlus1; simpl.
+  (* impure (inr (shareS 1)) (fun _ : unit => ...) <>
+     impure (inl (choiceS None)) (fun p : bool => ...)
+   *)
+  discriminate.
+Qed.
+\end{minted}
+
+Due to the representation using an explicit representation for
+sharing, the resulting \cinl{Free}-expressions diverge: the shapes do
+not match, such the overall expression are not structurally equal.
+The following enhanced tree representation illustrates the resulting
+expression on the left-hand side.
+
+\begin{verbatim}
+       Share_1
+          |      
+        Choice
+      /        \
+   Share_1   Share_1
+      |         |
+    Choice    Choice
+    /    \    /    \
+   2      3  3      4
+\end{verbatim}
+
+In order to reason about equality in this setting, we first need to
+interprete the sharing-primitive in order to transfer the introduced
+identifies to the choice-primitive.
+Second, we apply the already mentioned tree traversal that tracks
+already made choices in order to make consistent choices only.
+
+That is, we define a function \cinl{numberChoices : FreeShareND A ->
+  FreeND A} to interpret the sharing nodes.
+Applying the function to the expression above leads to the following
+tree representation without sharing-primitives but with choices that
+have identifiers.
+
+\begin{verbatim}
+     Choice_1
+    /        \
+ Choice_1  Choice_1
+  /   \     /   \
+ 2     3   3     4
+\end{verbatim}
+
+Now we can use the function \cinl{dfs : FreeND A -> list A} to
+traverse the resulting tree in a depth-first manner.
+The code for both implementations can be found in the
+\autoref{subsec:appendix:NDSharing} as well.
+Using these helper function, we can prove that the list of results for
+the expression \cinl{doubleSharePlus coin} equals \cinl{[2;4]}.
+
+\begin{minted}{coq}
+Lemma doubleSharePlus_correct :
+  dfs (numberChoices (doubleSharePlus coin)) = [2;4].
+\end{minted}
+
+Unfortunately, the model we illustrated so far stretches to its limits
+for the following Curry expression that mixes a shared
+non-deterministic computation with individually triggered
+non-deterministic computations.
+
+\begin{curry}
+let x = 1 ? 2
+in (x + (1 ? 2)) + (x + (1 ? 2))  
+\end{curry}
+
+Evaluating this expression leads to eight results and the following
+tree.
+
+\begin{verbatim}
+                               Choice_1
+                   /                                \
+               Choice_2                            ...
+         /                 \                     
+     Choice_1            Choice_1
+    /        \          /        \
+ Choice_3  Choice_3  Choice_3  Choice_3
+  /   \     /   \     /   \     /   \
+ 4     5   5     6   5     6   6     7
+\end{verbatim}
 
 \section{Related Work}
 \section{Conclusion and Future Work}

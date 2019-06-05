@@ -1473,6 +1473,121 @@ Module Nondeterminism.
 
 End Nondeterminism.
 
+Module Combination.
+
+  Section Definitions.
+
+    Variable F G : Type -> Type.
+
+    Inductive Comb A : Type :=
+    | Inl : F A -> Comb A
+    | Inr : G A -> Comb A.
+
+    Variable s1 s2 : Type.
+    Variable p1 : s1 -> Type.
+    Variable p2 : s2 -> Type.
+
+    Definition Comb__S : Type := sum s1 s2.
+
+    Definition Comb__P (s : Comb__S) : Type :=
+      match s with
+      | inl x => p1 x
+      | inr x => p2 x
+      end.
+
+  End Definitions.
+
+  Arguments Inl {_} {_} {_}.
+  Arguments Inr {_} {_} {_}.
+
+End Combination.
+
+
+Module NDSharing.
+
+  Import Container.
+
+  Inductive ND (A : Type) :=
+  | choice : option nat -> A -> A -> ND A
+  | failed : ND A.
+
+  Inductive Sharing (A : Type) :=
+  | share  : nat -> A -> Sharing A.
+
+  Arguments failed {_}.
+
+  Inductive ND__S :=
+  | choiceS : option nat -> ND__S
+  | failedS : ND__S.
+
+  Inductive Sharing__S :=
+  | shareS  : nat -> Sharing__S.
+
+  Definition Sharing__P (s : Sharing__S) := unit.
+  Definition ND__P (s : ND__S) :=
+    match s with
+    | choiceS n => bool
+    | failedS   => Empty
+    end.
+
+  Definition from_Sharing A (sh : Sharing A) : Ext Sharing__S Sharing__P A :=
+    match sh with
+    | share n x => ext (shareS n) (fun (p : Sharing__P (shareS n)) => x)
+    end.
+
+  Definition from_ND A (nd : ND A) : Ext ND__S ND__P A :=
+    match nd with
+  | choice n x y => ext (choiceS n) (fun (p : ND__P (choiceS n)) => if p then x else y)
+  | failed       => ext failedS (fun (p : ND__P failedS) => match p with end)
+  end.
+
+  Definition to_Sharing A (e : Ext Sharing__S Sharing__P A) : Sharing A :=
+    match e with
+    | ext (shareS n)  pf => share n (pf tt)
+    end.
+
+  Definition to_ND A (e : Ext ND__S ND__P A) : ND A :=
+    match e with
+    | ext (choiceS n) pf => choice n (pf true) (pf false)
+    | ext failedS     pf => failed
+    end.
+
+  Import Combination.
+
+  Definition ShareND__S := Comb__S ND__S Sharing__S.
+  Definition ShareND__P := Comb__P ND__P Sharing__P.
+  Definition Ext__Comb A := Ext ShareND__S ShareND__P A.
+
+  Definition to_ShareND (A : Type) (e : Ext__Comb A) : Comb ND Sharing A :=
+    match e with
+    | ext (inl s) pf => Inl (to_ND (ext s pf))
+    | ext (inr s) pf => Inr (to_Sharing (ext s pf))
+    end.
+
+  Definition from_ShareND (A : Type) (z : Comb ND Sharing A) : Ext__Comb A :=
+    match z with
+    | Inl x => let '(ext s pf) := from_ND x in ext (inl s) pf
+    | Inr x => let '(ext s pf) := from_Sharing x in ext (inr s) pf
+    end.
+
+  Lemma to_from__Comb : forall A (cx : Comb ND Sharing A), to_ShareND (from_ShareND cx) = cx.
+  Proof.
+    intros A cx.
+    destruct cx as [ [ ] | [ ] ]; reflexivity.
+  Qed.
+
+  Lemma from_to__Comb : forall A (e : Ext__Comb A), from_ShareND (to_ShareND e) = e.
+  Proof.
+    intros A [s pf].
+    destruct s as [ [ n | ] | [ n ] ]; simpl;
+      unfold ShareND__S, Comb__S;
+      f_equal; extensionality p;
+        destruct p; reflexivity.
+  Qed.
+
+End NDSharing.
+
+
 Module ND_Examples.
 
   Import LtacGoodies.
@@ -1909,4 +2024,190 @@ Module ND_Examples.
 
   End Examples.
 
-End ND_Examples.
+End ND_Examples.End ND_Examples.
+
+Section NDShare.
+
+  Import Free.
+  Import Combination.
+  Import NDSharing.
+  Import Primitives.
+
+  Definition FreeShare := Free ShareND__S ShareND__P.
+  Definition FreeND := Free ND__S ND__P.
+
+  Definition Failed (A : Type) : FreeShare A :=
+    let '(ext s pf) := from_ShareND (Inl failed) in
+    impure s pf.
+
+  Notation "x ? y" := (let '(ext s pf) := from_ShareND (Inl (choice None x y)) in impure s pf)
+                        (at level 28, right associativity).
+  
+  Definition ChoiceND (A : Type) (fx fy : FreeND A) :=
+    let '(ext s pf) := from_ND (choice None fx fy) in impure s pf.
+
+  Definition ChoiceND' (A : Type) (n : nat) (fx fy : FreeND A) :=
+    let '(ext s pf) := from_ND (choice (Some n) fx fy) in impure s pf.
+
+  Definition Share2 (A : Type) (n : nat) (fx : FreeShare A) : FreeShare A :=
+    let '(ext s pf) := from_ShareND (Inr (share n fx)) in
+    impure s pf.
+  
+  Definition Share1 (A : Type) (n : nat) (fx : FreeShare A) : FreeShare (FreeShare A) :=
+    let '(ext s pf) := from_ShareND (Inr (share n fx)) in
+    pure (impure s pf).
+
+  Definition coinShareND : FreeShare nat :=
+    pure 1 ? pure 2.
+
+  Definition doubleSharePlus1 (fn : FreeShare nat) : FreeShare nat :=
+    Share1 1 fn >>= fun fn' => liftM2 plus fn' fn'.
+
+  Definition doubleSharePlus2 (fn : FreeShare nat) : FreeShare nat :=
+    Share2 1 fn >>= fun n' => liftM2 plus (pure n') (pure n').
+
+  Fixpoint numberChoices' (A : Type) (n : nat) (t : FreeShare A) : FreeND A :=
+    match t with
+    | impure (inl (choiceS _)) pf => impure (choiceS (Some n)) (fun p => numberChoices' (n + 1) (pf p))
+    | impure (inr (shareS n))  pf => numberChoices' n (pf tt)
+    | impure (inl failedS) pf     => impure failedS (fun p => numberChoices' n (pf p))
+    | pure x                      => pure x
+    end.
+
+  Fixpoint numberChoices (A : Type) (t : FreeShare A) : FreeND A :=
+    match t with
+    | impure (inr (shareS n))  pf  => numberChoices' n (pf tt)
+    | impure (inl (choiceS id)) pf => impure (choiceS id) (fun p => numberChoices (pf p))
+    | impure (inl failedS) pf      => impure failedS (fun p => numberChoices (pf p))
+    | pure x                       => pure x
+    end.
+
+  Fixpoint dfs' (A : Type) (choices : nat -> option bool) (t : FreeND A) : list A :=
+    match t with
+    | pure x                        => cons x nil
+    | impure failedS             pf => nil
+    | impure (choiceS (Some id)) pf =>
+      match choices id with
+      | None => dfs' (fun n => if Nat.eqb n id then Some true else choices n) (pf true)
+                    ++ dfs' (fun n => if Nat.eqb n id then Some false else choices n) (pf false)
+      | Some b => dfs' choices (pf b)
+      end
+    | impure (choiceS None) pf => dfs' choices (pf true) ++ dfs' choices (pf false)
+    end.
+
+  Definition dfs (A : Type) (t : FreeND A) : list A :=
+    dfs' (fun n => None) t.
+
+  Require Import List.
+  Import ListNotations.
+
+  Lemma doubleSharePlus :
+    doubleSharePlus1 coinShareND <> pure 2 ? pure 4.
+  Proof.
+    unfold doubleSharePlus1; simpl.
+    (* impure (shareS 1) (fun _ : unit => ...) <>
+       impure (choiceS None) (fun p : bool => ...)
+     *)
+    discriminate.
+  Qed.
+
+  Lemma doubleSharePlus2_correct :
+    dfs (numberChoices (doubleSharePlus2 coinShareND)) = [2;4].
+  Proof.
+    reflexivity.
+  Qed.
+
+  Lemma doubleSharePlus1_correct :
+    dfs (numberChoices (doubleSharePlus1 coinShareND)) = [2;4].
+  Proof.
+    reflexivity.
+  Qed.
+
+  Lemma addShare1Coin_correct :
+    dfs (numberChoices (Share1 1 coinShareND >>= fun fn => liftM2 plus fn (liftM2 plus fn coinShareND))) =
+    [3;4;5;6].
+  Proof.
+    reflexivity.
+  Qed.
+
+  Lemma addShare2Coin_correct :
+    dfs (numberChoices (Share2 1 coinShareND >>= fun n => liftM2 plus (pure n) (liftM2 plus (pure n) coinShareND))) =
+    [3;4;5;6].
+  Proof.
+    reflexivity.
+  Qed.
+  
+  Lemma addShare1Coin_fails :
+    (Share1 1 coinShareND >>= fun fn => liftM2 plus (liftM2 plus fn coinShareND)
+                                           (liftM2 plus fn coinShareND)) <>
+    pure 4 ? pure 5.
+  Proof.
+    simpl.
+  Abort.
+
+  Lemma addShare1Coin_fails :
+    numberChoices (Share1 1 coinShareND >>= fun fn => liftM2 plus (liftM2 plus fn coinShareND)
+                                                          (liftM2 plus fn coinShareND)) =
+    ChoiceND' 1 (ChoiceND' 2 (ChoiceND' 1 (ChoiceND' 3 (pure 4) (pure 5))
+                                          (ChoiceND' 3 (pure 5) (pure 6)))
+                             (ChoiceND' 1 (ChoiceND' 3 (pure 5) (pure 6))
+                                          (ChoiceND' 3 (pure 6) (pure 7))))
+                (ChoiceND' 2 (ChoiceND' 1 (ChoiceND' 3 (pure 5) (pure 6))
+                                          (ChoiceND' 3 (pure 6) (pure 7)))
+                             (ChoiceND' 1 (ChoiceND' 3 (pure 6) (pure 7))
+                                          (ChoiceND' 3 (pure 7) (pure 8)))).
+  Proof.
+    unfold ChoiceND', ChoiceND; simpl.
+    f_equal; extensionality p1; destruct p1; simpl.
+    - f_equal; extensionality p1; destruct p1; simpl.
+      + f_equal; extensionality p1; destruct p1; simpl.
+        * admit.
+        * admit.
+      + f_equal; extensionality p1; destruct p1; simpl.
+        * admit.
+        * admit.
+    - f_equal; extensionality p1; destruct p1; simpl.
+      + f_equal; extensionality p1; destruct p1; simpl.
+        * admit.
+        * admit.
+      + f_equal; extensionality p1; destruct p1; simpl.
+        * admit.
+        * admit.
+  Abort.
+
+  Lemma addShare1Coin_fails :
+    dfs (numberChoices (Share1 1 coinShareND >>= fun fn => liftM2 plus (liftM2 plus fn coinShareND)
+                                                               (liftM2 plus fn coinShareND))) <>
+    [4;5;5;6;6;7;7;8].
+  Proof.
+    unfold dfs; simpl.
+    discriminate.
+  Qed.
+
+  Lemma addShare2Coin_fails :
+    dfs (numberChoices (Share2 1 coinShareND >>= fun n => liftM2 plus (liftM2 plus (pure n) coinShareND)
+                                                              (liftM2 plus (pure n) coinShareND))) <>
+    [4;5;5;6;6;7;7;8].
+  Proof.
+    unfold dfs; simpl.
+    discriminate.
+  Qed.
+
+  Lemma addShare1Twice :
+    dfs (numberChoices (Share1 1 coinShareND >>= fun fn1 =>
+                        liftM2 plus (liftM2 plus fn1 fn1) (Share1 2 coinShareND >>= fun fn2 => liftM2 plus fn2 fn2)))
+    = [4;6;6;8].
+  Proof.
+    reflexivity.
+  Qed.
+
+  Lemma addShare2Twice_fails :
+    dfs (numberChoices (Share2 1 coinShareND >>= fun n1 =>
+                        liftM2 plus (liftM2 plus (pure n1) (pure n1)) (Share2 1 coinShareND >>= fun n2 => liftM2 plus (pure n2) (pure n2))))
+    <> [4;6;6;8].
+  Proof.
+    unfold dfs; simpl.
+    discriminate.
+  Qed.
+
+End NDShare.
