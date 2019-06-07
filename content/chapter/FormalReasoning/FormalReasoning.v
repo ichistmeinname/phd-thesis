@@ -2024,7 +2024,7 @@ Module ND_Examples.
 
   End Examples.
 
-End ND_Examples.End ND_Examples.
+End ND_Examples.
 
 Section NDShare.
 
@@ -2068,7 +2068,7 @@ Section NDShare.
 
   Fixpoint numberChoices' (A : Type) (n : nat) (t : FreeShare A) : FreeND A :=
     match t with
-    | impure (inl (choiceS _)) pf => impure (choiceS (Some n)) (fun p => numberChoices' (n + 1) (pf p))
+    | impure (inl (choiceS _)) pf => impure (choiceS (Some n)) (fun p => numberChoices' (n+1) (pf p))
     | impure (inr (shareS n))  pf => numberChoices' n (pf tt)
     | impure (inl failedS) pf     => impure failedS (fun p => numberChoices' n (pf p))
     | pure x                      => pure x
@@ -2157,6 +2157,7 @@ Section NDShare.
                              (ChoiceND' 1 (ChoiceND' 3 (pure 6) (pure 7))
                                           (ChoiceND' 3 (pure 7) (pure 8)))).
   Proof.
+    simpl ">>=".
     unfold ChoiceND', ChoiceND; simpl.
     f_equal; extensionality p1; destruct p1; simpl.
     - f_equal; extensionality p1; destruct p1; simpl.
