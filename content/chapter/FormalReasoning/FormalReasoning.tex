@@ -3172,7 +3172,7 @@ double-line \verb|//| and \verb|\\|, respectively.
 In the Coq model, however, the example evaluates to a different
 result and tree representation.
 To understand what is going here, we display the tree representation
-that still has sharing nodes in the left part of \autoref{fig:subTree2}.
+that still has sharing nodes in the left part of \autoref{fig:searchTee2}.
 The problem is that the introduced sharing primitive is not limited to
 its scope: the example only shares the expression \cyinl{1 ? 2}, but
 also non-shared, individual non-deterministic computations of \cyinl{1
@@ -3218,7 +3218,7 @@ also non-shared, individual non-deterministic computations of \cyinl{1
 \caption{Search tree representation of the expression \cyinl{example}
   in the current Coq model with sharing-nodes (left) and with labeled
   choices (right)}
-\label{fig:searchTree}
+\label{fig:searchTree2}
 \end{figure}
 
 More precisely, when we evaluate the sub-expression \cyinl{x + (1 ? 2)},
@@ -3243,6 +3243,120 @@ While a non-deterministic choice will be propagated to top-level when
 a function needs to evaluate the choice, sharing a computation is a
 rather local effect.
 
+\subsubsection{Free Monads with Scope}
+
+A more promising approach to modell Curry's call-time choice semantics
+is to use scoped operations as discussed by \citet{wu2014effect} and
+\citet{pirog2018syntax}.
+More precisely, \citeauthor{wu2014effect} present two approaches for
+implementations in Haskell: (a) using explicit primitives to mark the
+beginning and the end a scoped expression; (b) adapting the free monad
+construction by replacing the underlying functor with a higher-order
+functor.
+The higher-order functor is a type constructor that takes a functor as
+argument, i.e., is of kind \hinl{(* -> *) -> * -> *}.
+The former approach leads to an administrative overhead to keep track
+of well-balanced begin and end tags and the problem that it is able to
+construct an unbalanced program in the first place.
+The usage is more convenient in the latter approach since the sharing
+primitive explicitly takes the scoped expression is explicitly as its
+argument.
+On the other hand, \citeauthor{pirog2018syntax} derive a
+representation of scoped effects using category theory.
+They also give a Haskell implementation for their representation of the
+free monad with scoped effects by adding an additional constructor
+\hinl{Scope}.
+
+\begin{minted}{haskell}
+data Prog f g a = Return a
+                | Op (f (Prog f g a))
+                | Scope (g (Prog f g (Prog f g a)))
+\end{minted}
+
+Note that the resulting data type \hinl{Prog} is parametrised over an
+additional type constructor \hinl{g}.
+This type constructor is the functor for the effect with scope -- the
+type constructor \hinl{f} is still used for the effects, like
+partiality or non-determinism, that we have seen so far.
+The nested structure of the \hinl{Scope} constructor enables the
+separation of \emph{ordinary} and scoped effects: the inner
+\hinl{Prog} layer is not affected when using \hinl{(>>=)} to transform
+the structure.
+
+\paragraph{Intuitive Representation using Explicit Markers}
+
+In order to illustrate how a scoped effect can help in case of Curry's
+call-time choice semantics, \autoref{fig:searchTreeScope} shows an
+adapted version of the search tree representation.
+More precisely, the illustration enhances the search tree
+representation resulting from the sharing primitive introduced in the
+previous section using explicit markers.
+
+\begin{figure}[h]
+ \centering
+\begin{Verbatim}[numbers=left, xleftmargin=5mm]
+                                     < Share_1
+                                         |
+                                         ? >
+                                   /           \
+                                  ?            ...
+                           /            \
+                      < Share_1     < Share_1
+                          |              |
+                          ? >            ? >
+                       /     \        /     \
+                      ?       ?      ?       ?
+                     / \     / \    / \     / \
+                    4   5   5   6  5   6   6   7
+\end{Verbatim}
+\caption{The search tree representation of the expression \cyinl{example}
+  in the simple Coq model with sharing nodes adapted with explicit begin (\texttt{<})
+  and end (\texttt{>}) markers}
+\label{fig:searchTreeScope}
+\end{figure}
+
+Due to the explicit markers, the interpreting function
+\cinl{numberChoices} uses the end-delimiter to stop numbering.
+That is, the choices in line number $5$ and $11$ are not affected by
+the sharing effect and do not get any number.
+Note that a numbering that affects only the choices within the markers
+corresponds to the tree in \autoref{fig:searchTree} when evaluating
+the example expression in Curry.
+
+\paragraph{Implementation}
+
+All of the above approaches for scoped effects using free monads are
+implemented in Haskell.
+Taking the idea basis for an implementation in Coq, the most promising
+approach is \citeauthor{wu2014effect}'s work using explicit markers
+as well as the alternative using higher-order functors.
+The problem with the approach by \citeauthor{pirog2018syntax} is the
+\hinl{Scope} constructor in the definition of \hinl{Prog}.
+Due to the \hinl{Scope} constructor \hinl{Prog} is a truly nested data
+type.
+\citet{matthes2008recursion} defines truly nested data types as
+follows.
+
+\begin{quote}
+A nested datatype will be called “truly nested” ([or non-linear]) if
+the intuitive recursive equation for the inductive family has at least
+one summand with a nested call to the family name, i. e., the family
+name appears somewhere inside the type argument of a family name
+occurrence of that summand.
+\end{quote}
+
+That is, the type \hinl{Prog} is truly nested because its constructor
+\hinl{Scope} applies the type to define to itself.
+The problem with respect to an implementation in Coq is that a truly
+nested data type like \hinl{Bush} cannot be implemented directly in
+current versions of the Calculus of Inductive Constructions, the
+underlying calculus of Coq \citep{matthes2008recursion}.
+
+Concerning the approaches introduced by \citeauthor{wu2014effect},
+there exists a prototypic implementation for Curry's call-time choice
+semantics that was developed during the master's thesis by
+\citet{bunkenburg2019modeling} and looks promising.
+There are, however, downsides for both approaches.
 
 \section{Related Work}
 \section{Conclusion and Future Work}
