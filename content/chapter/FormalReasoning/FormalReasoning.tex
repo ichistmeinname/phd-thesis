@@ -3248,6 +3248,7 @@ rather local effect.
 A more promising approach to modell Curry's call-time choice semantics
 is to use scoped operations as discussed by \citet{wu2014effect} and
 \citet{pirog2018syntax}.
+
 More precisely, \citeauthor{wu2014effect} present two approaches for
 implementations in Haskell: (a) using explicit primitives to mark the
 beginning and the end a scoped expression; (b) adapting the free monad
@@ -3330,6 +3331,14 @@ implemented in Haskell.
 Taking the idea basis for an implementation in Coq, the most promising
 approach is \citeauthor{wu2014effect}'s work using explicit markers
 as well as the alternative using higher-order functors.
+\citet{bunkenburg2019modeling} developed a prototypic implementation
+for Curry's call-time choice semantics in Coq as master's thesis that
+looks quite promising.
+There are, however, downsides for both approaches.
+Before we go into more detail for these approaches, we discuss why we
+do cannot implement the approach by \citeauthor{pirog18syntax} in Coq.
+
+\subparagraph{Free Monad with additional constructor}
 The problem with the approach by \citeauthor{pirog2018syntax} is the
 \hinl{Scope} constructor in the definition of \hinl{Prog}.
 Due to the \hinl{Scope} constructor \hinl{Prog} is a truly nested data
@@ -3352,11 +3361,108 @@ nested data type like \hinl{Bush} cannot be implemented directly in
 current versions of the Calculus of Inductive Constructions, the
 underlying calculus of Coq \citep{matthes2008recursion}.
 
-Concerning the approaches introduced by \citeauthor{wu2014effect},
-there exists a prototypic implementation for Curry's call-time choice
-semantics that was developed during the master's thesis by
-\citet{bunkenburg2019modeling} and looks promising.
-There are, however, downsides for both approaches.
+\subparagraph{Approach with Explicit Markers}
+In case of the first approach using explicit markers, the
+corresponding function that interprets the \cinl{Free} structure by
+numbering the choices within the markers needs to explicitly handle
+mismatches.
+For example, consider the following simplified representation for a
+sharing effect with two markers.
+
+\begin{minted}{coq}
+Inductive Sharing__S :=
+| bshareS : nat -> Sharing__S
+| eshareS : Sharing__S.
+
+Definition Sharing__P (s : Sharing__S) := unit.
+\end{minted}
+
+An adaption of \cinl{numberChoices} leads to a problematic situation
+in case unbalanced markers, that is, if a \cinl{eshare} appears
+without a preceding \cinl{bshare} that it corresponds to.
+
+\begin{minted}{coq}
+Fixpoint numberChoices (A : Type) (t : FreeShare A) : FreeND A :=
+  match t with
+  | impure (bshareS n)  pf => numberChoices' n (pf tt)
+  | impure eshareS      pf => numberChoices (pf tt) (** unbalanced **)
+  | ...
+  end.
+\end{minted}
+
+Since the resulting program does not have a corresponding definition
+in Haskell, the implementation by \citeauthor{bunkenburg2019modeling}
+ignores the mismatch and simply transforms the remaining program.
+An alternative solution is to lift the return type to \cinl{option} in
+order to indicate an invalid program using \cinl{None} in case the
+program has unbalanced markers.
+This solution complicates, however, the usage of the interpreting
+function \cinl{numberChoices} that is used to define in combination
+with the tree traversal function \cinl{dfs} to state propositions
+about Curry programs.
+
+\subparagraph{Higher-Order Approach}
+The higher-order approach, on the other hand, remedies the mismatching
+markers but comes along with a more involved container representation.
+The free monad adapted to higher-order functors and the sharing effect
+look as follows in the Haskell implementation.
+
+\begin{minted}{haskell}
+data Free h a = Pure a
+              | Op (h (Free h) a)  
+
+data HShare m a = forall x. Share (m x) (x -> m a)
+\end{minted}
+
+That is, the functor \hinl{h} is of kind \hinl{(* -> *) -> * -> *}
+taking a type constructor as its first argument.
+In the definition of the effect functor \hinl{HShare} the existential
+quantified type variable \hinl{x}  allows to represent the shared
+expression as its first argument \hinl{m x} and a continuation \hinl{x
+  -> m a} that specifies the remaining as second argument.
+This representation corresponds to let-expressions in
+\emph{Higher-Order Abstract Syntax (HOAS)} first introduced by
+\citet{pfenning1988higher}.
+Consider the following two AST-representation for a simple language
+with variables and let-expressions.
+
+\begin{minted}{haskell}
+data Expr   var = Var var
+                    | Let var (Expr var) (Expr var)
+
+data ExprHO var = Var var
+                | Let (Expr var) (Expr var -> Expr var)
+\end{minted}
+
+That is, let-expression \hinl{let x = 1 + 2 in x + x}
+corresponds to the following expressions in the different
+AST-representations assuming a function symbol \hinl{+} and numeric
+literals of appropriate type are already defined.
+
+\begin{minted}{haskell}
+expr :: Expr String
+expr = Let "x" (1 + 2) (Var "x" + Var "x")
+
+exprHO :: Expr
+exprHO = Let (1 + 2) (\exp -> exp + exp)
+\end{minted}
+
+The former representation can be considered as standard
+implementation, while the latter reflects the concepts of the
+mentioned HOAS.
+
+The correspondence to a let-construction should not be too surprising
+since we introduce shared expression using let-expressions in Curry.
+The main difference to the AST-representation is the existential
+quantification due to the monadic wrapper of the shared expression.
+
+The container representation used before needs to be adapted due to
+the higher-order argument and the existential quantification.
+The implementation by \citeauthor{bunkenburg2019modeling} combines
+indexed containers and bi-containers introduced by
+\citet{altenkirch2015indexed} and \citet{ghani2007higher}, respectively.
+We do not go into more detail here but refer the interested reader to
+the master's thesis as well as future work to come.
 
 \section{Related Work}
 \section{Conclusion and Future Work}
