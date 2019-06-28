@@ -3466,16 +3466,119 @@ the master's thesis as well as future work to come.
 
 \section{Related Work}
 
-\subsection{Modelling Effects with Monads}
+\subsection{Modelling Algebraic Effects}
 
-What's the first free monad paper to cite?
-\cite{swierstra2008data}
+In his attempt to combine several functional programming idioms to
+describe a technique that established reusable components,
+\citet{swierstra2008data} manifests free monads and their usage for
+modeling effects in the functional programming community.
 
-\cite{mcbride2015turingcompleteness}
-Interaction Trees (DeepSpec) \cite{koh2019interaction} (using \cite{kiselyov2015freer})
-FreeSpec \cite{letan2018modular}
+\citet{plotkin2009handlers} give a more theoretical overview of algebraic
+effects and the corresponding handlers.
+They were motivated by finding model for exception handlers, but also
+present algebraic theories for effects like non-determinism, IO and
+state.
+For all these effects the underlying computation monad is the free-model
+monad of the respective theory.
+That is, they derive the usage of free monads to model effects from an
+algebraic theory.
+Starting with their work on algebraic effects, by now there are
+implementations in Idris~\citep{brady2013programming},
+Scala~\citep{brachthauser2017effekt}, OCaml~\citep{kiselyov2018eff}
+and Haskell~\citep{kiselyov2015freer,kammar2013handlers} as well as
+new languages with primitives for effects and handlers like
+Eff~\citep{pretnar2015introduction}, Koka~\citep{leijen2016algebraic},
+Frank~\citep{lindley2017be}, and F*~\citep{swamy2016dependent}.
 
-\cite{atkey2015interleaving}
+Concerning modeling effects in dependently typed languages,
+\cite{mcbride2015turingcompleteness} introduces the \texttt{General}
+monad to model recursion in Agda.
+
+\begin{verbatim}
+data General (S : Set) (T : S -> Set) (X : Set) : Set where
+  !!   : X -> General S T X
+  _??_ : (s : S) -> (T s -> General S T X) -> General S T X
+\end{verbatim}
+
+He describes \texttt{General} as a request-response tree with values
+of type \texttt{X}.
+The definition is basically the implementation of the free monad model we
+have presented and used here modulo renaming: \texttt{!!} embeds
+value as we do using \cinl{pure} and \cinl{impure} corresponds to
+\texttt{??}.
+
+The formalism FreeSpec~\citep{letan2018modular} allows to model
+components as programs with algebraic effects in a modular fashion
+and verify properties of these components.
+\citeauthor{letan2018modular} implement the framework in Coq based on
+the \hinl{Program} monad defined in the \texttt{operational} package\footnote{\url{https://hackage.haskell.org/
+    package/operational}} in Haskell.
+In contrast to the free monad we use in this chapter, the
+\cinl{Program} monad adds a third constructor to explicitly model
+processing a program using a continuation via \cinl{Bind}.
+
+\begin{minted}{coq}
+Inductive Program (I : Type -> Type) (A : Type) : Type :=
+  Pure    :: A -> Program I A
+  Bind    :: forall (B : Type),
+             Program I B -> (B -> Program I A) -> Program I A
+  Request :: I A -> Program I A.
+\end{minted}
+
+In a newer version of the framework the constructors \cinl{Bind} and
+\cinl{Request} were merged into one constructor, hence, resemble the
+definition of freer monads as introduced by \citet{kiselyov2015freer}
+more closely.
+
+\begin{minted}{coq}
+Inductive Program (I : Type -> Type) (A : Type) : Type :=
+  Pure    :: A -> Program I A
+  Request :: forall (B : Type), I B -> (B -> Program I A) -> Program I A.
+\end{minted}
+
+In contrast the usual free monad definition using a functor, the freer
+representation gets rid of the functor constraint by using a
+continuation \cinl{B -> Program I A} instead to directly describe how
+to process the instruction \cinl{I B}.
+
+The work of \citet{koh2019interaction} on \emph{interaction trees}
+adapt the freer monad in Coq as well.
+The associated DeepSpec project on verifying networked server
+implemented in C uses interaction trees as general structure to
+represent reactive components.
+Again,  a more recent version of the framework uses a slightly
+modified structure.
+They currently implement a coinductive variant of the free monad to
+model diverging computations \citep{xia2019interaction}.
+
+\begin{minted}{coq}
+CoInductive itree (E: Type -> Type) (R: Type) : Type :=
+| Ret  : R -> itree E R
+| Tau : itree E R -> itree E R
+| Vis : forall (A : Type), E A -> (A -> itree E R) -> itree E R.
+\end{minted}
+
+It would be interesting to investigate if a coinductive definition of
+\cinl{Free} might lead to a model for non-termination in our setting
+as well.
+
+Concerning further ideas that are worth further investigation,
+\citet{atkey2015interleaving} examine how the reasoning about
+inductive data types can be eased using the categorical principle of
+initial algebras.
+They are particularly interested in data types that are interleaved
+with effects --- similar to the monadic liftings of the data types
+that we have discussed.
+Their approach does not only parametrise over the effects but also the
+data types.
+That is, they describe an abstraction using \emph{initial
+  f-and-m-algebras}, where \emph{m} describes the interleaved
+effects as monads and \emph{f} is a functor that describes the pure
+part of the respective data type.
+The part we like to investigate further is the custom proof principle
+they use to prove properties about programs modeled as
+f-and-m-algebras.
+
 
 \subsection{Reasoning About Haskell Programs}
 
