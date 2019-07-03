@@ -3464,7 +3464,7 @@ indexed containers and bi-containers introduced by
 We do not go into more detail here but refer the interested reader to
 the master's thesis as well as future work to come.
 
-\section{Related Work}
+\section{Related and Future Work}
 
 \subsection{Modelling Algebraic Effects}
 
@@ -3582,12 +3582,82 @@ f-and-m-algebras.
 
 \subsection{Reasoning About Haskell Programs}
 
-\cite{abel2005verifying}
+In addition to related work that models effects using mondas, there is
+also a variety of work that focuses on modelling and reasoning about
+Haskell programs.
+Most prominently represented in this thesis is the work by
+\citet{abel2005verifying}.
+We based our approach on their original idea to model Haskell programs
+in the dependently typed language Agda~\citep{norell2008dependently}
+using a monadic lifting for data types and functions.
+The monadic lifting models two aspects of Haskell.
+First, Haskell is a non-strict language, such that the monadic
+\hinl{>>=}-operator comes in handy when defining function that need to
+pattern match on their arguments.
+Second, since \citeauthor{abel2005verifying} want to model total as well as
+partial Haskell programs, the monadic approach enables the reuse of
+generic data type and function definitions.
+By instantiating the monadic parameter with a concrete instance the
+model can be used for one of the wanted settings.
 
-Sparkle \citep{demol2002theorem} \citep{vaneekelen2006proof}
-(strictness checks)
+\citet{demol2002theorem} develop the interactive proof assistant
+Sparkle that is integrated into the development of  the programming
+language Clean~\citep{brus1987clean}.
+Since Clean is a non-strict functional language like Haskell,
+reasoning about Clean is similar to reasoning about Haskell programs.
+Furthermore, Sparkle considers the partiality of Clean as default and,
+thus, explicitly models \emph{undefined} values.
+As an especially interesting use-case of this explicit model,
+\citet{vaneekelen2006proof} reason about the strictness of functions.
+As future work, it would be interesting to model such strictness properties in the
+framework used in this thesis in the same manner as they do in Sparkle.
 
-Hermit \cite{farmer2015reasoning} (pen-and-paper proofs from \cite{bird2010pearls})
+A conceptual similar approach that tackles Haskell instead of Clean is
+HERMIT~\citep{farmer2015reasoning}.
+HERMIT is a toolkit for reasoning about Haskell programs that integrates directly
+into the GHC pipeline.
+The tool was successfully used by \citeauthor{farmer2015reasoning} to
+formalise and prove properties about various type classes and their
+corresponding laws as well as pen-and-paper proofs taken from
+\citetitle{bird2010pearls}~\citep{bird2010pearls}.
+
+More recently, the translation of Haskell to Coq is a line of research that is of
+growing interest.
+In the process, we want to keep the generated Coq code as close to the
+original structure of the Haskell code as possible.
+The experience report by \citet{dijkstra2012experimentation}
+describes such an approach for an automatically translation.
+\citeauthor{dijkstra2012experimentation} models partial functions
+using a method presented by \citet{bove2007computation} that extends
+all functions with additional proof arguments.
+These proof arguments pose certain invariants about all function
+applications.
+For example, the additional argument for the partial function
+\emph{head} on lists asserts that the applied list argument is not
+empty.
+In contrast to this explicit modeling of Haskell's partiality,
+\citet{spector-zabusky2018total} present a translation from Haskell to
+Coq that focuses on total Haskell programs.
+The advantage of the focus on the total subset of Haskell,
+they can translate functions one-to-one to Coq.
+In case of a partial function, like \emph{head}, their translation
+scheme uses, however, an additional axiom that can be understood as a
+representation of the polymorphic value \emph{undefined}.
+As they state, this axiom makes their model unsound and is only meant
+as a temporarily solution.
+That is, the common work-flow suggests that the user can start proving
+properties about partial functions right away and totalise these
+functions later.
+Most recently, \citet{breitner2018ready} present a more rigorous case
+study of this approach that prove properties about real world
+Haskell libraries.
+For this publication the approach concerning partial functions was
+slightly adapted.
+They still use an additional axiom for partial functions, but define
+it in such a way that prevents Coq from unfolding the definition.
+This approach enables a more practical way to reason about some simple
+properties involving partial functions more.
+
 
 \cite{dijkstra2012experimentation} (partial functions are translated
 using \cite{bove2007computation})
@@ -3601,6 +3671,6 @@ partial functions in \cite{breitner2018ready}
 \cite{bunkenburg2019modeling}
 \cite{cleva2004logic} proof calculus for CRWL
 
-\section{Conclusion and Future Work}
+\section{Conclusion}
 
 \section{Final Remarks}
