@@ -371,7 +371,7 @@ instantiations.
 Thus, we name the type parameter \cinl{M} to indicate that it is a
 placeholder for a monadic type.
 This representation was already suggested by
-\citet{abel2005verifying}, who translated Haskell code into Agda code
+\citet{abel2005verifying}, who translated Haskell code into Agda~\citep{norell2008dependently} code
 in order to prove propositions about Haskell functions.
 Their approach, however, is not applicable in recent versions of Agda
 nor Coq anymore.
@@ -3519,10 +3519,10 @@ processing a program using a continuation via \cinl{Bind}.
 
 \begin{minted}{coq}
 Inductive Program (I : Type -> Type) (A : Type) : Type :=
-  Pure    :: A -> Program I A
-  Bind    :: forall (B : Type),
+  Pure    : A -> Program I A
+  Bind    : forall (B : Type),
              Program I B -> (B -> Program I A) -> Program I A
-  Request :: I A -> Program I A.
+  Request : I A -> Program I A.
 \end{minted}
 
 In a newer version of the framework the constructors \cinl{Bind} and
@@ -3532,8 +3532,8 @@ more closely.
 
 \begin{minted}{coq}
 Inductive Program (I : Type -> Type) (A : Type) : Type :=
-  Pure    :: A -> Program I A
-  Request :: forall (B : Type), I B -> (B -> Program I A) -> Program I A.
+  Pure    : A -> Program I A
+  Request : forall (B : Type), I B -> (B -> Program I A) -> Program I A.
 \end{minted}
 
 In contrast the usual free monad definition using a functor, the freer
