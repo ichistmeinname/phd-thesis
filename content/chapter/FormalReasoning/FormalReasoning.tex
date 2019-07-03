@@ -3658,14 +3658,49 @@ it in such a way that prevents Coq from unfolding the definition.
 This approach enables a more practical way to reason about some simple
 properties involving partial functions more.
 
-
-\cite{dijkstra2012experimentation} (partial functions are translated
-using \cite{bove2007computation})
-
-\cite{spector-zabusky2018total}; case study and different approach for
-partial functions in \cite{breitner2018ready}
-
 \subsection{Modelling Curry Programs}
+
+Besides the generic view on modeling effects and the focus on modeling
+or reasoning about Haskell, we also take a look at related work on
+proving properties about functional logic programs to find connections
+and inspirations for our findings about modeling Curry programs.
+\citet{cleva2004logic} discuss that common equational reasoning
+techniques are not valid in the functional logic languages that
+combine non-deterministic functions and call-time choice semantics.
+They suggest a proof calculus based on \emph{CRLW}
+(constructor-based rewriting logic)~\citep{gonzalez1996rewriting} to
+prove properties about first-order functional logic programs.
+On top of that, they encoded this approach in various proof assistants
+for simple exemplary programs and corresponding properties.
+
+Instead of using term rewriting systems like \emph{CRLW} as basis,
+\citet{antoy2017proving} present ideas to model Curry programs in
+Agda.
+They use to explicit representations of non-determinism, which they call \emph{set of
+  values} and \emph{planned choices}, respectively.
+The first approach translates a non-deterministic Curry function into
+a deterministic function in Agda that explicitly models the potential
+non-determinism.
+The following data types represents the explicit model used in Agda.
+
+\begin{verbatim}
+data ND (A : Set) : Set where
+  Val  : A -> ND A
+  _??_ : ND A -> ND A -> ND A
+\end{verbatim}
+
+Their model is a specialisation of the generic model that we use:
+instantiating \cinl{Free Sh Ps A} with a variant of the
+non-determinism effect \cinl{ND} without \cinl{failed} results in a
+representation isomorphic to their data type \emph{ND}.
+Instead of using a monadic interface they define operators \emph{$*}
+and \emph{*$*}, where the former corresponds to \emph{Functor} method
+\emph{fmap} and the latter to the monadic operation \emphl{>>=}.
+The translation for the second approach adds an extra argument to the
+translated function.
+This argument represents the choice to make for non-deterministic
+choices during the computation of the translated function and, hence,
+makes the function deterministic.
 
 \cite{antoy2017proving}
 \cite{bunkenburg2019modeling}
