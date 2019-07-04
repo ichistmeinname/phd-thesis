@@ -3788,6 +3788,27 @@ Concerning the implementations in Coq, the higher-order syntax,
 however, opens a new cans of worms when trying to circumvent Coq's
 strict positivity restriction for data types, especially for the
 definition of the container representation of higher-order functors.
+As future work we like to try out this prototype using several case
+studies to detects the limits of the approach or the implementation in
+particular.
+With respect to the difficulty of defining the container
+representation for the higher-order approach in Coq, we hope to
+circumvent the problem by finding an appropriate implementation that
+is probably less general than the implementation in Haskell but
+adheres to Coq's restrictions.
+First experiments revealed that Agda accepts a slightly adjusted
+definition of the data type \citeauthor{bunkenburg2019modeling} tried
+to implement in Coq.
+Hence, it might be worthwhile to reimplement the model for call-time
+choice in Agda to try out first proofs about Curry programs for the
+higher-order approach.
+A fairly long-term goal is to show that our model using \cinl{Free}
+correctly models Curry's call-time choice.
+Thanks to the implementation in Coq, we can use the model to prove the
+equivalence with an operational or denotational model of Curry.
+The implementation of the operational or denotation of Curry is an
+interesting line of work itself that is useful for a wide range of
+questions and issues.
 
 \section{Conclusion}
 
