@@ -3678,11 +3678,74 @@ On top of that, they encoded this approach in various proof assistants
 for simple exemplary programs and corresponding properties.
 
 Instead of using term rewriting systems like \emph{CRLW} as basis,
-\citet{antoy2017proving} present ideas to model Curry programs in
-Agda.
-They use to explicit representations of non-determinism, which they call \emph{set of
-  values} and \emph{planned choices}, respectively.
-The first approach translates a non-deterministic Curry function into
+\citet{fischer2009purely} present an embedding of Curry's functional
+logic features, that is, the combination of non-strictness, sharing
+and non-determinism, in the functional language Haskell.
+That is, they are more interested in a denotational, executable model
+of Curry.
+Their approach follows the same idea as \citet{abel2005verifying} and
+uses a monadic lifting of data types and functions to incorporate
+non-determinism in combination with non-strictness.
+Due to the combination with non-determinism, the examples they are
+most interested in are monadic components that support the type class
+\hinl{MonadPlus}.
+
+\begin{minted}{haskell}
+class MonadPlus m where
+  mplus :: m a -> m a -> ma
+  mzero :: m a
+\end{minted}
+
+The type constructor class \hinl{MonadPlus} comes with two functions
+\hinl{mplus} and \hinl{mzero} that represent operations for
+non-deterministic choices and failure values, respectively.
+As we have already discussed in \autoref{subsubsec:cbneed}, such a
+monadic representation models call-by-name rather than the wanted
+concept of call-by-need.
+In order to overcome this issue, they introduce an explicit sharing
+function \hinl{share :: MonadPlus m => m a -> m (m a)}.
+We used the same interface for the sharing operator in our approach as
+discussed in \autoref{subsubsec:cbneed}.
+These two layers of monads of the result of the sharing function is
+necessary to retain the non-strictness property.
+The first monadic layer additionally performs bookkeeping in order to
+implement call-time choice in case of sharing involving
+non-deterministic computations.
+In order to track the decisions of shared non-deterministic
+computations during evaluation, \citeauthor{fischer2009purely} use
+an untyped heap that store computations corresponding to variable
+references.
+That is, they implementation is a realisation of the heap used in the
+operational call-by-need semantics as introduced by
+\citet{launchbury1993natural}.
+The main contribution of the ideas we presented about modelling
+Curry's call-time choice in Coq in \autoref{subsubsec:modelcalltime}
+in contrast to the implementation of \citeauthor{fischer2009purely} is
+that we avoid using unpure features.
+This avoidance origins in our usage of Coq, where these features are
+not available, but are also of interest for implementation in Haskell
+as well.
+As future work, we plan to investigate if a Haskell implementation
+that tracks the decisions of choices instead of references to
+computations can compete with respect to performance.
+
+An approach by \citet{antoy2017proving} aims at modeling Curry
+programs in Agda.
+In contrast to our and \citeauthor{fischer2009purely}'s goal to
+implement a generic model that combines non-strictness, sharing and
+effects like non-determinism, \citeauthor{antoy2017proving} explicitly
+tackle Curry's choice operator only.
+They present two different these representations of Curry's
+non-determinism called \emph{planned choices}, and \emph{set of values}
+respectively.
+The translation for the first approach adds an extra argument to the
+translated function.
+This argument represents the choice to make for non-deterministic
+choices during the computation of the translated function and, hence,
+makes the function deterministic.
+For us, the second approach is more interesting because its high
+resemblance to a monadic interface.
+The second approach translates a non-deterministic Curry function into
 a deterministic function in Agda that explicitly models the potential
 non-determinism.
 The following data types represents the explicit model used in Agda.
@@ -3693,22 +3756,38 @@ data ND (A : Set) : Set where
   _??_ : ND A -> ND A -> ND A
 \end{verbatim}
 
-Their model is a specialisation of the generic model that we use:
-instantiating \cinl{Free Sh Ps A} with a variant of the
-non-determinism effect \cinl{ND} without \cinl{failed} results in a
-representation isomorphic to their data type \emph{ND}.
-Instead of using a monadic interface they define operators \emph{$*}
-and \emph{*$*}, where the former corresponds to \emph{Functor} method
-\emph{fmap} and the latter to the monadic operation \emphl{>>=}.
-The translation for the second approach adds an extra argument to the
-translated function.
-This argument represents the choice to make for non-deterministic
-choices during the computation of the translated function and, hence,
-makes the function deterministic.
+Here, it comes apparent that their model is a specialisation of the
+generic monadic model; in case of our model we can instantiate
+\cinl{FreeA} with a variant of the non-determinism effect \cinl{ND}
+without \cinl{failed} results\footnote{As already noted, the approach
+  by \citeauthor{antoy2017proving} does not consider \emph{failure}
+  values but focuses on a non-deterministic choice operator instead.}
+in a representation isomorphic to their data type \texttt{ND}.
+The provided operators \texttt{\$*} and \texttt{*\$*} underline the
+correspondance to a monadic interface: The former operator corresponds
+to \texttt{Functor} method \texttt{fmap} and the latter to the monadic
+operation \texttt{>>=}.
 
-\cite{antoy2017proving}
-\cite{bunkenburg2019modeling}
-\cite{cleva2004logic} proof calculus for CRWL
+Lastly, we like to mention the promising prototype developed by
+\citet{bunkenburg2019modeling} that was developed during his master's
+thesis.
+As already discussed in \autoref{para:implementationcalltime},
+\citeauthor{bunkenburg2019modeling} implements Curry's call-time
+choices semantics in Coq using the \cinl{Free} model in combination
+with the results of \citet{wu2014effect} about scoped effects.
+\citeauthor{wu2014effect} describe two representation for scoped
+effects: explicit syntax with begin- and end-tags to delimit the scope
+and higher-order syntax that uses a higher-order functor to describe
+effects.
+The first approach leads to cumbersome implementations for handlers of
+scoped effects when also considering possible mismatches of the tags.
+The higher-order syntax, on the other hand, takes the scoped
+program directly as argument and, thus, avoids to mark the begin and
+end of the scope manually.
+Concerning the implementations in Coq, the higher-order syntax,
+however, opens a new cans of worms when trying to circumvent Coq's
+strict positivity restriction for data types, especially for the
+definition of the container representation of higher-order functors.
 
 \section{Conclusion}
 
