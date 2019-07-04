@@ -2567,6 +2567,7 @@ work on algebraic effects with scoped operations to implement Curry's
 call-time choice semantics.
 
 \subsubsection{Call-by-name vs. Call-by-need}
+\label{subsubsec:cbneed}
  
 Consider the following two implementations for doubling a number: the
 first version multiplies the given value by two and the second version
@@ -3016,7 +3017,9 @@ That is, we add the decision \cinl{Some true} for the recursive
 traversal of the left tree and add the decision \cinl{Some false} for
 the right tree.
 
-\subsubsection{A First Attempt to Model Call-Time Choice with Free Monads}
+\subsubsection{A First Attempt to Model Call-Time Choice with Free
+  Monads}
+\label{subsubsec:modelcalltime}
 
 The current idea to model call-time choice is based on the observation
 that let-bindings of non-deterministic computation introduce an effect
@@ -3325,6 +3328,7 @@ corresponds to the tree in \autoref{fig:searchTree} when evaluating
 the example expression in Curry.
 
 \paragraph{Implementation}
+\label{para:implementationcalltime}
 
 All of the above approaches for scoped effects using free monads are
 implemented in Haskell.
