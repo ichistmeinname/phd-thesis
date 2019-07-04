@@ -1,7 +1,14 @@
 % !TEX root = thesis.tex
 
+% Declare old font to make .sty compatible
 \DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\mathtt}
 
+% Unicode chars not set up for the use with LaTeX
+\DeclareUnicodeCharacter{251C}{\mbox{\kern.23em
+  \vrule height2.4exdepth1exwidth.4pt\vrule height2.4ptdepth-1.8ptwidth.23em}}
+\DeclareUnicodeCharacter{2500}{\mbox{\vrule height2.4ptdepth-1.8ptwidth.5em}}
+\DeclareUnicodeCharacter{2502}{\mbox{\kern.23em \vrule height2.4exdepth1exwidth.4pt}}
+\DeclareUnicodeCharacter{2514}{\mbox{\kern.23em \vrule height2.4exdepth-1.8ptwidth.4pt\vrule height2.4ptdepth-1.8ptwidth.23em}}
 
 \usepackage{
   siunitx,
@@ -27,7 +34,6 @@
 \usepackage[outputdir=dist]{minted}
 \usemintedstyle{friendly}
 
-
 \colorlet{haskell}{blue!50!black}
 \colorlet{curry}{orange!70!white}
 \colorlet{probLog}{violet!70!white}
@@ -39,7 +45,6 @@
 
 % for floating verbatim-environment
 \usepackage{fancyvrb}
-
 
 % **************************************************
 % Files' Character Encoding
@@ -113,4 +118,25 @@ Languages and Compiler Construction}
     breaklinks=true,            %   - allow line break inside links
     bookmarksnumbered=true,     %
     bookmarksopen=true          %
-}
+  }
+
+% minted-related definitions
+\newminted[curry]{haskell}{style=friendly}
+\newmintinline[cyinl]{haskell}{style=friendly}
+\newmintinline[hinl]{haskell}{}
+\newmintinline[cinl]{coq}{}
+
+\usemintedstyle[haskell]{automn}
+\usemintedstyle[coq]{tango}
+
+\def\commentbegin{\quad\{\ }
+\def\commentend{\}}
+
+\newenvironment{excursus}[1]
+{\vspace{0.5cm}
+\hrule
+\vspace{0.3cm}
+\paragraph{Excursus: #1}}
+{\vspace{0.3cm}
+\hrule
+\vspace{0.5cm}}

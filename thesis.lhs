@@ -5,14 +5,14 @@
     paper=A4,               % paper size --> A4 is default in Germany
     twoside=true,           % onesite or twoside printing
     openright,              % doublepage cleaning ends up right side
-    parskip=false,           % spacing value / method for paragraphs
+    parskip=false,          % spacing value / method for paragraphs
     chapterprefix=true,     % prefix for chapter marks
     10pt,                   % font size
     headings=normal,        % size of headings
     listof=totoc,           % include listof entries in toc
     titlepage=on,           % own page for each title page
     captions=tableabove,    % display table captions above the float env
-    draft=false,            % value for draft version
+    draft=true,            % value for draft version
 ]{scrbook}%
 
 % **************************************************
@@ -20,14 +20,7 @@
 % **************************************************
 \input{setup}
 
-% Unicode chars not set up for the use with LaTeX
-\DeclareUnicodeCharacter{251C}{\mbox{\kern.23em
-  \vrule height2.4exdepth1exwidth.4pt\vrule height2.4ptdepth-1.8ptwidth.23em}}
-\DeclareUnicodeCharacter{2500}{\mbox{\vrule height2.4ptdepth-1.8ptwidth.5em}}
-\DeclareUnicodeCharacter{2502}{\mbox{\kern.23em \vrule height2.4exdepth1exwidth.4pt}}
-\DeclareUnicodeCharacter{2514}{\mbox{\kern.23em \vrule height2.4exdepth-1.8ptwidth.4pt\vrule height2.4ptdepth-1.8ptwidth.23em}}
-
-
+% Lhs2Tex-specifics
 %include polycode.fmt
 %include forall.fmt
 %include greek.fmt
@@ -46,35 +39,6 @@
 %format tau2
 %format tau3
 
-
-% minted-related definitions
-\newminted[curry]{haskell}{style=friendly}
-\newmintinline[cyinl]{haskell}{style=friendly}
-\newmintinline[hinl]{haskell}{}
-\newmintinline[cinl]{coq}{}
-
-\usemintedstyle[haskell]{automn}
-\usemintedstyle[coq]{tango}
-
-\def\commentbegin{\quad\{\ }
-\def\commentend{\}}
-
-% Overwrite rule for parindent
-\setlength{\parindent}{1em}
-\setlength{\mathindent}{0.15cm}
-
-
-\newenvironment{excursus}[1]
-{\vspace{0.5cm}
-\hrule
-\vspace{0.3cm}
-\paragraph{Excursus: #1}}
-{\vspace{0.3cm}
-\hrule
-\vspace{0.5cm}}
-
-
-
 % **************************************************
 % Document CONTENT
 % **************************************************
@@ -83,10 +47,18 @@
 % --------------------------
 % rename document parts
 % --------------------------
-%\renewcaptionname{ngerman}{\figurename}{Abb.}
-%\renewcaptionname{ngerman}{\tablename}{Tab.}
-%\renewcaptionname{english}{\figurename}{Fig.}
-%\renewcaptionname{english}{\tablename}{Tab.}
+
+\addto\extrasenglish{%
+  \renewcommand{\sectionautorefname}{Section}
+  \renewcommand{\subsectionautorefname}{Section}
+  \renewcommand{\subsubsectionautorefname}{Section}
+  \renewcommand{\paragraphautorefname}{Section}
+  \renewcommand{\subparagraphautorefname}{Section}
+}
+
+% Overwrite rule for parindent
+\setlength{\parindent}{1em}
+\setlength{\mathindent}{0.15cm}
 
 % --------------------------
 % Front matter
