@@ -3340,7 +3340,7 @@ for Curry's call-time choice semantics in Coq as master's thesis that
 looks quite promising.
 There are, however, downsides for both approaches.
 Before we go into more detail for these approaches, we discuss why we
-do cannot implement the approach by \citeauthor{pirog18syntax} in Coq.
+do cannot implement the approach by \citeauthor{pirog2018syntax} in Coq.
 
 \subparagraph{Free Monad with additional constructor}
 The problem with the approach by \citeauthor{pirog2018syntax} is the
@@ -3432,7 +3432,7 @@ with variables and let-expressions.
 
 \begin{minted}{haskell}
 data Expr   var = Var var
-                    | Let var (Expr var) (Expr var)
+                | Let var (Expr var) (Expr var)
 
 data ExprHO var = Var var
                 | Let (Expr var) (Expr var -> Expr var)
@@ -3726,7 +3726,7 @@ In order to track the decisions of shared non-deterministic
 computations during evaluation, \citeauthor{fischer2009purely} use
 an untyped heap that store computations corresponding to variable
 references.
-That is, they implementation is a realisation of the heap used in the
+That is, their implementation is a realisation of the heap used in the
 operational call-by-need semantics as introduced by
 \citet{launchbury1993natural}.
 The main contribution of the ideas we presented about modelling
