@@ -3943,5 +3943,53 @@ We have presented these ideas in \citet{christiansen2019proving} and
 plan to continue this approach in the future.
 
 \section{Conclusion}
+\label{sec:conclusion}
+
+In this chapter we discussed an approach to model and reason about
+non-strict effectful programs in a proof assistant like Coq.
+Here, partiality as most notably occurring in Haskell as well as
+Curry's non-determinism were effects of special interest.
+We started with a detailed motivation that resembles the obstacles we
+stumbled upon and the corresponding ideas and final solutions we came
+up with to tackle the problems.
+After establishing the preliminary concepts underlying the presented
+framework, we define first Haskell functions and associated properties.
+One of the advantages of the framework is its generality: Although we
+are especially interested in an effect like partiality that can occur
+in Haskell, we emphasise the definition of effect-generic functions and
+proofs.
+The former is a common idiom in functional programming, we generalise
+functions using, for example, a monadic abstraction.
+In case of our framework the latter generalisation is even more
+interesting: if a propositions holds for arbitrary effects, we can
+reuse these propositions in other generic proofs as well as in proofs
+about more specialised settings like partiality.
+That is, we can even reuse a variety of functions and properties we
+define to model Haskell programs when reasoning about Curry programs.
+Of course, for Curry programs we need a non-deterministic choice
+between two computations as an additional primitive, nonetheless,
+effect-generic functions and propositions can be reused.
+In the section about Curry, we additionally observe that the current
+model we use for Haskell as well as Curry follows call-by-name
+semantics.
+In both cases, call-by-need semantics is what we are actually aiming
+for.
+In case of Curry, however, we more naturally stumble about this
+problem, because in case of non-determinism we can observe the
+difference between call-by-name and call-by-need whereas we cannot
+observe this difference in case of partiality only.
+A case like tracing, on the other hand, that is common for Haskell
+programmers as well, we can again observe the difference.
+Thus, this observation leads us to the goal to define a model that
+enables us to reason about call-by-need semantics.
+We discussed a first naive approach to reproduce the wanted semantics
+for simple programs, but could not use this approach in a more general
+setting.
+As a good first step in the right direction, we sketched ideas about a
+prototypical implementation using scoped operations, which apply
+let-bindings that introduce the shared operations crucial for
+call-by-needs semantics.
+We hope to apply the same idea to reason about Haskell's tracing
+effects and other effects that rely on call-by-need semantics.
 
 \section{Final Remarks}
