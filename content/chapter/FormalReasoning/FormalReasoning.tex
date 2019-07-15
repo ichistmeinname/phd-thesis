@@ -3993,3 +3993,23 @@ We hope to apply the same idea to reason about Haskell's tracing
 effects and other effects that rely on call-by-need semantics.
 
 \section{Final Remarks}
+
+The framework presented in this chapter as well as additional content
+has been previously published.
+We published the general approach to represent Haskell programs as
+monadic Coq programs using free monads and container representations
+for functors in The Art, Science, and Engineering of Programming,
+Volume 3 \citep{dylus2019one}.
+In the publication we additionally present a case study on queues
+that we did not include here.
+Furthermore, the publication has a pearlish style with fairy tale
+theme that allowed us to present the obstacles and their solution in a
+more beginner-friendly atmosphere.
+Note that we decided here to define \cinl{Free} with an inlined
+version of \cinl{Ext} instead of using the data type to represent the
+container extension explicitly.
+The additional content about Haskell's tracing effect and the
+observations concerning modelling call-by-name and call-by-need were
+published recently in the Proceedings of the 12th International
+Symposium on Haskell \citep{christiansen2019verifying}. \todo{cite
+  haskell paper}
