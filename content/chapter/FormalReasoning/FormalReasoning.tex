@@ -3821,6 +3821,127 @@ The implementation of the operational or denotation of Curry is an
 interesting line of work itself that is useful for a wide range of
 questions and issues.
 
+\subsection{Future Work}
+Besides the special case of modelling Curry programs, we are
+interested in adapting our approach to be applicable to call-by-need
+semantics in general.
+In Haskell, for example, we can also observe the difference
+between call-by-name and call-by-need when considering tracing as
+effect.
+Consider the following exemplary Haskell program and its evaluation using
+a call-by-need and call-by-name semantics, respectively.
+
+\begin{verbatim}
+> let xNeed = trace "example" 42 in xNeed + xNeed
+example84
+
+> let xName = trace "example" 42 in xName + xName
+exampleexample42
+\end{verbatim}
+
+The function \hinl{trace :: String -> a -> a} takes a message as first
+argument that is printed on the console and yields its second
+argument.
+Note that using call-by-name semantics allows us to inline the
+let-binding, yielding the following expression that triggers the
+tracing-effect twice.
+
+\begin{verbatim}
+> trace "example" 42 + trace "example" 42
+exampleexample42
+\end{verbatim}
+
+We plan to apply the first insights we gained from modelling Curry
+programs to model Haskell's tracing effect with call-by-need
+semantics.
+In a first attempt to investigate the current approach \todo{cite
+  haskell paper}, we took a more
+detailed look at the effects occurring in Haskell and defined a
+category of effects that behave the same under call-by-name and
+call-by-need semantics using a syntactic criteria for the effects
+involved.
+In that paper, we have shown that a variety of propositions can
+already shown using our approach, assuming that the functions involved
+do not share computations.
+
+As a different direction for future work, it would be interesting to
+consider inequational propositions as well.
+Using inequational propositions we can, for example, compare the
+strictness of two implementations of the same function.
+Consider the following two variants to define multiplication on Peano
+numbers.
+
+\begin{minted}{haskell}
+mult :: Peano -> Peano -> Peano
+mult Zero    _ = Zero
+mult (Succ m) n = add n (mult m n)
+
+mult2 :: Peano -> Peano -> Peano
+mult2 Zero     _    = Zero
+mult2 (Succ _) Zero = Zero
+mult2 (Succ m) n    = add n (mult2 m n)
+\end{minted}
+
+We refere to the former definition as the default implementation,
+whereas the latter definition is a more advanced variant that is
+less-strict.
+Assuming a less-strict-relation $\sqsubseteq$, we are then interested
+in a formal specification that \hinl{mult2} is less strict than
+\hinl{mult}.
+
+\[
+\forall \text{ p q : Peano}. \text{ mult p q} \sqsubseteq \text{mult2
+  p q} \wedge \exists \text{ p q : Peano}. \text{ mult2 p q} \not \sqsubseteq \text{mult p q}
+\]
+
+A first idea to model the relation in the setting of partiality using
+the \cinl{Free}-approach looks as follows.
+
+\begin{minted}{coq}
+Inductive le_Free_Partial A (leA : A -> A -> Prop) : Free A -> Free A -> Prop :=
+| le_pure : forall x y, leA x y -> le_Free_Partial leA (pure x) (pure y)
+| le_impure_pure : forall e x, le_Free_Partial leA (impure e) (pure x)
+| le_impure : forall e1 e2, le_Free_Partial leA (impure e1) (impure e2).
+\end{minted}
+
+In a similar matter, we can define a specialised version for an effect like
+\hinl{error}.
+More interesting, however, is the objective to generalise the
+relational to arbitrary effects.
+For example, an attempt to generalise the definition for the
+partiality and error setting passes an additional function to compare
+the shape of the effects involved.
+
+\begin{minted}{coq}
+Inductive le_Free_Hoare (A : Type) (leS : Shape -> Shape -> Prop)
+    (leA : A -> A -> Prop) : Free C A -> Free C A -> Prop :=
+| le_pure_Hoare : forall x y,
+    leA x y -> le_Free_Hoare leS leA (pure x) (pure y)
+| le_impure_pure_Hoare : forall s pf x,
+    (forall p, le_Free_Hoare leS leA (pf p) (pure x)) ->
+      le_Free_Hoare leS leA (impure (ext s pf)) (pure x)
+| le_impure_Hoare : forall s1 pf1 s2 pf2,
+    (forall p1, exists p2, le_Free_Hoare leS leA (pf1 p1) (pf2 p2)) ->
+    leS s1 s2 ->
+    le_Free_Hoare leS leA (impure (ext s1 pf1)) (impure (ext s2 pf2))
+| le_pure_impure_Hoare : forall x s pf,
+    (exists p : Pos s, le_Free_Hoare leS leA (pure x) (pf p)) ->
+      le_Free_Hoare leS leA (pure x) (impure (ext s pf)).
+\end{minted}
+
+In contrast to the version of partiality, the constructors
+\cinl{le_impure_pure_Hoare} and \cinl{le_impure_Hoare} have additional
+hypothesis that take care of possible recursive effects.
+Moreover, the constructor \cinl{le_pure_impure_Hoare} needs to be
+added for effects like non-determinism that combines several values
+when using its primitive \texttt{choice}-operator.
+The definition above is not the only relational interpretation that is
+reasonable.
+Possible alternatives are constructions corresponding to Smith or
+Plotkin powerdomains \citep{abramsky1994domain}.
+We have presented these ideas in \citet{christiansen2019proving} and
+plan to continue this approach in the future.
+
 \section{Conclusion}
 
 \section{Final Remarks}
