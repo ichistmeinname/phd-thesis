@@ -2121,8 +2121,6 @@ Hence, using introduction pattern \cinl{[ | fy fys IH ]} corresponds
 to the arguments of the \cinl{cons} constructor and the induction
 hypothesis of type \cinl{ForFree}.
 
-\subsection{A Little Case Study on Something}
-
 \section{First Ideas to Model Curry Programs}
 
 In this section we want to take a look at how to model the functional
@@ -3863,6 +3861,119 @@ involved.
 In that paper, we have shown that a variety of propositions can
 already shown using our approach, assuming that the functions involved
 do not share computations.
+
+When thinking about it becomes apparent that we cannot model all
+possible function with our current approach.
+Consider for example the following two function definitions of the
+same type.
+
+\begin{minted}{curry}
+fun1 :: Int -> Int
+fun1 x = (x + 1) ? (x * 2)
+
+fun2 :: Int -> Int
+fun2 = (+1) ? (*2)
+\end{minted}{curry}
+
+Both functions yield increments the input value by one as well as
+multiplies it by two by using non-determinism.
+The crucial difference is that the first function
+non-deterministically yields a value whereas the second one yields a
+function.
+When using these functions as argument to \hinl{map}, for example, we
+can even observe that these implementation behave differently.
+
+\begin{verbatim}
+> map fun1 [1,1]
+[2,2]
+[2,2]
+[2,2]
+[2,2]
+
+> map fun2 [1]
+[2]
+[2]
+\end{verbatim}
+
+These examples are also used by \citet{mehner2014parametricity} to
+show that eta-equivalence does not hold for Curry.
+Translating the second function into our framework with usual pattern
+is, however, not possible.
+Up to now, we have translated all function types by lifting each
+individual argument.
+In case of \hinl{fun2}, we need to implement the non-deterministic
+choice between two functions, thus, the final type is function type
+that must be lifted.
+More precisely, let us take a look at the definition of \hinl{fun1}
+and the try to define \hinl{fun2} with the usual pattern.
+
+\begin{minted}{coq}
+Definition fun1 (A : Type) (fn : Free nat) : Free nat :=
+  (liftM2 plus fn (pure 1)) ? (liftM2 mult fn (pure 2)).
+
+Definition fun2 (A : Type) : Free nat -> Free nat :=
+  (fun fn => liftM2 plus fn (pure 1)) ? (fun fn => liftM2 mult fn (pure 2)).
+\end{minted}
+
+The second definition will not typecheck, because both arguments of
+\cinl{?} are functions, not the resulting expression.
+The resulting expression is of type \cinl{Free (Free nat -> Free
+  nat)}.
+When thinking about the translation of type in more detail, in makes
+indeed sense to translate a Curry (or Haskell) function of type
+\hinl{a -> a} to \cinl{Free (Free a -> Free a)} in our monadic
+lifting.
+We have corresponding type definition that lift all arguments of the
+corresponding constructors.
+For example, a type for pairs has a constructor \cinl{pair : Free A ->
+  Free B -> Pair A B}.
+Applying this rule to a function type, we need a constructor for
+lifted arguments as well.
+
+\begin{minted}{coq}
+Inductive Arrow (A B : Type) :=
+| arrow : (Free A -> Free B) -> Arrow A B.
+\end{minted}
+
+Using the definition of \cinl{Arrow} as translation for function type,
+we can then define the two functions above as follows.
+
+\begin{minted}{coq}
+Definition fun1 (A : Type) :  Free (Arrow (Free nat) (Free nat)) :=
+  (pure (arrow (fun fn => (liftM2 plus fn (pure 1))))) ?
+  (pure (arrow (fun fn => (liftM2 mult fn (pure 2))))).
+
+Definition fun2 (A : Type) : Free (Arrow (Free nat) (Free nat)) :=
+  pure (arrow (fun fn => (liftM2 plus fn (pure 1)) ? (liftM2 mult fn (pure 2)))).
+\end{minted}
+
+Although both functions have the same type, we can now see the
+difference of the implementation more explicitly: the first definition
+produces a non-deterministic result that consists of two functions
+first, while the second definition yields a pure function with
+non-deterministic values as argument for the \cinl{arrow} constructor.
+Note that a similar construction is also possible in the partiality
+setting we discussed for Haskell.
+The difference between such two function definitions can, however,
+only be observed in the presence of the function \hinl{seq :: a -> b
+  -> b} that evaluates its first argument to head normal form and
+yields its second argument.
+The example consisting of two function in case of partiality in
+Haskell look as follows.
+
+\begin{minted}{haskell}
+fun1 :: a -> b
+fun1 x = undefined
+
+fun2 :: a -> b
+fun2 = undefined
+\end{minted}
+
+In order to make the framework approachable for users, we like to
+investigate if all functions should be translated using \cinl{Arrow}
+or only functions that cannot be constructed otherwise.
+In both cases a case study is needed to check how these decisions
+affect the usage of the framework when writing proofs.
 
 As a different direction for future work, it would be interesting to
 consider inequational propositions as well.
