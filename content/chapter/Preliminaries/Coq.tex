@@ -1,0 +1,28 @@
+\section{Programming with Dependent Types in Coq}
+\label{sec:progDT}
+
+In this section we will give an introduction to programming with the interactive theorem prover Coq.
+In order to write functional programs Coq provides the specification language \emph{Gallina}.
+More precisely, Gallina is a dependently typed functional programming language.
+The theorem prover part of Coq is based on the calculus of inductive construction \citep{coquand1988inductively}, a derivative of calculus of construction that was introduced by \citet{coquand1986calculus}.
+As Coq is not an automatic theorem prover, it additionally provides a tactic language called \emph{Ltac} to provide facilities to automate proofs.
+
+This introduction is structured as follows.
+We first give an overview on writing functional programs in Coq including common obstacles with regards to Coq's restriction as total language as well as how to overcome them.
+As some of these solutions will lead us to dependently typed programming, we will take a look at how to formalise properties and how to prove them.
+In that light we give a beginner-friendly introduction on how to use Coq's tactic language to write proofs.
+Note that we do not give a formal definition of the calculus of constructions or other concepts with regard to the implementation of Coq's logic, but will refer to the relevant work the interested reader can study.
+Instead we focus on how to use Coq as a tool to formalise and proof properties about programs.
+
+\begin{itemize}
+
+\item definitions vs fixpoints
+\item total language
+\item definitions using dependent types
+\item notations
+\item section variables
+\item unit, empty type
+\item proofs are programs
+\item intro-pattern in proofs
+
+\end{itemize}
