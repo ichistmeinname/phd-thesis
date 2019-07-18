@@ -14,6 +14,114 @@ In that light we give a beginner-friendly introduction on how to use Coq's tacti
 Note that we do not give a formal definition of the calculus of constructions or other concepts with regard to the implementation of Coq's logic, but will refer to the relevant work the interested reader can study.
 Instead we focus on how to use Coq as a tool to formalise and proof properties about programs.
 
+\subsection{Functional Programming}
+
+We can define a lot of common functions we know from functional programming Haskell or Curry one-to-one in Coq.
+As a code convention, we will start data types and constructors using lower-case letters as many standard types in Coq follow the same convention.
+Consider the following data type definition for Peano numbers and two utility functions.
+
+\begin{minted}{coq}
+Inductive peano : Type :=
+| z : peano
+| s : peano -> peano.
+
+Definition isZero (p : peano) : bool :=
+  match p with
+  | z   => true
+  | s _ => false
+  end.
+
+Fixpoint add (p1 p2 : peano) : peano :=
+  match p1 with
+  | z => p2
+  | s p => s (add p p2)
+  end.
+\end{minted}
+
+First, we note that all definitions have explicit typing annotation, although Coq could infer all of them.
+Most notably, the data type declaration for \cinl{peano} is annotated with \cinl{Type}.
+Although Coq is build upon a sophisticated type hierarchy, for us it enough to know that we will use \cinl{Type} to type inductive data types and type synonyms.
+The syntax to define constructors for data types resembles GADT-style definitions in Haskell, that is, each constructor is specific by its full type signature, as we are used to it for function definitions.
+
+Next, we define a function to check if a Peano number is zero using pattern matching and the predefined \cinl{bool} type as well as addition on Peano numbers.
+These definitions represent two different kinds of function: \cinl{isZero} is a non-recursive function, whereas \cinl{add} is a representative for recursive functions.
+In Coq it is crucial to define recursive functions using the keyword \cinl{Fixpoint}.
+Definitions that are marked as \cinl{Fixpoint}s need to pass additional check: As a total language, all functions in Coq have to terminate.
+In case of recursive functions, Coq checks if the argument of a recursive call is structurally smaller than the original value passed to the function.
+For our example \cinl{add}, the argument of the recursive call \cinl{p} is structurally smaller than the original value \cinl{p} in the second case of the branch, where we know that \cinl{p1} has the shape \cinl{(s p)}.
+
+If we want to define a recursive function in Coq that does not follow this restriction, we can define such functions \cinl{Program Fixpoint} using and prove the termination of the function afterwards.
+Here, we will not use these capabilities, so we abstain from going into more details concerning proving termnation of recursive functions.
+
+Instead of writing \cinl{(add p1 p2)}, we can introduce \cinl{Notation} that allows us to write something more natural like \cinl{p1 + p2} instead.
+Note that we can provide an associativity for the newly introduced operator syntax as well as a fixity level.
+
+\begin{minted}{coq}
+Notation "p1 + p2" := (add p1 p2) (left associativity, at level 50).
+\end{minted}
+
+In Coq we can check types, print definitions and evaluate expressions directly in the Coq-file using \emph{Vernacular}-commands like \cinl{Check}, \cinl{Print} and \cinl{Compute} that will print the information on the console --- or in an dedicated window when using an IDE or an appropriate emacs-mode.
+Since we are used to having a REPL from languages like Haskell and Curry, we will write these commands and the printed answer in a REPL-style as follows.
+
+\begin{crepl}
+\coqrepl Compute (s z + s z).
+   = s (s z)
+   : peano
+\end{crepl}
+
+Let us now consider a polymorphic data type definition as well as polymorphic functions using lists as example.
+We use the predefined definition for lists; as a code convention we start type variables using upper-case letters.
+
+\begin{minted}{coq}
+Inductive list (A : Type) :=
+| nil  : list A
+| cons : A -> list A -> list A.
+\end{minted}
+
+When we try to compute the exemplary singleton list \cinl{cons z nil} to normalform, Coq yields an error message.
+
+\begin{crepl}
+\coqrepl Compute (cons z nil).
+Error: The term "z" has type "peano" while it is expected to have type
+       "Type".
+\end{crepl}
+
+Constructors of polymorphic function need to be applied to more arguments as we are used to in functional languages like Haskell.
+More precisely, all constructors of a polymorphic data type like \cinl{list} have the type arguments as additional arguments.
+In our case, \cinl{cons} is of type \cinl{forall A : Type, A -> list A -> list A} and \cinl{nil} of type \cinl{forall A : Type, list A}.
+The concrete type instantiation is the first argument of the constructors \cinl{cons} and \cinl{nil}.
+The definition above works when we apply \cinl{nat} explicitly or instruct Coq to infer the argument by using an underscore (\cinl{_}).
+
+\begin{crepl}
+\coqrepl Compute (cons peano z (nil peano)).
+    = cons peano z (nil peano)
+    : list peano
+
+\coqrepl Compute (cons _ z (nil _)).
+    = cons peano z (nil peano)
+    : list peano *)
+\end{crepl}
+
+Instead of applying type arguments explicitly, we can tweak some settings in order to use functions as we are used to in Haskell, i.e., such that type arguments are inferred. \footnote{In particular, we use the option \cinl{Set Implicit Arguments} and specific commands like \cinl{Arguments nil [_]} to make Coq infer all type arguments if possible.}
+
+Next, we we define the recursive functions \cinl{length} and \cinl{map} as exemplary functions on lists.
+
+
+%Without the annotation \cinl{peano} would be annotated as type \cinl{Set}.
+%Besides the types \cinl{Type} and \cinl{Set}, Coq provides a third level in the hierarchy with the type \cinl{Prop} that is used to define relations.
+%Since very object in Gallina has a type, the types \cinl{Set} and \cinl{Prop} are of type \cinl{Type}, that is, \cinl{Type} leads the typing hierarchy.
+%
+%\begin{minted}{coq}
+%Check Set.
+%(* Set : Type *)  
+%Check Prop.
+%(* Prop : Type *)
+%Check Type.
+%(* Type : Type *)
+%\end{minted}
+%
+%Furthermore, it seems that \cinl{Type} is of its own type.
+
 \begin{itemize}
 
 \item definitions vs fixpoints
