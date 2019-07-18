@@ -104,8 +104,63 @@ The definition above works when we apply \cinl{nat} explicitly or instruct Coq t
 
 Instead of applying type arguments explicitly, we can tweak some settings in order to use functions as we are used to in Haskell, i.e., such that type arguments are inferred. \footnote{In particular, we use the option \cinl{Set Implicit Arguments} and specific commands like \cinl{Arguments nil [_]} to make Coq infer all type arguments if possible.}
 
-Next, we we define the recursive functions \cinl{length} and \cinl{map} as exemplary functions on lists.
+Next, we define the recursive functions \cinl{length} and \cinl{map} as exemplary functions on lists.
 
+\begin{minted}{coq}
+Fixpoint length (A : Type) (xs : list A) : peano :=
+  match xs with
+  | nil       => z
+  | cons _ ys => s (length ys)
+  end.
+
+Fixpoint map (A B : Type) (f : A -> B) (xs : list A) : list B :=
+  match xs with
+  | nil => nil
+  | cons y ys => cons (f y) (map f ys)
+  end.
+\end{minted}
+
+A rather obvious property of a combination of these function states that mapping over a list does not change its length.
+In Coq we can define such a proposition using the language features we have used so far.
+For the proof of that proposition, on the other hand, we need to take a look at the tactic language \cinl{Ltac} for the first time.
+
+\begin{minted}{coq}
+Lemma map_length' (A B : Type) (f : A -> B) (xs : list A)
+  : length xs = length (map f xs).
+\end{minted}
+
+\begin{minted}{coq}
+Proof.
+  intros A B f xs.
+  induction xs as [ | y ys H ].
+  - reflexivity.
+  - simpl.
+    rewrite H.
+    reflexivity.
+Qed.
+\end{minted}
+
+\begin{minted}{coq}
+Inductive vector (A : Type) : peano -> Type :=
+| vnil  : vector A z
+| vcons : forall n, A -> vector A n -> vector A (s n).
+
+Arguments vnil [_].
+
+Fixpoint vmap (A B : Type) (n : peano) (f : A -> B) (xs : vector A n) : vector B n :=
+  match xs with
+  | vnil       => vnil
+  | vcons y ys => vcons (f y) (vmap f ys)
+  end.
+
+Definition vlength (A : Type) (n : peano) (xs : vector A n) : peano := n.
+
+Lemma vmap_vlength : forall A B (n : peano) (f : A -> B) (xs : vector A n),
+    vlength xs = vlength (vmap f xs).
+Proof.
+  reflexivity.
+Qed.
+\end{minted}
 
 %Without the annotation \cinl{peano} would be annotated as type \cinl{Set}.
 %Besides the types \cinl{Type} and \cinl{Set}, Coq provides a third level in the hierarchy with the type \cinl{Prop} that is used to define relations.
