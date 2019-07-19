@@ -142,6 +142,55 @@ Languages and Compiler Construction}
 \hrule
 \vspace{0.5cm}}
 
+
 \newenvironment{crepl}
-{\VerbatimEnvironment\begin{Verbatim}[commandchars=\\\{\}]}
-{\end{Verbatim}}
+{%
+\VerbatimEnvironment
+\begin{Verbatim}[commandchars=\\\{\}]%
+}
+{%
+\end{Verbatim}
+}
+
+\newenvironment{miniMinted}
+{%
+\VerbatimEnvironment
+\begin{minipage}[t]{0.45\textwidth}%
+\begin{minted}{coq}%
+}
+{%
+\end{minted}%
+\end{minipage}%
+}
+
+\newenvironment{miniVerb}
+{%
+\VerbatimEnvironment
+\begin{minipage}[t]{0.55\textwidth}%
+\begin{Verbatim}%
+}
+{%
+\end{Verbatim}%
+\end{minipage}%
+}
+
+\newenvironment{cproof}
+{%
+\vspace{0.25cm}%
+\noindent%
+}
+{%
+  \vspace{0.25cm}
+}
+
+% \newcommand{\coqpf}[2]
+% {%
+% \VerbatimEnvironment%
+% \begin{miniMinted}{0.45}%
+% {#1}
+% \end{miniMinted}%
+% \VerbatimEnvironment%
+% \begin{miniVerb}{0.55}%
+% {#2}
+% \end{miniVerb}%
+% }  

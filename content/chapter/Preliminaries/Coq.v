@@ -57,11 +57,10 @@ Fixpoint map (A B : Type) (f : A -> B) (xs : list A) : list B :=
 
 Lemma map_length' (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
 Proof.
-  intros A B f xs.
   induction xs as [ | y ys H ].
-  - reflexivity.
+  - simpl. reflexivity.
   - simpl.
-    rewrite H.
+    rewrite -> H.
     reflexivity.
 Qed.
 
