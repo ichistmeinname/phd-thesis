@@ -12,7 +12,7 @@
     listof=totoc,           % include listof entries in toc
     titlepage=on,           % own page for each title page
     captions=tableabove,    % display table captions above the float env
-    draft=true,            % value for draft version
+    draft=false,            % value for draft version
 ]{scrbook}%
 
 % **************************************************
@@ -38,6 +38,8 @@
 %format tau1
 %format tau2
 %format tau3
+
+\newcommand{\coqrepl}{$\Pi$>}
 
 % **************************************************
 % Document CONTENT
@@ -93,6 +95,7 @@
 \chapter{Declarative Programming}
 \label{ch:dp}
 %\input{content/chapter/preliminaries}
+\input{content/chapter/Preliminaries/Coq.tex}
 
 \chapter{Generating Permutations via Non-deterministic Sorting}
 \label{ch:permutations}
@@ -103,8 +106,8 @@
 % %include content/chapter/pflp.lcurry
 
 \chapter{Formal Reasoning About Effectful Non-Strict Programs}
-\label{ch:reasoning} 
-\input{content/chapter/FormalReasoning/FormalReasoning.tex}
+\label{ch:reasoning}
+%\input{content/chapter/FormalReasoning/FormalReasoning.tex}
 
 %\chapter{Modelling Lazy Functional Logic Programming with Call-Time-Choice}
 %\label{ch:modelling} 
@@ -112,7 +115,7 @@
 
 \chapter{Conclusions}
 \label{ch:conclusion}
-\input{content/chapter/conclusion}
+%\input{content/chapter/conclusion}
 
 % --------------------------
 % Back matter
