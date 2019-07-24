@@ -89,4 +89,65 @@ Lemma vmap_vlength : forall A B (n : peano) (f : A -> B) (xs : vector A n),
 Proof.
   reflexivity.
 Qed.
+
+Inductive vmap_spec (A B : Type) (f : A -> B) :
+  forall (n m : peano), vector A n -> vector B m -> Prop :=
+| spec_nil  : vmap_spec f vnil vnil
+| spec_cons : forall (n m : peano) (x : A) (y : B)
+                (xs : vector A n) (ys : vector B m),
+    vmap_spec f xs ys -> f x = y -> vmap_spec f (vcons x xs) (vcons y ys).
+
+Lemma vmap_fulfils_spec :
+  forall (A B : Type) (n : peano) (f : A -> B) (xs : vector A n),
+  vmap_spec f xs (vmap f xs).
+Proof.
+  intros A B n f xs.
+  induction xs as [ | n y ys IHys ]; simpl.
+  - apply spec_nil.
+  - apply spec_cons.
+    + apply IHys.
+    + reflexivity.
+Qed.
+
+Lemma z_not_s : forall x, z = s x -> False.
+Proof.
+  intros x Heq.
+  discriminate Heq.
+Qed.
+
+Lemma z_not_s2 : forall x, z <> s x.
+Proof.
+  intros x.
+  unfold not.
+  apply z_not_s.
+Qed.
+
+Lemma s_not_eq: forall (n m : peano), s n <> s m -> n <> m.
+Proof.
+  intros n m HnotS Hnot.
+  destruct Hnot.
+  contradiction.
+Qed.
+
+Lemma vmap_different_type_false :
+  forall (A B : Type) (n m : peano) (f : A -> B) (xs : vector A n),
+    n <> m -> (exists (ys : vector B m), vmap_spec f xs ys) -> False.
+Proof.
+  intros A B n m f xs Hnot Hexists.
+  destruct Hexists as [ ys Hspec ].
+  induction Hspec.
+  - contradiction.
+  - apply s_not_eq in Hnot.
+    apply (IHHspec Hnot).
+Qed.
+
+Lemma vmap_different_type_eq :
+  forall (A B : Type) (n m : peano) (f : A -> B) (xs : vector A n),
+  (exists (ys : vector B m), vmap_spec f xs ys) -> n = m.
+Proof.
+  intros A B n m f xs Hexists.
+  destruct Hexists as [ ys Hspec ].
+  induction Hspec.
+  - reflexivity.
+  - f_equal; apply IHHspec.
 Qed.
