@@ -232,27 +232,62 @@ map_length is defined
 
 At that point, Coq provides the information that the lemma \cinl{map_length} was successfully defined and can be used in future proofs and definitions.
 
+\paragraph{Dependent Types to Encode Invariants}
+
+As stated in the beginning, the property about map not manipulating the length of the list is not surprising.
+We will now take a look at how to encode the length of the list in its type.
+Due to this encoding, the property of map not manipulating the length of the list becomes clear from the type signature alone.
+
+A list that has length encoded in its type is usually called a \cinl{vector} and is defined as follows.
+
 \begin{minted}{coq}
 Inductive vector (A : Type) : peano -> Type :=
 | vnil  : vector A z
 | vcons : forall n, A -> vector A n -> vector A (s n).
+\end{minted}
 
-Arguments vnil [_].
+Note that the type \cinl{vector} needs to be applied to two arguments to yield a type: a type for the elements and a \cinl{peano} to indicate its length.
+The two constructors illustrate how to use the type: In case of \cinl{vnil} we encode that the length is zero using the peano number \cinl{z} as second argument to \cinl{vector}; for \cinl{vcons} we encode that adding an element to the front results in a length incremented by one.
+More precisely, if we have a \cinl{vector} of length \cinl{n} adding an element to the front using \cinl{vcons} results in a \cinl{vector} of length \cinl{s n}.
 
-Fixpoint vmap (A B : Type) (n : peano) (f : A -> B) (xs : vector A n) : vector B n :=
+When defining functions of \cinl{vector}, we need to explicitly pass the length as argument as well.
+Consider the following definition of computing the length for \cinl{vector}.
+
+\begin{minted}{coq}
+Definition vlength (A : Type) (n : peano) (xs : vector A n) : peano := n.
+\end{minted}
+
+The definition is especially convenient to define as the \cinl{peano} number \cinl{n} we pass to type \cinl{vector} is also our result.
+That is, we can use the value we construct types with in the right-hand side of the function definition as well.
+Next, we define a mapping function for \cinl{vector} that explicitly states that the length of the input and output list are the same.
+
+\begin{minted}{coq}
+Fixpoint vmap (A B : Type) (n : peano) (f : A -> B) (xs : vector A n)
+  : vector B n :=
   match xs with
   | vnil       => vnil
   | vcons y ys => vcons (f y) (vmap f ys)
   end.
+\end{minted}
 
-Definition vlength (A : Type) (n : peano) (xs : vector A n) : peano := n.
+Note that we cannot define the function using two different values for the length.
+The definition of \cinl{vmap} explicitly reconstructs all constructors of the input \cinl{xs} such that the output list cannot be of different length.
 
+As the type signature of \cinl{vmap} already tells us that \cinl{vmap} does not change the length of the list, the property we proved above for ordinary lists becomes a one-liner.
+
+\begin{minted}{coq}
 Lemma vmap_vlength : forall A B (n : peano) (f : A -> B) (xs : vector A n),
     vlength xs = vlength (vmap f xs).
 Proof.
   reflexivity.
 Qed.
 \end{minted}
+
+Although we cannot construct the result of \cinl{vmap f xs} --- as in the case for ordinary lists, we do not need to take a look at \cinl{xs} to compute the length of the list.
+We know from the type alone that the left side of the equation evaluates to \cinl{n} for \cinl{xs : vector A n} when using the definition of \cinl{vlength}.
+The same applies to the right side of the equation, because \cinl{vlength} can compute the length of the list using its type information only.
+The expression \cinl{vmap f xs} is of type \cinl{vector B n}, so using the definition of \cinl{vlength} yields \cinl{n} again.
+Coq automatically applies some simplifications --- like unfolding function definitions --- when we apply the tactic \cinl{reflexivity}, so the proof consists of only one tactic.
 
 %Without the annotation \cinl{peano} would be annotated as type \cinl{Set}.
 %Besides the types \cinl{Type} and \cinl{Set}, Coq provides a third level in the hierarchy with the type \cinl{Prop} that is used to define relations.

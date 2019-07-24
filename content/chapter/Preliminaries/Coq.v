@@ -89,3 +89,4 @@ Lemma vmap_vlength : forall A B (n : peano) (f : A -> B) (xs : vector A n),
 Proof.
   reflexivity.
 Qed.
+Qed.
