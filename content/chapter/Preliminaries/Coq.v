@@ -97,18 +97,6 @@ Inductive vmap_spec (A B : Type) (f : A -> B) :
                 (xs : vector A n) (ys : vector B m),
     vmap_spec f xs ys -> f x = y -> vmap_spec f (vcons x xs) (vcons y ys).
 
-Lemma vmap_fulfils_spec :
-  forall (A B : Type) (n : peano) (f : A -> B) (xs : vector A n),
-  vmap_spec f xs (vmap f xs).
-Proof.
-  intros A B n f xs.
-  induction xs as [ | n y ys IHys ]; simpl.
-  - apply spec_nil.
-  - apply spec_cons.
-    + apply IHys.
-    + reflexivity.
-Qed.
-
 Lemma z_not_s : forall x, z = s x -> False.
 Proof.
   intros x Heq.
@@ -122,32 +110,75 @@ Proof.
   apply z_not_s.
 Qed.
 
-Lemma s_not_eq: forall (n m : peano), s n <> s m -> n <> m.
+Lemma s_not_eq : forall (n m : peano), s n <> s m -> n <> m.
 Proof.
   intros n m HnotS Hnot.
   destruct Hnot.
   contradiction.
 Qed.
 
-Lemma vmap_different_type_false :
-  forall (A B : Type) (n m : peano) (f : A -> B) (xs : vector A n),
-    n <> m -> (exists (ys : vector B m), vmap_spec f xs ys) -> False.
+Lemma not_eq_s : forall (n m : peano), n <> m -> s n <> s m.
 Proof.
-  intros A B n m f xs Hnot Hexists.
-  destruct Hexists as [ ys Hspec ].
-  induction Hspec.
-  - contradiction.
-  - apply s_not_eq in Hnot.
-    apply (IHHspec Hnot).
+  intros n m Hnot HnotS.
+  injection HnotS; intros Heq; destruct Heq.
+  contradiction.
 Qed.
 
-Lemma vmap_different_type_eq :
-  forall (A B : Type) (n m : peano) (f : A -> B) (xs : vector A n),
-  (exists (ys : vector B m), vmap_spec f xs ys) -> n = m.
-Proof.
-  intros A B n m f xs Hexists.
-  destruct Hexists as [ ys Hspec ].
-  induction Hspec.
-  - reflexivity.
-  - f_equal; apply IHHspec.
-Qed.
+Section vmap_spec_proofs.
+
+  Variable A B : Type.
+  Variable n m : peano.
+  Variable f : A -> B.
+  Variable xs : vector A n.
+
+  Lemma vmap_fulfils_spec : vmap_spec f xs (vmap f xs).
+  Proof.
+    induction xs as [ | n' y ys IHys ]; simpl.
+    - apply spec_nil.
+    - apply spec_cons.
+      + apply IHys. apply ys.
+      + reflexivity.
+  Qed.
+
+  Lemma vmap_different_length : forall (ys : vector B m),
+      n <> m -> vmap_spec f xs ys -> False.
+  Proof.
+    intros ys Hnot Hspec.
+    induction Hspec.
+    - contradiction.
+    - apply IHHspec.
+      apply s_not_eq.
+      apply Hnot.
+  Qed.
+
+  Lemma vmap_same_length : forall (ys : vector B m),
+      vmap_spec f xs ys -> n = m.
+  Proof.
+    intros ys Hspec.
+    induction Hspec.
+    - reflexivity.
+    - rewrite IHHspec; reflexivity.
+  Qed.
+
+  Lemma vmap_different_length_exists :
+    n <> m -> (exists (ys : vector B m), vmap_spec f xs ys) -> False.
+  Proof.
+    intros Hnot Hexists.
+    destruct Hexists as [ ys Hspec ].
+    induction Hspec.
+    - contradiction.
+    - apply s_not_eq in Hnot.
+      apply (IHHspec Hnot).
+  Qed.
+
+  Lemma vmap_same_length_exists :
+    (exists (ys : vector B m), vmap_spec f xs ys) -> n = m.
+  Proof.
+    intros Hexists.
+    destruct Hexists as [ ys Hspec ].
+    induction Hspec.
+    - reflexivity.
+    - rewrite IHHspec; reflexivity.
+  Qed.
+
+End vmap_spec_proofs.
