@@ -21,6 +21,14 @@ Fixpoint add (p1 p2 : peano) : peano :=
 (* Set Printing Universes. *)
 (* Check Type. *)
 
+Fail Fixpoint test (b : bool) (n m : peano) : bool :=
+  match (n,m) with
+  | (z,_)      => true
+  | (_,z)      => false
+  | (s p, s q) => if b then test b p m else test b n q
+  end.
+
+
 Notation "p1 + p2" := (add p1 p2) (left associativity, at level 50).
 
 Compute (s z + s z).
