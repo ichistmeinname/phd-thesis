@@ -94,8 +94,10 @@
 
 \chapter{Declarative Programming}
 \label{ch:dp}
-%\input{content/chapter/preliminaries}
-\input{content/chapter/Preliminaries/Coq.tex}
+\input{content/chapter/preliminaries.tex}
+%include content/chapter/Preliminaries/Curry.lcurry
+%include content/chapter/Preliminaries/Haskell.lhs
+%\input{content/chapter/Preliminaries/Coq.tex}
 
 \chapter{Generating Permutations via Non-deterministic Sorting}
 \label{ch:permutations}

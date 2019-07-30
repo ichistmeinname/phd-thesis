@@ -1,0 +1,47 @@
+\section{Functional Logic Programming}
+
+\begin{itemize}
+\item KiCS2 and REPL
+\item non-determinism
+\item non-strictness combined with non-determinism
+\item call-time choice
+\item decision trees + shared decisions
+\item encapsulation + different order for dfs and bfs
+\item pull-tabbing
+\end{itemize}
+
+
+\subsection{Non-determinimism}
+
+\subsection{Call-time Choice}
+
+\subsection{Encapsulation and Visualisation}
+
+One interesting observation to make here, is that the shared decision for label \emph{?6} disappears if we demand the first (or second) component of the pair only.
+\autoref{fig:pickProject} shows both decision trees.
+
+\begin{figure}[h]
+\begin{minipage}{0.50\textwidth}
+\begin{alltt}
+?3
+├── L: 1
+└── R: ?6
+        ├── L: 2
+        └── R: 3
+\end{alltt}
+\end{minipage}
+\vline $\quad$
+\begin{minipage}{0.44\textwidth}
+\begin{alltt}
+?3
+├── L: [2,3]
+└── R: ?6
+        ├── L: [1,3]
+        └── R: [1,2]
+\end{alltt}
+\end{minipage}
+\caption{|fst (pickMin coinCmp [1,2,3])| (left) and |snd (pickMin coinCmp [1,2,3])| (right)}
+\label{fig:pickProject}
+\end{figure}
+
+We can deduce from this example that the shared decision is only necessary when we consider both components of the pair.
