@@ -174,13 +174,20 @@ Languages and Compiler Construction}
 \end{minipage}%
 }
 
-\newenvironment{cproof}
+\newenvironment{cproof}[1]
 {%
-\vspace{0.25cm}%
-\noindent%
+  \vspace{0.25cm}%
+  \begin{minipage}[t]{0.45\textwidth}%
+    \mintinline{coq}{#1}%
+  \end{minipage}%s
+  \VerbatimEnvironment%
+  \minipage[t]{0.55\textwidth}%
+  \begin{Verbatim}%
 }
 {%
-  \vspace{0.25cm}
+ \end{Verbatim}%
+  \endminipage%
+  \vspace{0.25cm}%
 }
 
 % \newcommand{\coqpf}[2]
