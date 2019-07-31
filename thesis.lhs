@@ -94,7 +94,7 @@
 
 \chapter{Declarative Programming}
 \label{ch:dp}
-\input{content/chapter/preliminaries.tex}
+%include content/chapter/preliminaries.lhs
 %include content/chapter/Preliminaries/Curry.lcurry
 %include content/chapter/Preliminaries/Haskell.lhs
 %\input{content/chapter/Preliminaries/Coq.tex}
