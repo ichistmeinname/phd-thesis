@@ -2,6 +2,8 @@
 
 \begin{code}
 {-# LANGUAGE StandaloneDeriving, FlexibleInstances #-}
+
+import Debug.Trace
 \end{code}
 
 %endif
@@ -16,6 +18,81 @@
 \end{itemize}
 
 \subsection{Non-strictness and Laziness}
+
+Haskell's evaluation strategy is call-by-need.
+That is, subexpressions are only evaluated when explicitly needed and shared expressions only once -- that is, call-by-need combines the advantages of both, call-by-name and call-by-value.
+
+Consider the following example that demonstrates the non-strictness part of Haskell's lazy evaluation.
+We compute the head of a partial list: the head element is defined but the remaining list is not.
+
+\begin{verbatim}
+λ> head (1 : undefined)
+1
+\end{verbatim}
+
+Non-strictness allows us to work on partial values and, more importantly, that undemanded partial values are not computed.
+The demand-driven evaluation comes in not only in case of partial values, but also in case of expensive computations.
+
+The next example uses a function that computes the factorial of a given number as representative of such an expensive computation and the function \hinl{const :: a -> b -> a} that ignores its second and yields its first argument.
+
+\begin{verbatim}
+λ> const 42 (fac 100)
+42
+\end{verbatim}
+
+The evaluation immediality yields \hinl{42} as the second argument of \hinl{const} is not demanded, thus, not computed.
+
+The second component of lazy evaluation --- sharing expressions --- is in most cases only observable regarding the performance of programs.
+We can, however, observe the differenct of a shared expression and an expression that needs to be evaluated multiple times by using Haskell's \hinl{trace :: String -> a -> a} operation.
+Using \hinl{trace} we can print debug messages on the console while evaluting a program.
+More precisely, the first argument is the message we want to log and the second argument the expresion we want to log the message for.
+
+In order to illustrate how \hinl{trace} works, consider the following two examples.
+
+\begin{verbatim}
+λ> let log42 = trace "fortytwo" 42 in log42 + 103
+fortytwo
+145
+
+λ> let log42 = trace "fortytwo" 42 in const 103 log42
+103
+\end{verbatim}
+
+In both cases we want to log the message \hinl{"fortytwo"} when the variable \hinl{log42} is used and \hinl{42} is the actual value that is used to compute with.
+The first example logs the message during evalution and then yields \hinl{145} as result.
+In the second example, we do not observe any logging message, because, again, the second argument of \hinl{const} does not need to be computed.
+
+In order to observe the difference of sharing an expression, we consider the following two expressions.
+
+\begin{verbatim}
+λ> let x = trace "<msg>" 42 in x + x
+<msg>
+<msg>
+84
+
+λ> let double x = x + x in let x = trace "<msg>" 42 in double x
+<msg>
+84
+\end{verbatim}
+
+The first example logs the message for \hinl{x} two times
+
+%if False
+
+\begin{code}
+doublePlus :: Int -> Int
+doublePlus x = x + x
+
+doubleMult :: Int -> Int
+doubleMult x = 2 * x
+
+test1 = let x = trace "<msg>" 42 in x + x
+test2 = doublePlus (trace "<msg>" 42)
+test3 = doubleMult (trace "<msg>" 42)
+\end{code}
+
+%endif
+
 
 \subsection{Modelling Side-Effects}
 
