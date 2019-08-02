@@ -1,5 +1,12 @@
-\section{Functional Programming}
+%if False
 
+\begin{code}
+{-# LANGUAGE StandaloneDeriving, FlexibleInstances #-}
+\end{code}
+
+%endif
+        
+\section{Functional Programming}
 
 \begin{itemize}
 \item non-strictness and laziness
@@ -185,4 +192,122 @@ insertND x (y:ys) = return (x : y : ys)
                   ? (insertND x ys >>= \zs -> return (y:zs))
 \end{minted}
 
-\subsection{Free Monad}
+\subsection{Modelling Side-Effects Using Free Monads}
+\label{subsec:freeMonad}
+
+Recently, the functional programming community uses a slight different approach for modelling side-effects.
+The overall monadic structure is still the key of the representation of such effects.
+One observation that lead to the other abstraction is that all representations of suce side-effects have operations to lift a value into the effects (\hinl{return}) and to manipulate the values of an effect (\hinl{(>>=)}) in common.
+This observation lead to a monad instance that can interpret all monadic operations in an abstract way: the free monad \citep{swierstra2008data}.
+Consider the following data type \hinl{Free} that is parametrised of a type constructor \hinl{f} and a value type \hinl{a}.
+
+\begin{minted}{haskell}
+data Free f a = Pure a || Impure (f (Free f a))
+\end{minted}
+
+The general idea behind free monads is the observation that monadic computations are either pure values or impure effects.
+We represent the impure effect using the type constructor \hinl{f} and pure values are of type \hinl{a}.
+The nice property of the \hinl{Free} data type is that \hinl{Free f} is a monad, if \hinl{f} is a functor.
+
+\begin{minted}{haskell}
+instance Functor f => Monad (Free f) where
+  return = Pure
+  Pure x >>= f = f x
+  Impure fx >>= f = Impure (fmap (>>= f) fx)
+\end{minted}
+
+We represent all impure operations we need to model using the functor \hinl{f}.
+In case of \hinl{Partial}, we have one operation, namely \hinl{Undefined}; the other constructor \hinl{Defined} is already taken care of by \hinl{Pure}.
+Moreover, we observe that \hinl{Undefined} does not contains any further values but is a possible value of its own: it is a nullary operation.
+In contrast, we modelled the binary operation \hinl{(?) :: ND a -> ND a -> ND a} for non-determinism that combines two non-deterministic computations.
+The corresponding functor, thus, needs to make use of the recursive type argument \hinl{Free f a}.
+More concretely, since \hinl{Free} already models the constructor for defined values using \hinl{Pure}, we functors takes care of the values constructed using \hinl{Undefined} for \hinl{Partial} and \hinl{(?)} for \hinl{ND}, respectively.
+The functors corresponding to the nullary operation \hinl{Undefined} and the one for binary operation \hinl{(?)} look as follows\footnote{In the former case we follow the same naming conventions as \citet{swierstra2008data}.}.
+
+\begin{minted}{haskell}
+data One a    = One
+data Choice a = Choice a a
+\end{minted}
+
+The key idea for \hinl{Partial} is that we represent \hinl{Undefined} as \hinl{Impure One}; together with \hinl{Pure} corresponding to \hinl{Defined}, we can represent the same programs as before.
+Note that the functor \hinl{Choice} for non-determinism used in combination with \hinl{Free} resembles a tree rather than a list.
+A leaf corresponds to \hinl{det} while a branch with two subtrees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial subtrees.
+
+A variety of common monads are free monads.
+A counterexample is the list monad, which is why we rather chose a tree encoding to represent non-determinism.
+More precisely, there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]} \citep{swierstra2008data}.
+Other popular representations are the identity monad and the error maybe using the following functors.
+
+\begin{minted}{haskell}
+data Zero a
+data Const e a = Const a
+\end{minted}
+
+Using the types as underlying effect, we get the identity monad using \hinl{Free Zero} and the error monad can be represented using \hinl{Free (Const e)}, where \hinl{e} is the type of the error.
+
+Our running example from the preceding section for non-deterministically inserting an element at each possibile position in a list looks as follows using a representation based on \hinl{Free Choice}.
+
+\begin{minted}{haskell}
+(??) :: Free Choice a -> Free Choice a -> Free Choice a
+fx ?? fy = Impure (Choice fx fy)
+              
+insertFree :: a -> [a] -> Free Choice [a]
+insertFree x []     = return [x]
+insertFree x (y:ys) = return (x : y : ys)
+                    ?? (insertFree x ys >>= \zs -> return (y:zs))
+\end{minted}
+
+We define the smart constructor for choices \hinl{(??)} as indicated above, but besides swapping this operator and the name of the function the implementation stays exactly the same, because we already rely on the monadic abstraction that we can reuse now.
+The exemplary call also reveals five resulting lists.
+
+\begin{verbatim}
+λ> insertFree 1 [2..5]
+Impure (Choice (Pure [1,2,3,4,5])
+       (Impure (Choice (Pure [2,1,3,4,5])
+               (Impure (Choice (Pure [2,3,1,4,5])
+                       (Impure (Choice (Pure [2,3,4,1,5])
+                                       (Pure [2,3,4,5,1]))))))))
+\end{verbatim}
+
+%if False
+
+\begin{code}
+data Free f a = Pure a | Impure (f (Free f a))
+
+instance Functor f => Functor (Free f) where
+  fmap f (Pure x) = Pure (f x)
+  fmap f (Impure fx) = Impure (fmap (fmap f) fx)
+
+instance Functor f => Applicative (Free f) where
+  pure                     = Pure
+  Pure f     <*> Pure x    = Pure (f x)
+  Pure f     <*> Impure fx = Impure (fmap (Pure f <*>) fx)
+  Impure ffx <*> ax        = Impure (fmap (<*> ax) ffx)
+
+instance Functor f => Monad (Free f) where
+  return = Pure
+  Pure x >>= f = f x
+  Impure fx >>= f = Impure (fmap (>>= f) fx)
+
+data Zero a
+data One a     = One
+data Const e a = Const a
+
+data Choice a = Choice a a | Fail
+  deriving Show
+
+instance Functor Choice where
+  fmap f (Choice x y) = Choice (f x) (f y)
+
+deriving instance Show a => Show (Free Choice a)
+
+(??) :: Free Choice a -> Free Choice a -> Free Choice a
+fx ?? fy = Impure (Choice fx fy)
+              
+insertFree :: a -> [a] -> Free Choice [a]
+insertFree x []     = return [x]
+insertFree x (y:ys) = return (x : y : ys)
+                    ?? (insertFree x ys >>= \zs -> return (y:zs))
+\end{code}
+
+%endif
