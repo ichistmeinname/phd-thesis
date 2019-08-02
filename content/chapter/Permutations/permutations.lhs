@@ -268,44 +268,11 @@ A generalisation using |MonadPlus| replaces the singleton operator by |return|, 
 > coinCmp :: MonadPlus m => a -> a -> m Bool
 > coinCmp _ _ = return True `mplus` return False
 
-As second step, we define a monad instance that can interpret all monadic operations in an abstract way: the free monad \citet{swierstra2008data}.
-Consider the following data type |Free| that is parametrised of a type constructor |f| and a value type |a|.
-
-> data Free f a = Pure a | Impure (f (Free f a))
-
-The general idea behind free monads is the realisation that monadic computations are either pure values or impure effects.
-We represent the impure effect using the type constructor |f| and pure values are of type |a|.
-The nice property of the |Free| data type is that |Free f| is a monad, if |f| is a functor.
-
-%if False
-
-> deriving instance Show a => Show (Free Sort a)
->
-> instance Functor f => Functor (Free f) where
->   fmap f (Pure x) = Pure (f x)
->   fmap f (Impure fx) = Impure (fmap (fmap f) fx)
-> 
-> instance Functor f => Applicative (Free f) where
-   
-%endif
- 
-> instance Functor f => Monad (Free f) where
->   return = Pure
->   Pure x >>= f = f x
->   Impure fx >>= f = Impure (fmap (>>= f) fx)
-
-A variety of common monads are free monads.
-The most popular representations are the identity monad, the maybe monad and the error maybe.
-Consider the following parametrised data types.
-
-> data Zero a
-> data One a = One
-> data Const e a = Const a
-
-Using the types as underlying effect, we get the identity monad using |Free Zero|, the maybe monad corresponds to |Free One| and the error monad can be represented using |Free (Const e)|, where |e| is the type of the error.
+As second step, we use a monad instance that can interpret all monadic operations in an abstract way: the free monad \citet{swierstra2008data}.
 As we are interested in pretty printing the non-deterministic components of our monadic computations, we need an effect to model non-determinism.
-The import effects of non-determinism are exactly the ones provided by the |MonadPlus| type class: a operator to combine two effectful computations and the failing computation.
-We define the following data type that represents exactly these operations.
+The important effects of non-determinism are exactly the ones provided by the |MonadPlus| type class: a operator to combine two effectful computations and the failing computation.
+Note that the simplified version in the introduction (\autoref{subsec:freeMonad}) does not have a representation for the latter computation.
+Here, we define the following data type that represents exactly these operations.
 
 \begin{spec}
 data NonDet a = Choice a a | Fail
@@ -319,6 +286,8 @@ In order to |Free Sort| as underlying monad in an non-deterministic application 
 
 %if False
 
+> deriving instance Show a => Show (Free Sort a)
+>
 > instance Alternative (Free Sort) where
 >   empty = mzero
 >   (<|>) = mplus
