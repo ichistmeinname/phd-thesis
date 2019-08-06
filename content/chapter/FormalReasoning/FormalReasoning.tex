@@ -3867,13 +3867,13 @@ possible function with our current approach.
 Consider for example the following two function definitions of the
 same type.
 
-\begin{minted}{curry}
+\begin{curry}
 fun1 :: Int -> Int
 fun1 x = (x + 1) ? (x * 2)
 
 fun2 :: Int -> Int
 fun2 = (+1) ? (*2)
-\end{minted}{curry}
+\end{curry}
 
 Both functions yield increments the input value by one as well as
 multiplies it by two by using non-determinism.
@@ -3904,8 +3904,8 @@ individual argument.
 In case of \hinl{fun2}, we need to implement the non-deterministic
 choice between two functions, thus, the final type is function type
 that must be lifted.
-More precisely, let us take a look at the definition of \hinl{fun1}
-and the try to define \hinl{fun2} with the usual pattern.
+More precisely, let us take a look at the definition of \cyinl{fun1}
+and the try to define \cyinl{fun2} with the usual pattern.
 
 \begin{minted}{coq}
 Definition fun1 (A : Type) (fn : Free nat) : Free nat :=
