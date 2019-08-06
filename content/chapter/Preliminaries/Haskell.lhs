@@ -10,12 +10,13 @@ import Debug.Trace
         
 \section{Functional Programming}
 
-\begin{itemize}
-\item non-strictness and laziness
-\item type-classes: Monads
-\item modelling side-effects with monads
-\item free monad?
-\end{itemize}
+In this thesis we present all concepts related to pure functional programming using the language Haskell \citep{jones2002haskell}.
+As we assume a basic familiarity of the reader regarding functional programming in Haskell, we will focus on specific and advanced topics we will make use of.
+
+First of, we illustrate the advantages and subtleties of Haskell's non-strict and especially lazy evaluation strategy using a handful of examples.
+Next we show how to model side-effects that are not allowed otherwise due to Haskell's purity.
+We use a monadic abstraction to illustrate how to model partiality and non-determinism.
+Finally, we generalise the monadic abstraction to use free monads instead, a representation that we will make use of in different parts of this thesis.
 
 \subsection{Non-strictness and Laziness}
 
@@ -30,7 +31,7 @@ We compute the head of a partial list: the head element is defined but the remai
 1
 \end{verbatim}
 
-Non-strictness allows us to work on partial values and, more importantly, that undemanded partial values are not computed.
+Non-strictness allows us to work on partial values and, more importantly, that non-demanded partial values are not computed.
 The demand-driven evaluation comes in not only in case of partial values, but also in case of expensive computations.
 
 The next example uses a function that computes the factorial of a given number as representative of such an expensive computation and the function \hinl{const :: a -> b -> a} that ignores its second and yields its first argument.
@@ -40,11 +41,11 @@ The next example uses a function that computes the factorial of a given number a
 42
 \end{verbatim}
 
-The evaluation immediality yields \hinl{42} as the second argument of \hinl{const} is not demanded, thus, not computed.
+The evaluation immediately yields \hinl{42} as the second argument of \hinl{const} is not demanded, thus, not computed.
 
 The second component of lazy evaluation --- sharing expressions --- is in most cases only observable regarding the performance of programs.
-We can, however, observe the differenct of a shared expression and an expression that needs to be evaluated multiple times by using Haskell's \hinl{trace :: String -> a -> a} operation.
-Using \hinl{trace} we can print debug messages on the console while evaluting a program.
+We can, however, observe the difference of a shared expression and an expression that needs to be evaluated multiple times by using Haskell's \hinl{trace} function.
+Using \hinl{trace} that is of type \hinl{String -> a -> a} we can print debug messages on the console while evaluating a program.
 More precisely, the first argument is the message we want to log and the second argument the expresion we want to log the message for.
 
 In order to illustrate how \hinl{trace} works, consider the following two examples.
@@ -59,23 +60,29 @@ fortytwo
 \end{verbatim}
 
 In both cases we want to log the message \hinl{"fortytwo"} when the variable \hinl{log42} is used and \hinl{42} is the actual value that is used to compute with.
-The first example logs the message during evalution and then yields \hinl{145} as result.
+The first example logs the message during evaluation and then yields \hinl{145} as result.
 In the second example, we do not observe any logging message, because, again, the second argument of \hinl{const} does not need to be computed.
 
-In order to observe the difference of sharing an expression, we consider the following two expressions.
+In order to observe that we shared an expression, we consider the following two expressions that doubles a value that is traced as side-effect.
+
+\begin{minted}{haskell}
+test1 n = trace "<msg>" n + trace "<msg>" n
+test2 n = let x = trace "<msg>" n in x + x
+\end{minted}
 
 \begin{verbatim}
-λ> let x = trace "<msg>" 42 in x + x
+λ> test1 42
 <msg>
 <msg>
 84
 
-λ> let double x = x + x in let x = trace "<msg>" 42 in double x
+λ> test2 42
 <msg>
 84
 \end{verbatim}
 
-The first example logs the message for \hinl{x} two times
+The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \hinl{trace "<msg>" 42} by binding it to a variable \hinl{x} that is used then used to double the value.
+Although the first example \hinl{test1} looks like an inlined version of \hinl{test2}, due to Haskell's call-by-need semantics these expressions have different results when used in combination with a side-effect like tracing.
 
 %if False
 
@@ -86,9 +93,10 @@ doublePlus x = x + x
 doubleMult :: Int -> Int
 doubleMult x = 2 * x
 
-test1 = let x = trace "<msg>" 42 in x + x
-test2 = doublePlus (trace "<msg>" 42)
-test3 = doubleMult (trace "<msg>" 42)
+test1 n = trace "<msg>" n + trace "<msg>" n
+test2 n = let x = trace "<msg>" n in x + x
+test3 n = doublePlus (trace "<msg>" n)
+test4 n = doubleMult (trace "<msg>" n)
 \end{code}
 
 %endif
