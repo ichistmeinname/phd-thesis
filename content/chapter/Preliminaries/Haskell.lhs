@@ -10,8 +10,9 @@ import Debug.Trace
         
 \section{Functional Programming}
 
-In this thesis we present all concepts related to pure functional programming using the language Haskell \citep{jones2002haskell}.
+In this thesis we present all concepts related to pure functional programming using the language Haskell.
 As we assume a basic familiarity of the reader regarding functional programming in Haskell, we will focus on specific and advanced topics we will make use of.
+For a more detailed introduction to Haskell, we recommend interested reader to take a look at other sources \citep{hudak2007history, hutton2016programming}.
 
 First of, we illustrate the advantages and subtleties of Haskell's non-strict and especially lazy evaluation strategy using a handful of examples.
 Next we show how to model side-effects that are not allowed otherwise due to Haskell's purity.
