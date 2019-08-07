@@ -4,6 +4,7 @@
 \DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\mathtt}
 
 % Unicode chars not set up for the use with LaTeX
+\DeclareUnicodeCharacter{8866}{\mbox{$\vdash$}}
 \DeclareUnicodeCharacter{3BB}{\mbox{$\lambda$}}
 \DeclareUnicodeCharacter{251C}{\mbox{\kern.23em
  \vrule height2.4exdepth1exwidth.4pt\vrule height2.4ptdepth-1.8ptwidth.23em}}
@@ -16,7 +17,8 @@
   todonotes,
   booktabs,
   tikz,
-  pgfplots
+  pgfplots,
+  alltt
 }
 \pgfplotsset{compat=newest}
 \usetikzlibrary{patterns}
@@ -132,9 +134,6 @@ Languages and Compiler Construction}
 \usemintedstyle[haskell]{automn}
 \usemintedstyle[coq]{tango}
 
-\def\commentbegin{\quad\{\ }
-\def\commentend{\}}
-
 \newenvironment{excursus}[1]
 {\vspace{0.5cm}
 \hrule
@@ -145,6 +144,14 @@ Languages and Compiler Construction}
 \vspace{0.5cm}}
 
 
+\newenvironment{cyrepl}
+{%
+\VerbatimEnvironment
+\begin{Verbatim}[commandchars=\\\{\}]%
+}
+{%
+\end{Verbatim}
+}
 \newenvironment{crepl}
 {%
 \VerbatimEnvironment

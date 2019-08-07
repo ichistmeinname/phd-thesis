@@ -1,5 +1,14 @@
 \section{Functional Logic Programming}
 
+The functional logic programming language Curry combines --- as the name already suggests --- the features of the functional and logic paradigm.
+A familiarity with Haskell is especially helpful for using Curry, since the syntax is basically the same.
+Hence, Curry has most of the features users know from Haskell: algebraic data types, higher-order functions, type classes and lazy evaluation.
+On top of these functional features, Curry adds non-determinism as a built-in effect.
+
+There are two up-to-date maintained implementation of Curry: KiCS2 \citep{hanus2014kics2} and PAKCS \citep{hanus2017pakcs}.
+In the remainder of this thesis we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.
+All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile (\boldmath$\vdash$) prompt.
+
 \begin{itemize}
 \item KiCS2 and REPL
 \item non-determinism
@@ -10,8 +19,86 @@
 \item pull-tabbing
 \end{itemize}
 
-
 \subsection{Non-determinimism}
+
+Curry's non-determinism comes in a variety of forms, we are mostly interested in an explicit introduction of non-determinism using a dedicated operator.
+The binary operator \cyinl{(?) :: a -> a -> a} non-deterministically yields two computations: its first and its second argument.
+Note that the non-determinism is not visibile in the type signature, it is an implicit effect with respect to Curry's type system.
+The following expression yields two results.
+
+\begin{cyrepl}
+\curryrepl True ? False
+True
+False
+\end{cyrepl}
+
+The other function accociated with non-determinism is \cyinl{failed :: a}, which is often used in similar situation as \hinl{undefined} in Haskell.
+The crucial difference to \hinl{undefined} in Haskell is that \cyinl{failed} is a rather silent failure.
+More specificly, \cyinl{failed} is a neutral element with respect to \cyinl{(?)}; the following expressions illustrate this behaviour.
+
+\begin{cyrepl}
+\curryrepl True ? failed
+True
+
+\curryrepl failed ? False
+False
+\end{cyrepl}
+
+Due its polymorphic type, \cyinl{failed} can also occur nested within a data structure.
+The same applies for non-determinism in the form of choices constructed by \cyinl{(?)}.
+
+\begin{cyrepl}
+\curryrepl 1 : failed
+1 : !
+
+\curryrepl (1 : failed) ? [1,2]
+[1,2]
+
+\curryrepl (1 ? 2) : ([] ? [3])
+[1]
+[1,3]
+[2]
+[2,3]
+\end{cyrepl}
+
+Note that KiCS2 displays a failure within a deterministic value like \cyinl{1 : failed} as a partial value.
+More precisely, in case of non-determinism the computation is computed to normal form and a failed branch is not printed at all, while in case of determinism computation the REPL displays a head normal form with \cyinl{!} as representation for \cyinl{failed}.
+Due to the computation to normal form, the third exemplary expression yields four values: all non-determinism is pulled to the top-level leading to four different lists.
+
+The step-by-step evaluation of occuring non-deterministic computations that are pulled to the top is called \emph{pull-tabbing}.
+The following equation illustrates the pull-tabbing steps from left-to-right; the last line shows the simplified resulting expression.
+
+\begin{spec}
+ (1 ? 2) : ([] ? [3])
+= {- -}
+ (1 : ([] ? [3])) ? (2 : ([] ? [3]))
+= {- -}
+ ((1 : []) ? (1 : [3])) ? (2 : ([] ? [3]))
+= {- -}
+ ((1 : []) ? (1 : [3])) ? ((2 : []) ? (2 : [3]))
+= {- -}
+ ([1] ? [1,3]) ? ([2] ? [2,3])
+\end{spec}
+
+An intuitive mental model for the non-determinism is to interpret it as a tree-structure.
+The REPL allows us to enable \verb|:set choices| to present all values as trees instead of Curry terms.
+The above expression, for example, yields the following tree.
+
+\begin{cyrepl}
+\curryrepl :set choices
+\curryrepl (1 ? 2) : ([] ? [3])
+?
+├── L: ?
+│       ├── L: [1]
+│       └── R: [1,3]
+└── R: ?
+        ├── L: [2]
+        └── R: [2,3]
+\end{cyrepl}
+
+The tree is a 1-to-1 representation of the simplified expression from above.
+Overall there are three branches: one top-level branch and each subtree has another branch, leading to four results again.
+The \texttt{L}eft and \texttt{R}ight sub-trees are illustrated by corresponding labels.
 
 \subsection{Call-time Choice}
 
@@ -40,7 +127,7 @@ One interesting observation to make here, is that the shared decision for label 
         └── R: [1,2]
 \end{alltt}
 \end{minipage}
-\caption{|fst (pickMin coinCmp [1,2,3])| (left) and |snd (pickMin coinCmp [1,2,3])| (right)}
+\caption{\verb|fst (pickMin coinCmp [1,2,3])| (left) and \verb|snd (pickMin coinCmp [1,2,3])| (right)}
 \label{fig:pickProject}
 \end{figure}
 

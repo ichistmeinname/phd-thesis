@@ -39,7 +39,11 @@
 %format tau2
 %format tau3
 
+\def\commentbegin{\quad\{\ }
+\def\commentend{\}}
+
 \newcommand{\coqrepl}{$\Pi$>}
+\newcommand{\curryrepl}{\boldmath$\vdash$\normalfont}
 
 % **************************************************
 % Document CONTENT
@@ -95,8 +99,8 @@
 \chapter{Declarative Programming}
 \label{ch:dp}
 %include content/chapter/preliminaries.lhs
-%include content/chapter/Preliminaries/Curry.lcurry
 %include content/chapter/Preliminaries/Haskell.lhs
+%include content/chapter/Preliminaries/Curry.lcurry
 %\input{content/chapter/Preliminaries/Coq.tex}
 
 \chapter{Generating Permutations via Non-deterministic Sorting}
