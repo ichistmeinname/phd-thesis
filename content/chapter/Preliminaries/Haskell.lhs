@@ -10,7 +10,7 @@ import Debug.Trace
         
 \section{Functional Programming}
 
-In this thesis we present all concepts related to pure functional programming using the language Haskell.
+We present all concepts related to pure functional programming in this thesis using the language Haskell.
 As we assume a basic familiarity of the reader regarding functional programming in Haskell, we will focus on specific and advanced topics we will make use of.
 For a more detailed introduction to Haskell, we recommend interested reader to take a look at other sources \citep{hudak2007history, hutton2016programming}.
 
@@ -18,6 +18,9 @@ First of, we illustrate the advantages and subtleties of Haskell's non-strict an
 Next we show how to model side-effects that are not allowed otherwise due to Haskell's purity.
 We use a monadic abstraction to illustrate how to model partiality and non-determinism.
 Finally, we generalise the monadic abstraction to use free monads instead, a representation that we will make use of in different parts of this thesis.
+
+If not expliclity stated differently, we use GHC 8.4.3 to compile and run the presented Haskell code.
+We display the interaction with GHC's REPL using a prompt showing a lambda  --- \verb|λ>| --- at the start of each command.
 
 \subsection{Non-strictness and Laziness}
 
