@@ -70,6 +70,7 @@ In the second example, we do not observe any logging message, because, again, th
 In order to observe that we shared an expression, we consider the following two expressions that doubles a value that is traced as side-effect.
 
 \begin{minted}{haskell}
+test1, test2 :: Int -> Int
 test1 n = trace "<msg>" n + trace "<msg>" n
 test2 n = let x = trace "<msg>" n in x + x
 \end{minted}
