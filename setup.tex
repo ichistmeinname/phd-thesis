@@ -146,11 +146,14 @@ Languages and Compiler Construction}
 
 \newenvironment{cyrepl}
 {%
-\VerbatimEnvironment
-\begin{Verbatim}[commandchars=\\\{\}]%
+\vspace{0.25cm}%
+\VerbatimEnvironment%
+\begin{BVerbatim}[commandchars=\\\{\}]%
 }
 {%
-\end{Verbatim}
+\end{BVerbatim}%
+\vspace{0.25cm}%
+
 }
 \newenvironment{crepl}
 {%
@@ -172,10 +175,10 @@ Languages and Compiler Construction}
 \end{minipage}%
 }
 
-\newenvironment{miniVerb}
+\newenvironment{miniVerb}[1]
 {%
 \VerbatimEnvironment
-\begin{minipage}[t]{0.55\textwidth}%
+\begin{minipage}[t]{#1\textwidth}%
 \begin{Verbatim}%
 }
 {%

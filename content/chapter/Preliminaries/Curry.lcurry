@@ -9,16 +9,6 @@ There are two up-to-date maintained implementation of Curry: KiCS2 \citep{hanus2
 In the remainder of this thesis we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.
 All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile (\boldmath$\vdash$) prompt.
 
-\begin{itemize}
-\item KiCS2 and REPL
-\item non-determinism
-\item non-strictness combined with non-determinism
-\item call-time choice
-\item decision trees + shared decisions
-\item encapsulation + different order for dfs and bfs
-\item pull-tabbing
-\end{itemize}
-
 \subsection{Non-determinimism}
 
 Curry's non-determinism comes in a variety of forms, we are mostly interested in an explicit introduction of non-determinism using a dedicated operator.
@@ -68,17 +58,20 @@ Due to the computation to normal form, the third exemplary expression yields fou
 The step-by-step evaluation of occuring non-deterministic computations that are pulled to the top is called \emph{pull-tabbing}.
 The following equation illustrates the pull-tabbing steps from left-to-right; the last line shows the simplified resulting expression.
 
+\begin{figure}[h]
 \begin{spec}
- (1 ? 2) : ([] ? [3])
-= {- -}
- (1 : ([] ? [3])) ? (2 : ([] ? [3]))
-= {- -}
- ((1 : []) ? (1 : [3])) ? (2 : ([] ? [3]))
-= {- -}
- ((1 : []) ? (1 : [3])) ? ((2 : []) ? (2 : [3]))
-= {- -}
- ([1] ? [1,3]) ? ([2] ? [2,3])
+   (1 ? 2) : ([] ? [3])
+== {- pull-tabbing |1 ? 2| -}
+   (1 : ([] ? [3])) ? (2 : ([] ? [3]))
+== {- pull-tabbing for left-most |[] ? [3]| -}
+   ((1 : []) ? (1 : [3])) ? (2 : ([] ? [3]))
+== {- pull-tabbing for |[] ? [3]| -}
+   ((1 : []) ? (1 : [3])) ? ((2 : []) ? (2 : [3]))
+== {- simplification of list representation -}
+   ([1] ? [1,3]) ? ([2] ? [2,3])
 \end{spec}
+\caption{Step-by-step evaluation of the expression \cyinl{(1 ? 2) : ([] ? [3])} using pull-tabbing}
+\end{figure}
 
 An intuitive mental model for the non-determinism is to interpret it as a tree-structure.
 The REPL allows us to enable \verb|:set choices| to present all values as trees instead of Curry terms.
@@ -98,37 +91,152 @@ The above expression, for example, yields the following tree.
 
 The tree is a 1-to-1 representation of the simplified expression from above.
 Overall there are three branches: one top-level branch and each subtree has another branch, leading to four results again.
-The \texttt{L}eft and \texttt{R}ight sub-trees are illustrated by corresponding labels.
+The left (\texttt{L}) and right (\texttt{R}) sub-trees are illustrated by corresponding labels.
+Given the tree representation of an expression, the REPL computes all possible results using a tree traversal.
+The default traversal for KiCS2 is a breadth-first search, but depth-first search is also possible.\footnote{The user can change the behaviour of the tree traversal in the REPL using \texttt{:set dfs} and \texttt{:set bfs}, respectively.}
+Note that the order of results changes for expressions corresponding to unbalanced trees.
+
+\begin{minipage}{0.5\textwidth}
+\begin{cyrepl}
+\curryrepl :set dfs
+\curryrepl (1 ? 2) ? 3
+1
+2
+3
+\end{cyrepl}
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
+\begin{cyrepl}
+\curryrepl :set bfs
+\curryrepl (1 ? 2) ? 3
+3
+1
+2
+\end{cyrepl}
+\end{minipage}
 
 \subsection{Call-time Choice}
 
-\subsection{Encapsulation and Visualisation}
+The combination of Haskell's functional features with the logic paradigm in Curry has consequences with respect to lazy evaluation.
+More precisely, the combination of sharing and non-determinism is particularly interesting.
+Consider an adaption of the sharing example we used in Haskell that adds to numbers.
 
-One interesting observation to make here, is that the shared decision for label \emph{?6} disappears if we demand the first (or second) component of the pair only.
-\autoref{fig:pickProject} shows both decision trees.
+%if False
+
+> test1, test2 :: Int -> Int
+> test1 n = (n ? (n+1)) + (n ? (n+1))
+> test2 n = let x = n ? (n+1) in x + x
+
+%endif
+
+\begin{curry}
+test1, test2 :: Int -> Int
+test1 n = (n ? (n+1)) + (n ? (n+1))
+test2 n = let x = n ? (n+1) in x + x
+\end{curry}
+
+In Haskell we showed the effect of logging a message whenever an expression is evaluated.
+The key observation was that introducing a let-binding for such an effectful computation, i.e., sharing the computation, behaves differently than an inlined version: in the latter case the evaluation triggers the effect twice but only once when sharing the computation.
+We observe an analogue behaviour for Curry's non-determinism effect.
+Sharing a non-deterministic computation leads to different results than its inlined version.
+
+\begin{minipage}[t]{0.5\textwidth}
+\begin{cyrepl}
+\curryrepl test1 42
+84
+85
+85
+86
+\end{cyrepl}
+\end{minipage}
+\begin{minipage}[t]{0.45\textwidth}
+\begin{cyrepl}
+\curryrepl test2 42
+84
+86
+\end{cyrepl}
+\end{minipage}
+
+In case of Curry the effect is not a logged message but the occurrence of non-determinism, that is, in Curry we can observe sharing of computations as it effects the number of results.
+We take a look at the corresponding tree visualisation for both expressions.
 
 \begin{figure}[h]
-\begin{minipage}{0.50\textwidth}
-\begin{alltt}
-?3
-├── L: 1
-└── R: ?6
-        ├── L: 2
-        └── R: 3
-\end{alltt}
+\begin{minipage}{0.5\textwidth}
+\centering
+\begin{BVerbatim}
+?2
+├── L: ?3
+│       ├── L: 84
+│       └── R: 85
+└── R: ?3
+        ├── L: 85
+        └── R: 86
+\end{BVerbatim}
 \end{minipage}
-\vline $\quad$
-\begin{minipage}{0.44\textwidth}
-\begin{alltt}
-?3
-├── L: [2,3]
-└── R: ?6
-        ├── L: [1,3]
-        └── R: [1,2]
-\end{alltt}
+\begin{minipage}{0.5\textwidth}
+\centering
+\begin{BVerbatim}
+?1
+├── L: ?1
+│       ├── L: 84
+│       └── R: 85
+└── R: ?1
+        ├── L: 85
+        └── R: 86
+\end{BVerbatim}
 \end{minipage}
-\caption{\verb|fst (pickMin coinCmp [1,2,3])| (left) and \verb|snd (pickMin coinCmp [1,2,3])| (right)}
-\label{fig:pickProject}
+\caption{Tree representation for \cyinl{test1 42} (left) and \cyinl{test2 42} (right)}
+\label{fig:callTimeChoice}
 \end{figure}
 
-We can deduce from this example that the shared decision is only necessary when we consider both components of the pair.
+The tree structure is the same for both expression.
+We can, however, observe that the crucial difference lies in the labels for the non-deterministic choices that are displayed as \texttt{?1}, \texttt{?2} and \texttt{?3}, respectively.
+Note that we simplified the tree visualisation we showed before by removing these labels.
+We showed a simplified version before because the labels are only of interest when an expression introduces sharing.
+Let us take a look at a step-by-step evaluation of \cyinl{test2 42} that introduces sharing.
+
+\begin{figure}[h]
+\begin{spec}
+   let x = 42 ? 43 in x + x
+== {- inlining of let-binding for |x|: use label |?1| -}
+   (42 ?1 43) + (42 ?1 43)
+== {- pull-tabbing for left-most |42 ?1 43| -}
+   (42 + (42 ?1 43)) ?1 (43 + (42 ?1 43))
+== {- pull-tabbing for left-most |42 ?_1 43| -}
+   ((42 + 42) ?1 (42 + 43)) ?1 (43 + (42 ?1 43))
+== {- pull-tabbing for |42 ?1 43|-}
+   ((42 + 42) ?1 (42 + 43)) ?1 ((43 + 42) ?1 (43 + 43))
+== {- simplification -}
+   (84 ?1 85) ?1 (85 ?1 86)
+\end{spec}
+\caption{Step-by-step evaluation of the expression \cyinl{test2 42}}
+\end{figure}
+
+The crucial difference to our step-by-step evaluation before is that we give the \cyinl{(?)}-operator an explicit label when we inline the let-binding.
+The resulting expression is once again a one-to-one representation of the tree visualisation above.
+Now the question arises how we should interpret these labels.
+The idea is to make consistent choices for each label.
+That is, when the REPL traverses the tree to compute all results, the algorithm tracks for each label if the traversal continues in the left or right sub-tree.
+If we reach a label that was already tracked, we take the same direction again: the traversal makes consistent choices for all labels.
+Given the example above, the algorithm tracks that in the left-subtree we need to continue with left sub-tree for a label \texttt{?1}, and right for the right sub-tree.
+
+A more high-level way to use equational reasoning for expressions with shared computations is to pull the whole let-expression to the top-level.
+That way we do not need to use labeled choices as the following equation illustrates.
+
+\begin{figure}[h]
+\begin{spec}
+   let x = 42 ? 43 in x + x
+== {- pull-tabbing |1 ? 2| in let-binding -}
+   let x = 42 in x + x ? let x = 43 in x + x
+== {- inlining of left-most let-binding for |x| -}
+   42 + 42 ? let x = 43 in x + x
+== {- inlining of let-binding for |x| -}
+   42 + 42 ? 43 + 43
+== {- simplification -}
+   84 ? 86
+\end{spec}
+\caption{Alternative representation for step-by-step evaluation of the expression \cyinl{test2 42}}
+\end{figure}
+
+
+\subsection{Encapsulation}
