@@ -1776,7 +1776,7 @@ Hence, it should be possible to reuse these ideas in the setting of probabilisti
 The basis of this chapter has been published previously.
 The general introduction of the library PFLP and its implementation ideas have been published in the Proceedings of the twentith International Symposium on Practical Aspects of Declarative Languages \cite{dylus2018probabilistic}.
 An extended version then included reasoning about the monad laws, the small case study containing the random string examples as well as performance results for these examples with comparisions to WebPPL and ProbLog.
-This extended version was published/will appear in TPLP\cite{...}.\todo{add TPLP citation}
+This extended version was published in TPLP\cite{dylus2019implementing}.
 The chapter at hand contains additional material.
 First, the case study contains three part: the aforementioned random string examples, a classical bayesian network known as grass model, and the development of several ways to model the secret santa problem.
 Second, with the new examples come also new performance comparisons: we reimplemented all case studies in ProbLog as well as WebPPL and compared there performance.
