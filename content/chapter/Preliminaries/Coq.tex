@@ -164,7 +164,7 @@ Here, \cinl{eq} is a dependent type, because the type of the constructor \cinl{e
 The type of lemmas correspond to the proposition we want to prove and the implementation is one concrete proof.
 That is, when we can implement \cinl{map_length} with type \cinl{length xs = length (map f xs)}, we have proven the corresponding proposition.
 
-\paragraph{Proving in Coq: A step-by-step introduction}
+\subsection{Proving in Coq: A step-by-step introduction}
 For the proof of that proposition, on the other hand, we need to take a look at the tactic language \cinl{Ltac} for the first time.
 We enclose a proof using the commands \cinl{Proof} and \cinl{Qed} and write all tactics we want to apply between these commands.
 So, let us start with the proof; we will illustrate the progress after each step in a verbatim environment next to the presented tactic or other command.
@@ -240,7 +240,7 @@ map_length is defined
 
 At that point, Coq provides the information that the lemma \cinl{map_length} was successfully defined and can be used in future proofs and definitions.
 
-\paragraph{Dependent Types to Encode Invariants}
+\subsection{Dependent Types to Encode Invariants}
 
 As stated in the beginning, the property about map not manipulating the length of the list is not surprising.
 We will now take a look at how to encode the length of the list in its type.
@@ -297,7 +297,7 @@ The same applies to the right side of the equation, because \cinl{vlength} can c
 The expression \cinl{vmap f xs} is of type \cinl{vector B n}, so using the definition of \cinl{vlength} yields \cinl{n} again.
 Coq automatically applies some simplifications --- like unfolding function definitions --- when we apply the tactic \cinl{reflexivity}, so the proof consists of only one tactic.
 
-\paragraph{Propositions and False Assumptions}
+\subsection{Propositions and False Assumptions}
 
 When we defined the function \cinl{vmap}, we said that we cannot use a more general type using two type variables \cinl{n m : peano} for the input and output list.
 We can even show that there is no way to define \cinl{vmap} such that \cinl{n} and \cinl{m} are different values.
