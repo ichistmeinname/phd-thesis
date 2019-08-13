@@ -19,7 +19,7 @@ Next we show how to model side-effects that are not allowed otherwise due to Has
 We use a monadic abstraction to illustrate how to model partiality and non-determinism.
 Finally, we generalise the monadic abstraction to use free monads instead, a representation that we will make use of in different parts of this thesis.
 
-If not expliclity stated differently, we use GHC 8.4.3 to compile and run the presented Haskell code.
+If not explicitly stated differently, we use GHC 8.4.3 to compile and run the presented Haskell code.
 We display the interaction with GHC's REPL using a prompt showing a lambda  --- \verb|λ>| --- at the start of each command.
 
 \subsection{Non-strictness and Laziness}

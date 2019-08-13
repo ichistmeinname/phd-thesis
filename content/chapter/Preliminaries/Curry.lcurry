@@ -9,7 +9,7 @@ There are two up-to-date maintained implementation of Curry: KiCS2 \citep{hanus2
 In the remainder of this thesis we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.
 All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile (\boldmath$\vdash$) prompt.
 
-\subsection{Non-determinimism}
+\subsection{Non-determinism}
 
 Curry's non-determinism comes in a variety of forms, we are mostly interested in an explicit introduction of non-determinism using a dedicated operator.
 The binary operator \cyinl{(?) :: a -> a -> a} non-deterministically yields two computations: its first and its second argument.
@@ -22,9 +22,9 @@ True
 False
 \end{cyrepl}
 
-The other function accociated with non-determinism is \cyinl{failed :: a}, which is often used in similar situation as \hinl{undefined} in Haskell.
+The other function associated with non-determinism is \cyinl{failed :: a}, which is often used in similar situation as \hinl{undefined} in Haskell.
 The crucial difference to \hinl{undefined} in Haskell is that \cyinl{failed} is a rather silent failure.
-More specificly, \cyinl{failed} is a neutral element with respect to \cyinl{(?)}; the following expressions illustrate this behaviour.
+More specifically, \cyinl{failed} is a neutral element with respect to \cyinl{(?)}; the following expressions illustrate this behaviour.
 
 \begin{cyrepl}
 \curryrepl True ? failed
@@ -55,7 +55,7 @@ Note that KiCS2 displays a failure within a deterministic value like \cyinl{1 : 
 More precisely, in case of non-determinism the computation is computed to normal form and a failed branch is not printed at all, while in case of determinism computation the REPL displays a head normal form with \cyinl{!} as representation for \cyinl{failed}.
 Due to the computation to normal form, the third exemplary expression yields four values: all non-determinism is pulled to the top-level leading to four different lists.
 
-The step-by-step evaluation of occuring non-deterministic computations that are pulled to the top is called \emph{pull-tabbing}.
+The step-by-step evaluation of occurring non-deterministic computations that are pulled to the top is called \emph{pull-tabbing}.
 The following equation illustrates the pull-tabbing steps from left-to-right; the last line shows the simplified resulting expression.
 
 \begin{figure}[h]
