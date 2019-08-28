@@ -42,12 +42,10 @@ We then observe that the general scheme to model these two effects can
 be generalised to capture a wide range of effects.
 Obviously, the next step is to apply the idea to model
 non-determinism.
-More precisely, we model the non-determinism of Curry: that is,
+More precisely, we like to model the non-determinism of Curry: that is,
 non-strict non-determinism with call-time-choice.
-
-At the end, we give an outlook of the combinations of both worlds and
-sketch the first ideas to formally reason about properties of the
-probabilistic programming library and non-deterministic sorting functions.
+Therefore, we give discuss why the current representation that models
+call-by-name rather than Curry's call-by-need semantics.
 
 \selectlanguage{ngerman}
 \chapter*{Zusammenfassung (deutsch)}
@@ -99,12 +97,9 @@ dann auch f\"ur weitere Effekte genutzt werden.
 Als nat\"urlichen n\"achsten Schritt betrachten wir den Effekte, der
 bei der Sprache Curry zus\"atzlich hinzukommt: nicht-strikter
 Nichtdeterminismus mit \emph{Call-Time-Choice} Semantik.
-
-Zu guter Letzt geben wir einen Ausblick auf die Verbindung dieser
-beiden Interessen und pr\"asentieren erste Ideen zur
-Modellierung von Curry, um Eigenschaften der Bibliothek zur
-probabilistischen Programmierung sowie nicht-deterministischen
-Sortierfunktionen zur formulieren und deren Validit\"at
-zu pr\"ufen.
+Dabei geben wir eine grobe \"Ubersicht dar\"uber, warum die aktuelle
+Repr\"asentation \emph{call-by-name} modelliert sowie erste Ideen, wie
+die f\"ur Curry erforderliche \emph{call-by-name} Semantik modelliert
+werden k\"onnte.
 
 \endgroup
