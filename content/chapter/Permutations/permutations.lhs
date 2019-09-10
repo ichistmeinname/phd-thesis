@@ -10,17 +10,13 @@
 \framedhs
 \section{Non-deterministic Sorting Functions in Haskell}
 
-After discussing non-deterministic sorting functions in a language with built-in non-determinism, we switch to Haskell as exemplary functional language without non-determinism.
-We reimplement a selection of the sorting functions introduced in the \autoref{sec:NDCurry} in Haskell using a naive modell of non-determinism based on lists.
+After discussing non-deterministic sorting functions in the functional language Curry with built-in non-determinism, we switch to Haskell as an exemplary functional language without non-determinism.
+We reimplement a selection of the sorting functions introduced in the \autoref{sec:NDCurry} in Haskell using a naive model of non-determinism based on lists.
 As we want to test out different models later, we refactor the list-specific implementations to monad-generic implementations for the sorting algorithm.
 
 We will notice a difference between the Curry and the Haskell implementation when testing the sorting functions on concrete lists.
 This difference is not a new insight, but interesting nonetheless: Curry's non-determinism can exploit non-strictness in a way the Haskell model of non-determinism using a monadic interface cannot.
 
-Last but not least, we reexamine the sorting algorithms that compute duplicate permutations and discuss how we can prevent these results in the Haskell implementation.
-Due to the general monadic interface, we can use a state-based monad that keeps track of the decisions when applying the comparison functions.
-This way, the comparison function can behave in a consistent way; consistency is the property that we already discussed in the context of bubble sort in \autoref{subsec:CurryBubble}.
-In addition to consistency, we discuss other properties of the comparison function that are necessary in the Haskell implementation of bubble sort and quick sort.
 
 \subsection{Modelling Non-determinism}
 
