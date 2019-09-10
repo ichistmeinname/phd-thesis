@@ -678,18 +678,18 @@ The utilisation of the precondition leads to a efficient sorting algorithm: no t
 In this chapter we implemented a variety of sorting functions parametrised over a comparison function in Curry as well as in Haskell.
 Instead of ordinary sorting tasks, we applied the sorting functions to a non-deterministic comparison function.
 The resulting function enumerates permutations of the input list.
-For the Curry implementation there are several sorting functions that compute only the permutations of the input list without any duplicates: insertion sort, selection sort, merge sort and a variant of quick sort that uses |partition| instead of two |filter| calls.
-We then compared these Curry implementations to their Haskell counterpart.
+For the Curry implementation there are several sorting functions that compute only the permutations of the input list without any duplicates: insertion sort, selection sort, merge sort and a variant of quick sort that uses \cyinl{partition} instead of two \cyinl{filter} calls.
+We then compared these Curry implementations to their Haskell counterparts.
 In order to mimic the non-deterministic component that Curry brings along out of the box, we use a monadic lifting to define potentially effectful computations in Haskell.
 In the end, the Haskell implementations use a monadic lifting of the ordinary, pure sorting function in order to use a non-deterministic comparison function and compute non-deterministic results.
 One particularly interesting observation was that whereas the Curry version of selection sort computes only the permutations, the Haskell version does not.
 This difference was the main reason we investigated the difference of both implementations in the first place.
-The other sorting functions compute the same non-deterministic results: insertion sort, merge sort, and quick sort using |partition| do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
+The other sorting functions compute the same non-deterministic results: insertion sort, merge sort, and quick sort using \cyinl{partition} do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
 Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementations can exploit non-strictness better than their Haskell counterparts.
 As an example, we demanded the head elements of all permutations and counted the number of non-deterministic choices that were triggered in to compute the result.
 The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
 On top of that, none of the Curry implementations need to trigger all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n!$ computations.
-This is a nice property for the Curry implementation since $n!$ non-deterministic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
+This property for the Curry implementation feels impressive since $n!$ non-deterministic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
 That is, selecting only the head element of the permutations has no effect on the non-determinism that needs to be triggered.
 
 While we started first investigations to compare the strictness behaviour of the different sorting functions, we think that a more rigorous investigation might lead to further interesting properties.
@@ -698,7 +698,7 @@ As we only compared the non-deterministic version in Curry and the monadic versi
 For example, according to \citet{sedgewick1977permutation} the classical permutation
 algorithm based on inserting an element at each possible position in a list was developed independently by \citet{trotter1962algorithm}
 and \citet{johnson1963generation}.
-The implementation of the |permutations :: [a] -> [[a]]| function in Haskell is also
+The implementation of the \hinl{permutations :: [a] -> [[a]]} function in Haskell is also
 based on this approach but has been improved with respect to
 non-strictness via a mailing list discussion by
 \citet{vanlaarhoven2007haskell}.
@@ -707,21 +707,23 @@ A comparison of the improved permutation algorithm used in Haskell and the best-
 A different line of future work could be to focus more on the resulting permutations function.
 For example, we noticed only by chance that selection sort enumerates all permutation in lexicographic order when evaluated using depth-first-search instead of the default behaviour of breadth-first-search.
 It would be interesting to analyse the order of results for all other sorting algorithms as well.
-This analysis can then be enhanced to other non-deterministic sorting functions, which are perhaps more strict than |coinCmp|, but yield an interesting property.
-An example of an alternative non-deterministic comparison function is the following definition of |liftCmp| that lifts a comparison function |cmp| into a monadic context.
+This analysis can then be extended to other non-deterministic sorting functions, which are perhaps more strict than |coinCmp|, but yield an interesting property.
+An example of an alternative non-deterministic comparison function is the following definition of \cyinl{liftCmp} that lifts a comparison function \cyinl{cmp} into a monadic context.
 
-> liftCmp :: (a -> a -> Bool) -> a -> a -> Bool
-> liftCmp cmp x y = p x y ? not (cmp x y)
+\begin{curry}
+liftCmp :: (a -> a -> Bool) -> a -> a -> Bool
+liftCmp cmp x y = p x y ? not (cmp x y)
+\end{curry}
 
 There are lots of other properties related to permutations.
 For example, enumerating derangements, that is, enumerating all permutations where an element does not appear at its original position, enumerating all permutations of a sublist of a given list, or analysing the resulting order of permutation with respect to the parity for the transposition from one permutation to the next.
 
 Besides a further investigation of permutation enumeration functions, we are interested if there are other predicate-based functions that do a useful task when applied to a non-deterministic predicate.
 The other example next to sorting we have discussed is filtering a list.
-Namely, we used |filter| to implement quick sort in \ref{subsec:quicksort}.
-We have seen that using |filter| with a non-deterministic predicate yields all sublists of the input list.
+Namely, we used \cyinl{filter} to implement quick sort in \ref{subsec:quicksort}.
+We have seen that using \cyinl{filter} with a non-deterministic predicate yields all sublists of the input list.
 It might be interesting to search for more predicate-based functions and their non-deterministic counterparts.
-The first other common functions that come to mind are |takeWhile, dropWhile :: (a -> Bool) -> [a] -> [a]|, but we are keen to search for other functions that have interesting and useful non-deterministic counterparts.
+The first other common functions that come to mind are \cyinl{takeWhile, dropWhile :: (a -> Bool) -> [a] -> [a]}, but we are keen to search for other functions that have interesting and useful non-deterministic counterparts.
 
 \section{Final Remarks}
 

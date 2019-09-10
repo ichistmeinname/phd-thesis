@@ -19,6 +19,10 @@
 % Setup YOUR thesis document in this file !
 % **************************************************
 \input{setup}
+\newcommand{\coqrepl}{$\Pi$>}
+\newcommand{\curryrepl}{$\mathbf{\vdash}$}
+\newcommand{\haskellrepl}{$\lambda$>}
+\newcommand{\func}{\textbackslash}
 
 % Lhs2Tex-specifics
 %include polycode.fmt
