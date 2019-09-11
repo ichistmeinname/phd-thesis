@@ -72,22 +72,22 @@ In order to observe that we shared an expression, we consider the following two 
 
 \begin{minted}{haskell}
 test1, test2 :: Int -> Int
-test1 n = trace "<msg>" n + trace "<msg>" n
-test2 n = let x = trace "<msg>" n in x + x
+test1 n = trace "msg" n + trace "msg" n
+test2 n = let x = trace "msg" n in x + x
 \end{minted}
 
 \begin{hrepl}
 \haskellrepl test1 42
-<msg>
-<msg>
+msg
+msg
 84
 
 \haskellrepl test2 42
-<msg>
+msg
 84
 \end{hrepl}
 
-The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \hinl{trace "<msg>" 42} by binding it to a variable \hinl{x} that is used then used to double the value.
+The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \hinl{trace "msg" 42} by binding it to a variable \hinl{x} that is used then used to double the value.
 Although the first example \hinl{test1} looks like an inlined version of \hinl{test2}, due to Haskell's call-by-need semantics these expressions have different results when used in combination with a side effect like tracing.
 
 %if False
@@ -99,10 +99,10 @@ doublePlus x = x + x
 doubleMult :: Int -> Int
 doubleMult x = 2 * x
 
-test1 n = trace "<msg>" n + trace "<msg>" n
-test2 n = let x = trace "<msg>" n in x + x
-test3 n = doublePlus (trace "<msg>" n)
-test4 n = doubleMult (trace "<msg>" n)
+test1 n = trace "msg" n + trace "msg" n
+test2 n = let x = trace "msg" n in x + x
+test3 n = doublePlus (trace "msg" n)
+test4 n = doubleMult (trace "msg" n)
 \end{code}
 
 %endif
