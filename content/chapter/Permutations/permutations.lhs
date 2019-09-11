@@ -567,6 +567,7 @@ The application of \hinl{selectionSortM} to \hinl{coinCmpList} yields more resul
              [1..7]
 True
 \end{hrepl}
+
 \noindent
 In fact, we get
 \[
@@ -599,7 +600,7 @@ The right side of the figure recaps the decision tree when using the Curry imple
 
 \end{verbatim}
 \end{minipage}
-\vline $\quad$
+$\quad$ \vline $\quad$
 \begin{minipage}{0.50\textwidth}
 \begin{verbatim}
            +- (1, [2,3])

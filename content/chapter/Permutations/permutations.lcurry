@@ -154,7 +154,8 @@ In order to better understand how \cyinl{insertSort} computes the permutations o
 As the comparison function \cyinl{coinCmp} non-deterministically yields \cyinl{True} and \cyinl{False}, the decision tree of our example reflects all possible control flows for \cyinl{insertionSort} depending on the results of \cyinl{coinCmp}.
 
 \begin{figure}[t]
-\begin{minipage}{0.5\textwidth}
+\begin{center}
+\begin{minipage}{0.4\textwidth}
 \begin{alltt}
 ?
 ├── L: ?
@@ -169,7 +170,8 @@ As the comparison function \cyinl{coinCmp} non-deterministically yields \cyinl{T
                 └── R: [3,2,1]
 \end{alltt}
 \end{minipage}
-\begin{minipage}{0.5\textwidth}
+$\quad$ \vline $\quad$
+\begin{minipage}{0.4\textwidth}
 \begin{alltt}
 2 \(\leq\) 3
 ├── L: 1 \(\leq\) 2
@@ -184,6 +186,7 @@ As the comparison function \cyinl{coinCmp} non-deterministically yields \cyinl{T
                 └── R: [3,2,1]
 \end{alltt}
 \end{minipage}
+\end{center}
 \caption{Decision tree for \cyinl{insertionSort coinCmp [1,2,3]} as produced by KiCS2 (left) and in a modified version to highlight compared elements of the list (right)}
 \label{fig:dtInsert}
 \end{figure}
@@ -431,7 +434,8 @@ Due to the let-bindings used in the implementation of \cyinl{selectionSortPick} 
 Instead, we take a look at the decision tree for \cyinl{pickMin} and \cyinl{minList} in \autoref{fig:select1}.
 
 \begin{figure}
-\begin{minipage}{0.50\textwidth}
+\begin{center}
+\begin{minipage}{0.4\textwidth}
 \begin{alltt}
 ?3
 ├── L: (1,[2,3])
@@ -444,8 +448,8 @@ Instead, we take a look at the decision tree for \cyinl{pickMin} and \cyinl{minL
                 └── R: (3,[1,2])
 \end{alltt}
 \end{minipage}
-\vline $\quad$
-\begin{minipage}{0.44\textwidth}
+$\quad\quad\quad$ \vline $\quad\quad\quad$
+\begin{minipage}{0.2\textwidth}
 \begin{alltt}
 ?
 ├── L: 1
@@ -459,36 +463,62 @@ Instead, we take a look at the decision tree for \cyinl{pickMin} and \cyinl{minL
 
 \end{alltt}
 \end{minipage}
+\end{center}
 \caption{Decision trees for the expressions \cyinl{pickMin coinCmp [1,2,3]} (left) and \cyinl{minList coinCmp [1,2,3]} (right)}
 \label{fig:select1}
 \end{figure}
 
 Note that the decision tree for \cyinl{pickMin} is an example for the visualisation of sharing: the decision labeled \emph{?6} occurs in each of the two preceding sub-trees again.
 This decision origins in the usage of the let-binding for the recursive call in the second rule for \cyinl{pickMin}.
-The recursive call \cyinl{(m,l) = pickMin p xs} binds the minimum and the list without that minimum to the variables \cyinl{m} and \cyinl{l}, respectively.
+The recursive call \cyinl{pickMin p xs} binds the minimum and the list without that minimum to the variables \cyinl{m} and \cyinl{l}, respectively.
 In particular, we cannot use case-expressions without altering the non-strictness-property of the original definition using let-bindings.
 Therefore, in the following, we represent decision trees in a reduced version, where we fuse shared decisions by only displaying the branches that would be considered in a search traversal.
-\autoref{fig:select} displays this reduced decision tree --- with the additional modification that we label branches with the corresponding comparisons like before.
+\autoref{fig:selectAndBubble} displays this reduced decision tree --- with the additional modification that we label branches with the corresponding comparisons like before.
 %
 \begin{figure}
+\begin{center}
+\begin{minipage}{0.25
+\textwidth}
 \begin{alltt}
 1 \(\leq\) _ (*)
-├─ 2 \(\leq\) 3
-│  ├─ [1,2,3]
-│  └─ [1,3,2]
-└─ 2 \(\leq\) 3
-   ├─ 1 \(\leq\) 3
-   │  ├─ [2,1,3]
-   │  └─ [2,3,1]
-   └─ 1 \(\leq\) 2
-      ├─ [3,1,2]
-      └─ [3,2,1]
+├── 2 \(\leq\) 3
+│   ├── [1,2,3]
+│   └── [1,3,2]
+└── 2 \(\leq\) 3
+    ├── 1 \(\leq\) 3
+    │   ├── [2,1,3]
+    │   └── [2,3,1]
+    └── 1 \(\leq\) 2
+        ├── [3,1,2]
+        └── [3,2,1]
 \end{alltt}
-\caption{Reduced decision tree for \cyinl{selectionSortPick coinCmp [1,2,3]}}
-\label{fig:select}
+\end{minipage}
+$\quad$ \vline $\quad$ $\quad$
+\begin{minipage}{0.6\textwidth}
+\begin{alltt}
+1 \(\leq\) head (bubble [2,3])
+├── 2 \(\leq\) head (bubble [3])         *** / ****
+│    ├── 2 \(\leq\) head (bubble [3])    ***
+│    │    ├── [1,2,3]
+│    │    └── [1,3,2]              <+++
+│    └── 3 \(\leq\) head (bubble [2])    ****
+│        ├── [1,3,2]
+│        └── [1,2,3]               <++++
+└── 2 \(\leq\) head (bubble [3])
+    ├── 1 \(\leq\) head (bubble [3])
+    │   ├── [2,1,3]
+    │   └── [2,3,1]
+    └── 1 \(\leq\) head (bubble [2])
+        ├── [3,1,2]
+        └── [3,2,1]
+\end{alltt}
+\end{minipage}
+\end{center}
+\caption{Reduced and modified decision tree for \cyinl{bubbleSort coinCmp [1,2,3]} (left) and reduced decision tree for \cyinl{selectionSortPick coinCmp [1,2,3]} (right)}
+\label{fig:selectAndBubble}
 \end{figure}
 %
-As an interesting aside, note that we cannot give the second argument of the comparison for the first branch --- marked with \emph{(*)} in \autoref{fig:select}.
+As an interesting aside, note that we cannot give the second argument of the comparison for the first branch --- marked with \texttt{(*)} in \autoref{fig:selectAndBubble}.
 We do not have this information, because \cyinl{coinCmp} does not demand its second argument.
 In the example above the second argument is the expression \cyinl{pickMin coinCmp [2,3]}; a demand is only necessary if we want to compute the entire list structure of the first solution.
 We can observe this non-strict behaviour when computing only the head element of the resulting permutations.
@@ -600,35 +630,14 @@ Finally, the application of a sorting function to the non-deterministic comparis
 \end{cyrepl}
 
 Instead of six results corresponding to all permutations of the input list, we observe that two permutations occur twice: \cyinl{[1,2,3]} and \cyinl{[1,3,2]}.
-In order to understand why these duplicates occur, we take a look at the decision tree for the example call above listed in \autoref{fig:bubble}.
-\begin{figure}
-\begin{alltt}
-1 \(\leq\) head (bubble [2,3])
-├─ 2 \(\leq\) head (bubble [3])       *** / ****
-│  ├─ 2 \(\leq\) head (bubble [3])    ***
-│  │  ├─ [1,2,3]
-│  │  └─ [1,3,2]                <++
-│  └─ 3 \(\leq\) head (bubble [2])    ****
-│     ├─ [1,3,2]
-│     └─ [1,2,3]                <+++
-└─ 2 \(\leq\) head (bubble [3])
-   ├─ 1 \(\leq\) head (bubble [3])
-   │  ├─ [2,1,3]
-   │  └─ [2,3,1]
-   └─ 1 \(\leq\) head (bubble [2])
-      ├─ [3,1,2]
-      └─ [3,2,1]
-\end{alltt}
-\caption{Reduced and modified decision tree for \cyinl{bubbleSort coinCmp [1,2,3]}}
-\label{fig:bubble}
-\end{figure}
+In order to understand why these duplicates occur, we take a look at the decision tree for the example call above listed in \autoref{fig:selectAndBubble}.
 
 Note that the second argument of the comparison function \cyinl{coinCmp} are, again, unevaluated expressions --- we have already seen a similar example when talking about \cyinl{selectionSort}.
 The computation of all results in the REPL as well as drawing the decision tree demand the evaluation of expressions like \cyinl{head (bubble [2,3])}\footnote{The actual expression appearing in the evaluation steps is a let-binding that references the head element in the comparison. That is, \cyinl{let (x:xs) = bubble [2,3] in if 1 <= x then ... else ...} is closer to the expressions occurring during the evaluation.} not until the corresponding list element will be printed.
 The new thing about the decision tree for an application of \cyinl{bubbleSort} is that some results occur twice.
-The duplicated results are marked with \texttt{<++} and \texttt{<+++}, respectively.
+The duplicated results are marked with \texttt{<+++} and \texttt{<++++}, respectively.
 Note, that it is by intention that we marked the first occurence in case of \cyinl{[1,3,2]} and the second one in case of the result \cyinl{[1,2,3]}.
-Consider the path from the root to the result marked with \texttt{<++}.
+Consider the path from the root to the result marked with \texttt{<+++}.
 The crucial parts are the comparisons marked with \texttt{***}: we compare \cyinl{2} and \cyinl{head (bubble [3])} twice.
 In a setting where we use a deterministic comparison function, the first path to \cyinl{[1,3,2]} does not make any sense.
 The decision for the first comparison \cyinl{2 <= head (bubble [3])} yields \cyinl{True} --- otherwise we would not take the first branch, that is, doing the same comparison a second time should yield \cyinl{True} again.
@@ -636,7 +645,7 @@ In the path from the root to the first occurence \cyinl{[1,3,2]}, the comparison
 Note that there is no deterministic comparison function that yields \cyinl{True} for a comparison first and \cyinl{False} later.
 In the following we reference this property as \emph{behaving consistently}: a non-deterministic predicate behaves consistently, if it yields the same Boolean value for every application to the same values.
 
-The other result marked with $\text{\texttt{<+++}}$ is the second occurence of \cyinl{[1,2,3]}.
+The other result marked with $\text{\texttt{<++++}}$ is the second occurence of \cyinl{[1,2,3]}.
 Here, the relevant comparisons taken on the path are mark with \texttt{****}: \cyinl{2 <= head (bubble [3])} and \cyinl{3 <= head (bubble [2])}.
 Note that the expression \cyinl{head (bubble [x])} evaluates to \cyinl{x} for all \cyinl{x} of appropriate type.
 That is, \cyinl{head (bubble [3]) = 3} and \cyinl{head (bubble [2]) = 2}.
