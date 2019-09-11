@@ -11,39 +11,40 @@ import Debug.Trace
 \section{Functional Programming}
 
 We present all concepts related to pure functional programming in this thesis using the language Haskell.
-As we assume a basic familiarity of the reader regarding functional programming in Haskell, we will focus on specific and advanced topics we will make use of.
-For a more detailed introduction to Haskell, we recommend interested reader to take a look at other sources \citep{hudak2007history, hutton2016programming}.
+As we assume a basic familiarity of the reader regarding functional programming in Haskell, we will focus on specific and advanced aspects we will make use of.
+For a more detailed introduction to Haskell we recommend interested readers to take a look at other sources \citep{hudak2007history, hutton2016programming}.
 
-First of, we illustrate the advantages and subtleties of Haskell's non-strict and especially lazy evaluation strategy using a handful of examples.
-Next we show how to model side-effects that are not allowed otherwise due to Haskell's purity.
-We use a monadic abstraction to illustrate how to model partiality and non-determinism.
+First, we illustrate the advantages and subtleties of Haskell's non-strict and especially lazy evaluation strategy using a handful of examples.
+Next, we show how to work with side effects and other effectful operations that are not allowed otherwise due to Haskell's purity.
+In this matter, we discuss how to model such effects using monadic abstraction.
+More precisely, we illustrate how to model partiality and non-determinism using monads.
 Finally, we generalise the monadic abstraction to use free monads instead, a representation that we will make use of in different parts of this thesis.
 
 If not explicitly stated differently, we use GHC 8.4.3 to compile and run the presented Haskell code.
-We display the interaction with GHC's REPL using a prompt showing a lambda  --- \verb|λ>| --- at the start of each command.
+We display the interaction with GHC's REPL using a prompt showing a lambda  --- \haskellrepl --- at the start of each command.
 
 \subsection{Non-strictness and Laziness}
 
 Haskell's evaluation strategy is call-by-need.
-That is, subexpressions are only evaluated when explicitly needed and shared expressions only once -- that is, call-by-need combines the advantages of both, call-by-name and call-by-value.
+The strategy evaluates subexpressions only when explicitly needed and shared expressions only once -- that is, call-by-need combines the advantages of both, call-by-name and call-by-value.
 
 Consider the following example that demonstrates the non-strictness part of Haskell's lazy evaluation.
 We compute the head of a partial list: the head element is defined but the remaining list is not.
 
-\begin{verbatim}
-λ> head (1 : undefined)
+\begin{hrepl}
+\haskellrepl head (1 : undefined)
 1
-\end{verbatim}
+\end{hrepl}
 
-Non-strictness allows us to work on partial values and, more importantly, that non-demanded partial values are not computed.
-The demand-driven evaluation comes in not only in case of partial values, but also in case of expensive computations.
+Non-strictness allows us to work on partial values and, more importantly, that non-demanded values are not computed.
+The demand-driven evaluation comes into play not only in case of partial values, but also in case of expensive computations.
 
 The next example uses a function that computes the factorial of a given number as representative of such an expensive computation and the function \hinl{const :: a -> b -> a} that ignores its second and yields its first argument.
 
-\begin{verbatim}
-λ> const 42 (fac 100)
+\begin{hrepl}
+\haskellrepl const 42 (fac 100)
 42
-\end{verbatim}
+\end{hrepl}
 
 The evaluation immediately yields \hinl{42} as the second argument of \hinl{const} is not demanded, thus, not computed.
 
@@ -54,20 +55,20 @@ More precisely, the first argument is the message we want to log and the second 
 
 In order to illustrate how \hinl{trace} works, consider the following two examples.
 
-\begin{verbatim}
-λ> let log42 = trace "fortytwo" 42 in log42 + 103
+\begin{hrepl}
+\haskellrepl let log42 = trace "fortytwo" 42 in log42 + 103
 fortytwo
 145
 
 λ> let log42 = trace "fortytwo" 42 in const 103 log42
 103
-\end{verbatim}
+\end{hrepl}
 
 In both cases we want to log the message \hinl{"fortytwo"} when the variable \hinl{log42} is used and \hinl{42} is the actual value that is used to compute with.
 The first example logs the message during evaluation and then yields \hinl{145} as result.
 In the second example, we do not observe any logging message, because, again, the second argument of \hinl{const} does not need to be computed.
 
-In order to observe that we shared an expression, we consider the following two expressions that doubles a value that is traced as side-effect.
+In order to observe that we shared an expression, we consider the following two expressions that double a value that is traced with a message.
 
 \begin{minted}{haskell}
 test1, test2 :: Int -> Int
@@ -75,19 +76,19 @@ test1 n = trace "<msg>" n + trace "<msg>" n
 test2 n = let x = trace "<msg>" n in x + x
 \end{minted}
 
-\begin{verbatim}
-λ> test1 42
+\begin{hrepl}
+\haskellrepl test1 42
 <msg>
 <msg>
 84
 
-λ> test2 42
+\haskellrepl test2 42
 <msg>
 84
-\end{verbatim}
+\end{hrepl}
 
 The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \hinl{trace "<msg>" 42} by binding it to a variable \hinl{x} that is used then used to double the value.
-Although the first example \hinl{test1} looks like an inlined version of \hinl{test2}, due to Haskell's call-by-need semantics these expressions have different results when used in combination with a side-effect like tracing.
+Although the first example \hinl{test1} looks like an inlined version of \hinl{test2}, due to Haskell's call-by-need semantics these expressions have different results when used in combination with a side effect like tracing.
 
 %if False
 
@@ -107,9 +108,14 @@ test4 n = doubleMult (trace "<msg>" n)
 %endif
 
 
-\subsection{Modelling Side-Effects}
+\subsection{Monadic Abstractions}
+\label{subsec:monadicAbstractions}
 
-As a pure language, Haskell does not allow any side-effects unless they are explicitly modeled.
+As a pure language, Haskell does not allow any side effects unless they are explicitly modeled.
+Such an explicit models becomes visibile at the type-level.
+For example, Haskell models the interaction with the user trough reading input and printing output explicitly with the type \hinl{IO}.
+
+In this thesis, we are more interested in representations of effects like partiality and non-determinism.
 We can, for example, explicitly model partiality using the following data type.
 
 %if False
@@ -128,19 +134,19 @@ data Partial a = Undefined
 \end{minted}
 
 These constructors represent undefined and defined values, respectively.
-Note that Haskell also has an ambient effects of partiality: the polymorphic value \hinl{undefined} can be used without any indication on the type-level.
-When \hinl{undefined} needs be evaluated, it yields run-time error.
+Note that Haskell also has an implicit model of partiality: the polymorphic value \hinl{undefined} can be used without any indication on the type-level.
+When \hinl{undefined} needs to be evaluated, it yields a run-time error.
 That is, consider the following usages of \hinl{undefined}.
 
-\begin{verbatim}
-λ> head undefined
+\begin{hrepl}
+\haskellrepl head []
 *** Exception: Prelude.undefined
 
-λ> 1 : 2 : undefined
-[1,2*** Exception: Prelude.undefined
-\end{verbatim}
+\haskellrepl head (tail [1])
+*** Exception: Prelude.undefined
+\end{hrepl}
 
-Using the \hinl{Partial} type, we can model a function that access the head of a list that explicitly yields \hinl{Undefined} value instead of a run-time error.
+Using the \hinl{Partial} type, we can model a function that accesses the head of a list that explicitly yields \hinl{Undefined} value instead of a run-time error.
 
 %if False
 
@@ -158,10 +164,26 @@ headPartial []    = Undefined
 headPartial (x:_) = Defined x
 \end{minted}
 
-Another prominent example for an explicitly modeled side-effect is non-determinism.
+The evaluation of the first exemplary expression from above represent the undefined value explicitly using the appropriate constructor.
+
+\begin{hrepl}
+\haskellrepl headPartial []
+Undefined
+
+\haskellrepl headPartial (tail [1])
+Undefined
+\end{hrepl}
+
+Note that the an implementation of \hinl{tailPartial} would not compose with \hinl{headPartial} anymore as in the original example above.
+Before we talk about this downside of the model, let us take look at a representation for non-determinism as effect.
 We model functions that possibly produce several results using lists.
-In order to not confuse the modeled non-determinism with lists that we use algebraic datatypes, we use a type synonym \hinl{ND}.
-On top of that, we use the following convenient functions to yield a deterministic result and combine two potentially non-deterministic results.
+In order to not confuse the modeled non-determinism with lists that we use as algebraic datatypes, we use a type synonym \hinl{ND}.
+
+\begin{minted}{haskell}
+type ND a = [a]
+\end{minted}
+
+On top of that, we use the following convenience functions to yield a deterministic result and combine two potentially non-deterministic results.
 
 %if False
 
@@ -174,15 +196,17 @@ det x = [x]
 (?) :: ND a -> ND a -> ND a
 (?) = (++)
 \end{code}
-
-The former function yields a singleton list whereas the latter corresponds to concatenating the two lists.
-
 %endif
 
-
 \begin{minted}{haskell}
-type ND a = [a]
+det :: a -> ND a
+det x = [x]
+
+(?) :: ND a -> ND a -> ND a
+(?) = (++)
 \end{minted}
+
+The former function yields a singleton list whereas the latter corresponds to the concatenation of the two lists.
 
 Using this representation of non-determinism, we define a function that non-deterministically inserts a given element at all possible positions of a list.
 
@@ -204,21 +228,21 @@ insertND x (y:ys) = det (x : y : ys) ? map (y:) (insertND x ys)
 
 The first rule is deterministic, it yields one list as result that contains just the element \hinl{x} we want to insert to the list.
 The second case yields at least two results.
-The first non-deterministic result inserts the element in front of the list.
-For the second result, we produce all non-deterministic lists for the recursive call \hinl{insertND x ys} and insert the first element \hinl{y} to the front of all these resulting lists.
+The first rule inserts the element in front of the list and yields the deterministic result.
+For the second rule, we produce all non-deterministic lists for the recursive call \hinl{insertND x ys} and insert the first element \hinl{y} to the front of all these resulting lists.
 
-As an example, we insert \hinl{1} non-deterministically into the list \hinl{[2..5]}.
+As an example, we non-deterministically insert \hinl{1} into the list \hinl{[2..5]}.
 Note that we manipulate the output to use set-like parentheses for the lists that correspond to the modeled non-determinism of type \hinl{ND}.
 
-\begin{verbatim}
-λ> insertND 1 []
+\begin{hrepl}
+\haskellrepl insertND 1 []
 { [1] }
 
-λ> insertND 1 [2..5]
+\haskellrepl insertND 1 [2..5]
 { [1,2,3,4,5] , [2,1,3,4,5] , [2,3,1,4,5] , [2,3,4,1,5] , [2,3,4,5,1] }
-\end{verbatim}
+\end{hrepl}
 
-A commonly used abstraction to model side-effects are monads.
+A commonly used abstraction to model all these explicit effects are monads: the most common monadic abstraction is the \hinl{IO} type mentioned in the beginning.
 Using a type constructor class, a monad provides the following two operations.
 
 \begin{minted}{haskell}
@@ -227,9 +251,9 @@ class Monad m where
   (>>=)  :: m a -> (a -> m b) -> m b
 \end{minted}
 
-A type constructor class allows to define overloaded functions for type constructors like \hinl{Partial} or \hinl{[]}.
+A type constructor class allows to define overloaded functions for type constructors like \hinl{IO}, \hinl{Partial}, and \hinl{[]}.
 Note that we define an instance for \hinl{[]} instead of \hinl{ND}, because we can define type class instances for data types only, not for type synonyms.
-That is, we can define type class instances for our modeled side-effects \hinl{Partial} and \hinl{[]} as follows\footnote{Strictly speaking, the instance for lists is already predefined.}.
+That is, we can define type class instances for our modeled effects \hinl{Partial} and \hinl{[]} as follows\footnote{Strictly speaking, the instance for lists is already predefined.}.
 
 %if False
 
@@ -282,12 +306,61 @@ insertND x (y:ys) = return (x : y : ys)
                   ? (insertND x ys >>= \zs -> return (y:zs))
 \end{minted}
 
-\subsection{Modelling Side-Effects Using Free Monads}
+Now recall the example for partiality again and let us define the \hinl{tail} function using \hinl{Partial}, analogue to \hinl{headPartial}.
+
+%if False
+
+\begin{code}
+tailPartial :: [a] -> Partial [a]
+tailPartial []     = Undefined
+tailPartial (_:xs) = Defined xs
+\end{code}
+
+%endif
+
+\begin{minted}{haskell}
+tailPartial :: [a] -> Partial [a]
+tailPartial []     = Undefined
+tailPartial (_:xs) = Defined xs
+\end{minted}
+
+As already noted above, the composition \hinl{headPartial . tailPartial} is not possible although we can compose \hinl{head . tail} in the original Haskell code.
+
+\begin{hrepl}
+\haskellrepl headPartial (tailPartial [])
+    • Couldn't match expected type ‘[a]’
+                  with actual type ‘Partial [a0]’
+    • In the first argument of ‘headPartial’, namely ‘(tailPartial [])’
+      In the expression: headPartial (tailPartial [])
+      In an equation for ‘it’: it = headPartial (tailPartial [])
+\end{hrepl}
+
+The problem of this composition is that the resulting type of \hinl{tailPartial}, namely \hinl{Partial [a]} is not the argument \hinl{headPartial} expects as first argument.
+We can circumvent the typing problem using the operator \hinl{(>>=)} to access the list within the \hinl{Partial}-result of \hinl{tailPartial}, which yields the expected result \hinl{Undefined}, as follows.
+
+\begin{hrepl}
+\haskellrepl tailPartial [] >>= headPartial
+Undefined
+\end{hrepl}
+
+Note, however, that the usage of \hinl{(>>=)} to make the composition work can have unintended effects in case the second function ignores its argument.
+For example, the expression \hinl{const 42 (tail [])} yields \hinl{42} and not a run-time error, such that we expect the corresponding usage of \hinl{tailPartial} to yield \hinl{Defined 42}.
+
+\begin{hrepl}
+\haskellrepl const 42 (tail [])
+
+\haskellrepl tailPartial [] >>= return . const 42
+Undefined
+\end{hrepl}
+
+We do go into more details concerning this unintended behaviour here, but hope that the curious reader awaits the coming chapters eagerly, as we will discuss this model of non-determinism more thoroughly for Haskell in \autoref{ch:permutations} and again in \autoref{ch:reasoning} when we present representations of effects in the proof assistant Coq.
+
+\subsection{Modelling Effects Using Free Monads}
 \label{subsec:freeMonad}
 
-Recently, the functional programming community uses a slight different approach for modelling side-effects.
+Recently, the functional programming community uses a slight different approach for modelling side effects.
 The overall monadic structure is still the key of the representation of such effects.
-One observation that lead to the other abstraction is that all representations of suce side-effects have operations to lift a value into the effects (\hinl{return}) and to manipulate the values of an effect (\hinl{(>>=)}) in common.
+One observation that lead to the other abstraction is that all representations of suce side effects have operations to lift a value into the effects (\hinl{return}) and to manipulate the values of an effect (\hinl{(>>=)}) in common.
 This observation lead to a monad instance that can interpret all monadic operations in an abstract way: the free monad \citep{swierstra2008data}.
 Consider the following data type \hinl{Free} that is parametrised of a type constructor \hinl{f} and a value type \hinl{a}.
 
@@ -350,14 +423,14 @@ insertFree x (y:ys) = return (x : y : ys)
 We define the smart constructor for choices \hinl{(??)} as indicated above, but besides swapping this operator and the name of the function the implementation stays exactly the same, because we already rely on the monadic abstraction that we can reuse now.
 The exemplary call also reveals five resulting lists.
 
-\begin{verbatim}
-λ> insertFree 1 [2..5]
+\begin{hrepl}
+\haskellrepl insertFree 1 [2..5]
 Impure (Choice (Pure [1,2,3,4,5])
        (Impure (Choice (Pure [2,1,3,4,5])
                (Impure (Choice (Pure [2,3,1,4,5])
                        (Impure (Choice (Pure [2,3,4,1,5])
                                        (Pure [2,3,4,5,1]))))))))
-\end{verbatim}
+\end{hrepl}
 
 %if False
 
