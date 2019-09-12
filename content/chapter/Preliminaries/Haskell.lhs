@@ -236,10 +236,10 @@ Note that we manipulate the output to use set-like parentheses for the lists tha
 
 \begin{hrepl}
 \haskellrepl insertND 1 []
-{ [1] }
+\{ [1] \}
 
-\haskellrepl insertND 1 [2..5]
-{ [1,2,3,4,5] , [2,1,3,4,5] , [2,3,1,4,5] , [2,3,4,1,5] , [2,3,4,5,1] }
+\haskellrepl insertND 1 [2,3,4,5]
+\{ [1,2,3,4,5] , [2,1,3,4,5] , [2,3,1,4,5] , [2,3,4,1,5] , [2,3,4,5,1] \}
 \end{hrepl}
 
 A commonly used abstraction to model all these explicit effects are monads: the most common monadic abstraction is the \hinl{IO} type mentioned in the beginning.
@@ -343,6 +343,15 @@ We can circumvent the typing problem using the operator \hinl{(>>=)} to access t
 Undefined
 \end{hrepl}
 
+A second example, we can also use \hinl{(>>=)} if we want to compose a pure and an effectful function.
+Since the \hinl{(>>=)} operator needs an monadic function as second argument, we use \hinl{return} to lift the pure function into the monadic context.
+Consider the following example: we compute the head element of all the list resulting from the usage of \hinl{insertND}.
+
+\begin{hrepl}
+\haskellrepl insertND 1 [2,3,4,5] >>= return . head
+\{ 1 , 2 , 2 , 2 , 2 \}
+\end{hrepl}
+
 Note, however, that the usage of \hinl{(>>=)} to make the composition work can have unintended effects in case the second function ignores its argument.
 For example, the expression \hinl{const 42 (tail [])} yields \hinl{42} and not a run-time error, such that we expect the corresponding usage of \hinl{tailPartial} to yield \hinl{Defined 42}.
 
@@ -353,19 +362,20 @@ For example, the expression \hinl{const 42 (tail [])} yields \hinl{42} and not a
 Undefined
 \end{hrepl}
 
-We do go into more details concerning this unintended behaviour here, but hope that the curious reader awaits the coming chapters eagerly, as we will discuss this model of non-determinism more thoroughly for Haskell in \autoref{ch:permutations} and again in \autoref{ch:reasoning} when we present representations of effects in the proof assistant Coq.
+We do not go into more details concerning this unintended behaviour here, but hope that the curious reader awaits the coming chapters eagerly, as we will discuss this model of non-determinism more thoroughly for Haskell in \autoref{ch:permutations} and again in \autoref{ch:reasoning} when we present representations of effects in the proof assistant Coq.
 
-\subsection{Modelling Effects Using Free Monads}
+\subsection{Free Monads}
 \label{subsec:freeMonad}
 
-Recently, the functional programming community uses a slight different approach for modelling side effects.
+Recently, the functional programming community uses a slight different approach for modeling effects.
 The overall monadic structure is still the key of the representation of such effects.
-One observation that lead to the other abstraction is that all representations of suce side effects have operations to lift a value into the effects (\hinl{return}) and to manipulate the values of an effect (\hinl{(>>=)}) in common.
+One observation that lead to the other abstraction is that all representations of such effects have operations to lift a value into the effects (\hinl{return}) and to manipulate the values of an effect (\hinl{(>>=)}) in common.
 This observation lead to a monad instance that can interpret all monadic operations in an abstract way: the free monad \citep{swierstra2008data}.
-Consider the following data type \hinl{Free} that is parametrised of a type constructor \hinl{f} and a value type \hinl{a}.
+Consider the following data type \hinl{Free} that is parametrised by a type constructor \hinl{f} and a value type \hinl{a}.
 
 \begin{minted}{haskell}
-data Free f a = Pure a || Impure (f (Free f a))
+data Free f a = Pure a
+              || Impure (f (Free f a))
 \end{minted}
 
 The general idea behind free monads is the observation that monadic computations are either pure values or impure effects.
@@ -381,17 +391,18 @@ instance Functor f => Monad (Free f) where
 
 We represent all impure operations we need to model using the functor \hinl{f}.
 In case of \hinl{Partial}, we have one operation, namely \hinl{Undefined}; the other constructor \hinl{Defined} is already taken care of by \hinl{Pure}.
-Moreover, we observe that \hinl{Undefined} does not contains any further values but is a possible value of its own: it is a nullary operation.
-In contrast, we modelled the binary operation \hinl{(?) :: ND a -> ND a -> ND a} for non-determinism that combines two non-deterministic computations.
+Moreover, we observe that \hinl{Undefined} does not contain any further values but is a possible value of its own: it is a nullary operation.
+In contrast, we modeled the binary operation \hinl{(?) :: ND a -> ND a -> ND a} for non-determinism that combines two non-deterministic computations.
 The corresponding functor, thus, needs to make use of the recursive type argument \hinl{Free f a}.
-More concretely, since \hinl{Free} already models the constructor for defined values using \hinl{Pure}, we functors takes care of the values constructed using \hinl{Undefined} for \hinl{Partial} and \hinl{(?)} for \hinl{ND}, respectively.
-The functors corresponding to the nullary operation \hinl{Undefined} and the one for binary operation \hinl{(?)} look as follows\footnote{In the former case we follow the same naming conventions as \citet{swierstra2008data}.}.
+More concretely, since \hinl{Free} already models the constructor for defined and deterministic values using \hinl{Pure}, the functors takes care of the values constructed using \hinl{Undefined} for \hinl{Partial} and \hinl{(?)} for \hinl{ND}, respectively.
+The functors corresponding to the nullary operation \hinl{Undefined} and to the binary operation \hinl{(?)} look as follows\footnote{In the former case we follow the same naming conventions as \citet{swierstra2008data}.}.
 
 \begin{minted}{haskell}
 data One a    = One
 data Choice a = Choice a a
 \end{minted}
 
+Intuitively, the number of constructors of the functor corresponds to the number of operations the effect introduces and the arguments of constructor indicate the arity of these operations.
 The key idea for \hinl{Partial} is that we represent \hinl{Undefined} as \hinl{Impure One}; together with \hinl{Pure} corresponding to \hinl{Defined}, we can represent the same programs as before.
 Note that the functor \hinl{Choice} for non-determinism used in combination with \hinl{Free} resembles a tree rather than a list.
 A leaf corresponds to \hinl{det} while a branch with two subtrees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial subtrees.
@@ -399,11 +410,12 @@ A leaf corresponds to \hinl{det} while a branch with two subtrees \hinl{t1} and 
 A variety of common monads are free monads.
 A counterexample is the list monad, which is why we rather chose a tree encoding to represent non-determinism.
 More precisely, there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]} \citep{swierstra2008data}.
-Other popular representations are the identity monad and the error maybe using the following functors.
+In \autoref{ch:reasoning} we restate this isomorphism property and will show that the free monads applied to the functors \hinl{One} and \hinl{Choice} are isomorphic to \hinl{Maybe} and the common representation binary tree, respectively.
+Other popular representations are the identity monad and the error monad using the following functors.
 
 \begin{minted}{haskell}
 data Zero a
-data Const e a = Const a
+data Const e a = Const e
 \end{minted}
 
 Using the types as underlying effect, we get the identity monad using \hinl{Free Zero} and the error monad can be represented using \hinl{Free (Const e)}, where \hinl{e} is the type of the error.
@@ -412,7 +424,7 @@ Our running example from the preceding section for non-deterministically inserti
 
 \begin{minted}{haskell}
 (??) :: Free Choice a -> Free Choice a -> Free Choice a
-fx ?? fy = Impure (Choice fx fy)
+(??) fx fy = Impure (Choice fx fy)
               
 insertFree :: a -> [a] -> Free Choice [a]
 insertFree x []     = return [x]

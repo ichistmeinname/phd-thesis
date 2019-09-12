@@ -1,3 +1,9 @@
+%if False
+
+> import Findall
+
+%endif
+
 \section{Functional Logic Programming}
 
 The functional logic programming language Curry combines --- as the name already suggests --- the features of the functional and logic paradigm.
@@ -11,7 +17,7 @@ All interactions with KiCS2's REPL are displayed as verbatim environment with a 
 
 \subsection{Non-determinism}
 
-Curry's non-determinism comes in a variety of forms, we are mostly interested in an explicit introduction of non-determinism using a dedicated operator.
+While Curry's non-determinism comes in a variety of forms, we are mostly interested in an explicit introduction of non-determinism using a dedicated operator.
 The binary operator \cyinl{(?) :: a -> a -> a} non-deterministically yields two computations: its first and its second argument.
 Note that the non-determinism is not visibile in the type signature, it is an implicit effect with respect to Curry's type system.
 The following expression yields two results.
@@ -34,7 +40,7 @@ True
 False
 \end{cyrepl}
 
-Due its polymorphic type, \cyinl{failed} can also occur nested within a data structure.
+Due to its polymorphic type, \cyinl{failed} can also occur nested within a data structure.
 The same applies for non-determinism in the form of choices constructed by \cyinl{(?)}.
 
 \begin{cyrepl}
@@ -52,7 +58,7 @@ The same applies for non-determinism in the form of choices constructed by \cyin
 \end{cyrepl}
 
 Note that KiCS2 displays a failure within a deterministic value like \cyinl{1 : failed} as a partial value.
-More precisely, in case of non-determinism the computation is computed to normal form and a failed branch is not printed at all, while in case of determinism computation the REPL displays a head normal form with \cyinl{!} as representation for \cyinl{failed}.
+More precisely, in case of non-determinism the computation is computed to normal form and a failed branch is not printed at all, while in case of determinism the REPL displays a head normal form with \cyinl{!} as representation for \cyinl{failed}.
 Due to the computation to normal form, the third exemplary expression yields four values: all non-determinism is pulled to the top-level leading to four different lists.
 
 The step-by-step evaluation of occurring non-deterministic computations that are pulled to the top is called \emph{pull-tabbing}.
@@ -73,7 +79,7 @@ The following equation illustrates the pull-tabbing steps from left-to-right; th
 \caption{Step-by-step evaluation of the expression \cyinl{(1 ? 2) : ([] ? [3])} using pull-tabbing}
 \end{figure}
 
-An intuitive mental model for the non-determinism is to interpret it as a tree-structure.
+An intuitive mental model for the non-determinism is to interpret it as a tree structure.
 The REPL allows us to enable \verb|:set choices| to present all values as trees instead of Curry terms.
 The above expression, for example, yields the following tree.
 
@@ -115,11 +121,53 @@ Note that the order of results changes for expressions corresponding to unbalanc
 \end{cyrepl}
 \end{minipage}
 
+We can now take a look at the implementation of a non-deterministic version of \cyinl{insert} that we modeled in Haskell using lists in \autoref{subsec:monadicAbstraction}.
+
+%if False
+
+> insert :: a -> [a] -> [a]
+> insert x []     = [x]
+> insert x (y:ys) = (x : y : ys) ? y : insert x ys
+
+%endif
+
+\begin{curry}
+insert :: a -> [a] -> [a]
+insert x []     = [x]
+insert x (y:ys) = (x : y : ys) ? y : insert x ys
+\end{curry}
+
+As expected, we get 5 results when we run the exemplary expression from the Haskell section.
+
+\begin{cyrepl}
+\curryrepl insert 1 [2,3,4,5]
+[1,2,3,4,5]
+[2,1,3,4,5]
+[2,3,1,4,5]
+[2,3,4,1,5]
+[2,3,4,5,1]
+\end{cyrepl}
+
+Last but not least, we compute all the head elements of the above expression.
+Recall that we discussed the missing composability of effectful functions like \hinl{insertND} or \hinl{headPartial} in the Haskell representation of non-determinism.
+In case of Curry's built-in non-determinism, the effect is not visible in the type-level, thus, the composition of pure and effectful functions works out of the box.
+
+\begin{cyrepl}
+\curryrepl head (insert 1 [2,3,4,5])
+1
+2
+\end{cyrepl}
+
+The interesting part about the composition in case of Curry's built-in non-determinism is its non-strict behaviour.
+Instead of five results --- one head element for each produced list like in the Haskell version, the computation yields only two results.
+Once again, we leave it here to build up the tension for the forthcoming chapters, when we discuss the difference between Curry's built-in non-determinism and the representation using lists in Haskell in more details.
+
 \subsection{Call-time Choice}
 
+As Curry's similarities to Haskell are obvious, we also need to talk about the underlying evaluation strategy.
 The combination of Haskell's functional features with the logic paradigm in Curry has consequences with respect to lazy evaluation.
 More precisely, the combination of sharing and non-determinism is particularly interesting.
-Consider an adaption of the sharing example we used in Haskell that adds to numbers.
+Consider an adaption of the sharing example we used in Haskell that adds two numbers.
 
 %if False
 
@@ -157,7 +205,7 @@ Sharing a non-deterministic computation leads to different results than its inli
 \end{cyrepl}
 \end{minipage}
 
-In case of Curry the effect is not a logged message but the occurrence of non-determinism, that is, in Curry we can observe sharing of computations as it effects the number of results.
+In case of Curry the effect is not a logged message but the occurrence of non-determinism, that is, in Curry we can observe sharing of computations as it affects the number of results.
 We take a look at the corresponding tree visualisation for both expressions.
 
 \begin{figure}[h]
@@ -189,7 +237,7 @@ We take a look at the corresponding tree visualisation for both expressions.
 \label{fig:callTimeChoice}
 \end{figure}
 
-The tree structure is the same for both expression.
+The tree structure is the same for both expressions.
 We can, however, observe that the crucial difference lies in the labels for the non-deterministic choices that are displayed as \texttt{?1}, \texttt{?2} and \texttt{?3}, respectively.
 Note that we simplified the tree visualisation we showed before by removing these labels.
 We showed a simplified version before because the labels are only of interest when an expression introduces sharing.
@@ -198,16 +246,16 @@ Let us take a look at a step-by-step evaluation of \cyinl{test2 42} that introdu
 \begin{figure}[h]
 \begin{spec}
    let x = 42 ? 43 in x + x
-== {- inlining of let-binding for |x|: use label |?1| -}
-   (42 ?1 43) + (42 ?1 43)
-== {- pull-tabbing for left-most |42 ?1 43| -}
-   (42 + (42 ?1 43)) ?1 (43 + (42 ?1 43))
+== {- inlining of let-binding for |x|: use label |?*| -}
+   (42 ?* 43) + (42 ?* 43)
+== {- pull-tabbing for left-most |42 ?* 43| -}
+   (42 + (42 ?* 43)) ?* (43 + (42 ?* 43))
 == {- pull-tabbing for left-most |42 ?_1 43| -}
-   ((42 + 42) ?1 (42 + 43)) ?1 (43 + (42 ?1 43))
-== {- pull-tabbing for |42 ?1 43|-}
-   ((42 + 42) ?1 (42 + 43)) ?1 ((43 + 42) ?1 (43 + 43))
+   ((42 + 42) ?* (42 + 43)) ?* (43 + (42 ?* 43))
+== {- pull-tabbing for |42 ?* 43|-}
+   ((42 + 42) ?* (42 + 43)) ?* ((43 + 42) ?* (43 + 43))
 == {- simplification -}
-   (84 ?1 85) ?1 (85 ?1 86)
+   (84 ?* 85) ?* (85 ?* 86)
 \end{spec}
 \caption{Step-by-step evaluation of the expression \cyinl{test2 42}}
 \end{figure}
@@ -218,7 +266,6 @@ Now the question arises how we should interpret these labels.
 The idea is to make consistent choices for each label.
 That is, when the REPL traverses the tree to compute all results, the algorithm tracks for each label if the traversal continues in the left or right sub-tree.
 If we reach a label that was already tracked, we take the same direction again: the traversal makes consistent choices for all labels.
-Given the example above, the algorithm tracks that in the left-subtree we need to continue with left sub-tree for a label \texttt{?1}, and right for the right sub-tree.
 
 A more high-level way to use equational reasoning for expressions with shared computations is to pull the whole let-expression to the top-level.
 That way we do not need to use labeled choices as the following equation illustrates.
@@ -238,5 +285,37 @@ That way we do not need to use labeled choices as the following equation illustr
 \caption{Alternative representation for step-by-step evaluation of the expression \cyinl{test2 42}}
 \end{figure}
 
-
 \subsection{Encapsulation}
+\label{subsec:encapsulation}
+
+The implementation of \cyinl{insert} is a nice example for a straightforward realisation of the algorithm's specification due to the usage of non-determinism.
+When we use such non-deterministic functions in our code basis, we cannot regain a pure, deterministic function anymore.
+Luckily, there exists a mechanism in Curry to encapsulate the non-determinism of computations.
+Curry provides one implementation of such an encapsulation with the primitive function \cyinl{allValues :: a -> { a })} that
+operates on a polymorphic --- and potentially non-deterministic --- value and yields a multiset of all non-deterministic values.
+For presentation purposes, we use an abstract view of the result of an encapsulation to emphasise that the order of encapsulated results does not matter.
+In order to work with encapsulated values, Curry furthermore provides the following two functions to fold and map the resulting multiset.
+
+\begin{curry}
+foldValues :: (a -> a -> a) -> a -> { a } -> a
+mapValues  :: (a -> b) -> { a } -> { b }
+\end{curry}
+
+We do not discuss the implementation details behind \cyinl{allValues} here, but focus on the usage of the function.
+For instance, let us  our examples above.
+
+\begin{cyrepl}
+\curryrepl allValues (insert 1 [2,3,4,5])
+\{ [1,2,3,4,5], [2,1,3,4,5], [2,3,1,4,5], [2,3,4,1,5], [2,3,4,5,1] \}
+
+\curryrepl allValues (head (insert 1 [2,3,4,5]))
+\{ 1, 2 \}
+\end{cyrepl}
+
+Since the function \cyinl{allValues} yields ordinary lists as result, we can use then use all the results of a non-deterministic computation in a deterministic way by working directly on the list structure.
+For example, we can project to the head element of each resulting list.
+
+\begin{cyrepl}
+\curryrepl mapValues head (allValues (insert 1 [2,3,4,5]))
+\{ 1, 2, 2, 2, 2 \}
+\end{cyrepl}
