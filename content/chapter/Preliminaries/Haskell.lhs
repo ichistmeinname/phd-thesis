@@ -50,8 +50,8 @@ The evaluation immediately yields \hinl{42} as the second argument of \hinl{cons
 
 The second component of lazy evaluation --- sharing expressions --- is in most cases only observable regarding the performance of programs.
 We can, however, observe the difference of a shared expression and an expression that needs to be evaluated multiple times by using Haskell's \hinl{trace} function.
-Using \hinl{trace} that is of type \hinl{String -> a -> a} we can print debug messages on the console while evaluating a program.
-More precisely, the first argument is the message we want to log and the second argument the expresion we want to log the message for.
+Using \hinl{trace :: String -> a -> a} we can print debug messages on the console while evaluating a program.
+More precisely, the first argument is the message we want to log and the second argument the expression we want to log the message for.
 
 In order to illustrate how \hinl{trace} works, consider the following two examples.
 
@@ -87,7 +87,7 @@ msg
 84
 \end{hrepl}
 
-The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \hinl{trace "msg" 42} by binding it to a variable \hinl{x} that is used then used to double the value.
+The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \hinl{trace "msg" 42} by binding it to a variable \hinl{x} and doubles the value.
 Although the first example \hinl{test1} looks like an inlined version of \hinl{test2}, due to Haskell's call-by-need semantics these expressions have different results when used in combination with a side effect like tracing.
 
 %if False
@@ -146,7 +146,7 @@ That is, consider the following usages of \hinl{undefined}.
 *** Exception: Prelude.undefined
 \end{hrepl}
 
-Using the \hinl{Partial} type, we can model a function that accesses the head of a list that explicitly yields \hinl{Undefined} value instead of a run-time error.
+Using the \hinl{Partial} type, we can model a function that accesses the head of a list that explicitly yields \hinl{Undefined} instead of a run-time error.
 
 %if False
 
@@ -286,7 +286,7 @@ instance Monad [] where
   xs >>= f = concat (map f xs)
 \end{minted}
 
-We reimplement the definition of \hinl{insertND} using \hinl{(>>=)} as follows, which leads to a more natural implementation concerning the seperation of operation on lists as data structures and lists as model for non-determinism.
+We reimplement the definition of \hinl{insertND} using \hinl{(>>=)} as follows, which leads to a more natural implementation concerning the separation of operation on lists as data structures and lists as model for non-determinism.
 More precisely, the \hinl{(>>=)}-operator gives us access to each list of the non-deterministic result.
 
 %if False
@@ -407,7 +407,7 @@ The key idea for \hinl{Partial} is that we represent \hinl{Undefined} as \hinl{I
 Note that the functor \hinl{Choice} for non-determinism used in combination with \hinl{Free} resembles a tree rather than a list.
 A leaf corresponds to \hinl{det} while a branch with two subtrees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial subtrees.
 
-A variety of common monads are free monads.
+A variety of common monads are isomorphic to a representation using free monads.
 A counterexample is the list monad, which is why we rather chose a tree encoding to represent non-determinism.
 More precisely, there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]} \citep{swierstra2008data}.
 In \autoref{ch:reasoning} we restate this isomorphism property and will show that the free monads applied to the functors \hinl{One} and \hinl{Choice} are isomorphic to \hinl{Maybe} and the common representation binary tree, respectively.

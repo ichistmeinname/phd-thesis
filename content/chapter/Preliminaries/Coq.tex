@@ -16,15 +16,24 @@ Instead we focus on how to use Coq as a tool to formalise and proof properties a
 
 \subsection{Functional Programming}
 
-We can define a lot of common functions we know from functional programming Haskell or Curry one-to-one in Coq.
+We can define a lot of common functions we know from Haskell or Curry one-to-one in Coq.
 As a code convention, we will start data type and constructor names with lower-case letters as many standard types in Coq follow the same convention.
-Consider the following data type definition for Peano numbers and two utility functions.
+Consider the following data type definition for Peano numbers.
 
 \begin{minted}{coq}
 Inductive peano : Type :=
 | z : peano
 | s : peano -> peano.
+\end{minted}
 
+First, we note that all definitions have explicit typing annotations, although Coq could infer all of them.
+Most notably, the data type declaration for \cinl{peano} is annotated with \cinl{Type}.
+Although Coq is build upon a sophisticated type hierarchy, for us it is enough to know that we will use \cinl{Type} for inductive data types and type synonyms.
+The syntax to define constructors for data types resembles GADT-style definitions in Haskell, that is, each constructor is specific by its full type signature, as we are used to it for function definitions.
+
+Next, we define a function to check if a Peano number is zero as well as addition on Peano numbers using pattern matching.
+
+\begin{minted}
 Definition isZero (p : peano) : bool :=
   match p with
   | z   => true
@@ -38,21 +47,15 @@ Fixpoint add (p1 p2 : peano) : peano :=
   end.
 \end{minted}
 
-First, we note that all definitions have explicit typing annotations, although Coq could infer all of them.
-Most notably, the data type declaration for \cinl{peano} is annotated with \cinl{Type}.
-Although Coq is build upon a sophisticated type hierarchy, for us it is enough to know that we will use \cinl{Type} for inductive data types and type synonyms.
-The syntax to define constructors for data types resembles GADT-style definitions in Haskell, that is, each constructor is specific by its full type signature, as we are used to it for function definitions.
-
-Next, we define a function to check if a Peano number is zero as well as addition on Peano numbers using pattern matching.
 The definition of \cinl{isZero} additionally uses the predefined \cinl{bool} type as result.
 These definitions represent two different kinds of function: \cinl{isZero} is a non-recursive function, whereas \cinl{add} is a representative for recursive functions.
 In Coq it is crucial to define recursive functions using the keyword \cinl{Fixpoint}.
 Definitions that are marked as \cinl{Fixpoint}s need to pass an additional check: As a total language, all functions in Coq have to terminate.
-In case of recursive functions, Coq checks if there one argument of the recursive call that is structurally smaller than the original value passed to the function for each recursive call.
+In case of recursive functions, Coq checks if there is one argument of the recursive call that is structurally smaller than the original value passed to the function for each recursive call.
 For our example \cinl{add}, the argument \cinl{p} of the recursive call is structurally smaller than the original value \cinl{p1} in the second case of the branch, where we know that \cinl{p1} has the shape \cinl{(s p)}.
 
 If we want to define a recursive function in Coq that does not follow this restriction, we can use the keyword \cinl{Program Fixpoint} and prove the termination of the function afterwards.
-An example for such are recursive function is the following artificial implementation that decreases on one of its arguments at each recursive call, but does not have one designated argument that decreases at each call.
+An example for such a recursive function is the following artificial definition that decreases on one of its arguments at each recursive call, but does not have one designated argument that decreases at each call.
 
 \begin{minted}{coq}
 Fail Fixpoint test (b : bool) (n m : peano) : bool :=
@@ -65,9 +68,11 @@ Fail Fixpoint test (b : bool) (n m : peano) : bool :=
 
 The keyword \cinl{Fail} indicates that the definition was not accepted by Coq without an error.
 Here, the command has failed with the error message \texttt{Cannot guess decreasing argument of fix}.
-In this thesis, we will not use capabilities like \cinl{Program Fixpoint} to define recursive functions that do not obey Coq's restrictions, so we abstain from going into more details concerning proving termnation of recursive functions.
+In this thesis, we will not use capabilities like \cinl{Program Fixpoint} to define recursive functions that do not obey Coq's restrictions, so we abstain from going into more details concerning proving termination of recursive functions.
 
-Moving on with our definitions above, we can introduce \cinl{Notation} that allows us to write something more natural like \cinl{p1 + p2} for the expression\cinl{(add p1 p2)}.
+Moving on with our definitions above, we can introduce \cinl{Notation}
+that allows us to write something more natural like \cinl{p1 + p2} for
+the expression \cinl{(add p1 p2)}.
 Note that we can provide an associativity for the newly introduced operator syntax as well as a fixity level.
 
 \begin{minted}{coq}
@@ -100,7 +105,7 @@ Error: The term "z" has type "peano" while it is expected to have type
        "Type".
 \end{crepl}
 
-Constructors of polymorphic function need to be applied to more arguments as we are used to in functional languages like Haskell.
+Constructors of polymorphic functions need to be applied to more arguments as we are used to in functional languages like Haskell.
 More precisely, all constructors of a polymorphic data type like \cinl{list} have additional type arguments.
 In our case, \cinl{cons} is of type \cinl{forall A : Type, A -> list A -> list A} and \cinl{nil} of type \cinl{forall A : Type, list A}.
 The first argument is a type that determines the concrete type instantiation of the constructors \cinl{cons} and \cinl{nil}.
@@ -147,7 +152,7 @@ Lemma map_length (A B : Type) (f : A -> B) (xs : list A)
   : length xs = length (map f xs).
 \end{minted}
 
-While the arguments of the function \cinl{map_length'} look as usual, the resulting type involves dependent types.
+While the arguments of the function \cinl{map_length} look as usual, the resulting type involves dependent types.
 The symbol \cinl{=} on the right-hand side of the type signature is just a notation for the type \cinl{eq} that is defined as follows.
 
 \begin{minted}{coq}
@@ -161,7 +166,7 @@ Since the definition \cinl{eq} is the proof that two expressions are literally t
 Furthermore, the type of the constructor \cinl{eq_refl} that represents the reflexivity property for structural equality is \cinl{eq x x}.
 Here, \cinl{eq} is a dependent type, because the type of the constructor \cinl{eq_refl} uses not only types but the value \cinl{x} in its type signature.
 
-The type of lemmas correspond to the proposition we want to prove and the implementation is one concrete proof.
+The type of lemmas like \cinl{map_length} correspond to the proposition we want to prove and the implementation is one concrete proof.
 That is, when we can implement \cinl{map_length} with type \cinl{length xs = length (map f xs)}, we have proven the corresponding proposition.
 
 \subsection{Proving in Coq: A step-by-step introduction}
@@ -178,7 +183,7 @@ So, let us start with the proof; we will illustrate the progress after each step
   length xs = length (map f xs)
 \end{cproof}
 
-The current state of the proof shows that we have the types \cinl{A, B} in scope as well as a function \cinl{f : A -> B} and a list \cinl{xs : list a}.
+The current state of the proof shows that we have the types \cinl{A, B} in scope as well as a function \cinl{f : A -> B} and a list \cinl{xs : list A}.
 These information are \emph{hypotheses} we can use for the proof.
 Underneath the hypotheses we see the resulting type of \cinl{map_length} that represents the current \emph{goal}.
 We can then use tactics to manipulate hypotheses and the goal in a sensible way until we find the final proof of the goal.
@@ -220,7 +225,7 @@ Next, we take a look at the \cinl{cons}-case after simplifying both expressions 
   s (length ys) = s (length (map f ys))
 \end{cproof}
 
-Note that the induction hypothesis \cinl{H} state that the proposition already holds in case of \cinl{ys}.
+Note that the induction hypothesis \cinl{H} states that the proposition already holds in case of \cinl{ys}.
 That is, we can directly rewrite \cinl{length ys} on the left-hand side of the equation in the goal with the right-hand side of the hypothesis.
 
 \begin{cproof}{rewrite -> H.}
@@ -239,6 +244,18 @@ map_length is defined
 \end{cproof}
 
 At that point, Coq provides the information that the lemma \cinl{map_length} was successfully defined and can be used in future proofs and definitions.
+In order to give a better overview of the proof in its entirety, we restate the proposition as lemma including the complete proof script.
+
+\begin{minted}{coq}
+Lemma map_length (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
+Proof.
+  induction xs as [ | y ys H ].
+  - simpl. reflexivity.
+  - simpl.
+    rewrite -> H.
+    reflexivity.
+Qed.
+\end{minted}
 
 \subsection{Dependent Types to Encode Invariants}
 
@@ -258,7 +275,7 @@ Note that the type \cinl{vector} needs to be applied to two arguments to yield a
 The two constructors illustrate how to use the type: In case of \cinl{vnil} we encode that the length is zero using the peano number \cinl{z} as second argument to \cinl{vector}; for \cinl{vcons} we encode that adding an element to the front results in a length incremented by one.
 More precisely, if we have a \cinl{vector} of length \cinl{n} adding an element to the front using \cinl{vcons} results in a \cinl{vector} of length \cinl{s n}.
 
-When defining functions of \cinl{vector}, we need to explicitly pass the length as argument as well.
+When defining functions of type \cinl{vector}, we need to explicitly pass the length as argument as well.
 Consider the following definition of computing the length for \cinl{vector}.
 
 \begin{minted}{coq}
@@ -315,7 +332,7 @@ Inductive vmap_spec (A B : Type) (f : A -> B) :
 
 Given types \cinl{A B : Type} and a function \cinl{f : A -> B}, we define the predicate to relate two lists of type \cinl{vector A n} and \cinl{vector B m} for all Peano numbers \cinl{n} and \cinl{m}.
 That is, the type is general enough to allow the lists to be of different length.
-The \cinl{spec_nil} case relates empty lists and the second case \cinl{spec_cons} related non-empty lists of potentially different lists.
+The \cinl{spec_nil} case relates empty lists whereas the second case \cinl{spec_cons} relates non-empty lists of potentially different lists.
 The second case additionally assumes that the head element of the second list \cinl{y} can be constructed by applying the function to the other head element \cinl{x}.
 Of course, the specification has high resemblance with our definition of \cinl{vmap}.
 
@@ -375,7 +392,7 @@ Definition not (A : Prop) : Prop := False
 Notation "<>" := not.
 \end{minted}
 
-The next two proofs use \cinl{vmap_spec} to demonstrate that we cannot define a mapping functions fulfilling the specifications for input and output lists of different length.
+The next two proofs use \cinl{vmap_spec} to demonstrate that we cannot define a mapping function fulfilling the specifications for input and output lists of different length.
 The first lemma states that assuming a list \cinl{ys} of length \cinl{m}, \cinl{n <> m} and that the specification holds for this \cinl{ys}, we can always derive \cinl{False}.
 
 \begin{minted}{coq}
@@ -412,9 +429,11 @@ Lemma s_not_eq : forall (n m : peano), s n <> s m -> n <> m.
 \end{minted}
 
 First, we apply the assumption \cinl{IHHspec} to change the goal.
-Then we use the auxiliary lemma to derive the new goal \cinl{s n <> s m} that we can proof directly by applying the appropriate assumption \cinl{Hnot}.
+Then we use the auxiliary lemma to derive the new goal \cinl{s n <> s
+  m} that we can proof directly by applying the appropriate assumption
+\cinl{Hnot}.
 
-Besides showing that the output list cannot be of different length, we can also show that for all possible output lists \cinl{ys : vector B m} that fulfils the specification predicate, it must hold that the output list if of the same length as the input list, i.e., \cinl{n = m}.
+Besides showing that the output list cannot be of different length, we can also show that for all possible output lists \cinl{ys : vector B m} that fulfils the specification predicate, it must hold that the output list is of the same length as the input list, i.e., \cinl{n = m}.
 
 \begin{minted}{coq}
   Lemma vmap_same_length : forall (ys : vector B m),
@@ -428,7 +447,7 @@ Besides showing that the output list cannot be of different length, we can also 
 End vspec_map_proofs.
 \end{minted}
 
-The proofs follows straightforward by induction over the specification predicate.
+The proof follows straightforward by induction over the specification predicate.
 The last line of the code closes the section we opened above, that is, all the variables introduced are note visible anymore but inserted as additional arguments for the lemmas \cinl{vmap_different_length} and \cinl{vmap_same_length}.
 
 

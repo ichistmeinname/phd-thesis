@@ -11,7 +11,7 @@ A familiarity with Haskell is especially helpful for using Curry, since the synt
 Hence, Curry has most of the features users know from Haskell: algebraic data types, higher-order functions, type classes and lazy evaluation.
 On top of these functional features, Curry adds non-determinism as a built-in effect.
 
-There are two up-to-date maintained implementation of Curry: KiCS2 \citep{hanus2014kics2} and PAKCS \citep{hanus2017pakcs}.
+There are two up-to-date maintained implementations of Curry: KiCS2 \citep{hanus2014kics2} and PAKCS \citep{hanus2017pakcs}.
 In the remainder of this thesis we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.
 All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile (\boldmath$\vdash$) prompt.
 
@@ -28,7 +28,7 @@ True
 False
 \end{cyrepl}
 
-The other function associated with non-determinism is \cyinl{failed :: a}, which is often used in similar situation as \hinl{undefined} in Haskell.
+The other function associated with non-determinism is \cyinl{failed :: a}, which is often used in similar situations as \hinl{undefined} in Haskell.
 The crucial difference to \hinl{undefined} in Haskell is that \cyinl{failed} is a rather silent failure.
 More specifically, \cyinl{failed} is a neutral element with respect to \cyinl{(?)}; the following expressions illustrate this behaviour.
 
@@ -96,7 +96,7 @@ The above expression, for example, yields the following tree.
 \end{cyrepl}
 
 The tree is a 1-to-1 representation of the simplified expression from above.
-Overall there are three branches: one top-level branch and each subtree has another branch, leading to four results again.
+Overall there are three branches: one top-level branch and each sub-tree has another branch, leading to four results again.
 The left (\texttt{L}) and right (\texttt{R}) sub-trees are illustrated by corresponding labels.
 Given the tree representation of an expression, the REPL computes all possible results using a tree traversal.
 The default traversal for KiCS2 is a breadth-first search, but depth-first search is also possible.\footnote{The user can change the behaviour of the tree traversal in the REPL using \texttt{:set dfs} and \texttt{:set bfs}, respectively.}
