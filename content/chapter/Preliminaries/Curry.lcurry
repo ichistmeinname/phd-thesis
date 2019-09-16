@@ -13,7 +13,7 @@ On top of these functional features, Curry adds non-determinism as a built-in ef
 
 There are two up-to-date maintained implementations of Curry: KiCS2 \citep{hanus2014kics2} and PAKCS \citep{hanus2017pakcs}.
 In the remainder of this thesis we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.
-All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile (\boldmath$\vdash$) prompt.
+All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile (\curryrepl) prompt.
 
 \subsection{Non-determinism}
 
