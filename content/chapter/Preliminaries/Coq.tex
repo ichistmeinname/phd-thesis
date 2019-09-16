@@ -33,7 +33,7 @@ The syntax to define constructors for data types resembles GADT-style definition
 
 Next, we define a function to check if a Peano number is zero as well as addition on Peano numbers using pattern matching.
 
-\begin{minted}
+\begin{minted}{coq}
 Definition isZero (p : peano) : bool :=
   match p with
   | z   => true

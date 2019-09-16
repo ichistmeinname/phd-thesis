@@ -60,7 +60,7 @@ In order to illustrate how \hinl{trace} works, consider the following two exampl
 fortytwo
 145
 
-λ> let log42 = trace "fortytwo" 42 in const 103 log42
+\haskellrepl let log42 = trace "fortytwo" 42 in const 103 log42
 103
 \end{hrepl}
 
