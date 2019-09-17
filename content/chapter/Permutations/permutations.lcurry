@@ -1,3 +1,9 @@
+%if False
+
+> import qualified Findall as FA
+
+%endif
+
 The most prominent combination of sorting functions and non-determinism is permutation sort, a sorting algorithm that generates all permutations and selects the one that is sorted to yield as result.
 This sorting function has a bad running time: the best case performs in $O(2^n)$ for an input list of length $n$.
 On the good side, we can argue that the worst case is as good as the best case.
@@ -670,6 +676,17 @@ The following function \cyinl{quickSort} uses the head element of the given list
 
 %if False
 
+> type Values a = [a]
+
+> allValues :: a -> Values a
+> allValues x = FA.allValues x
+
+> foldValues :: (a -> a -> a) -> a -> Values a -> a
+> foldValues = foldr
+
+> mapValues :: (a -> b) -> Values a -> Values b
+> mapValues = map
+
 > quickSort :: (a -> a -> Bool) -> [a] -> [a]
 > quickSort _  []      = []
 > quickSort p  (x:xs)  =  let  l1 = filter (\y -> p y x) xs
@@ -686,7 +703,8 @@ quickSort p  (x:xs) = let l1 = filter (\y -> p y x) xs
                       in quickSort p l1 ++ x : quickSort p l2
 \end{curry}
 
-Let us take a look at the resulting permutations for exemplary calls.
+Let us take a look at the resulting permutations as well as the number of results for exemplary calls.
+Note that we use the encapsulation function \cyinl{allValues} as well as the convenience functions introduced in \autoref{subsec:encapsulation} to count the number of deterministic values in the resulting multiset by means of a helper function \cyinl{lengthValues}.
 
 \begin{cyrepl}
 \curryrepl quickSort coinCmp [1,2]
@@ -695,10 +713,10 @@ Let us take a look at the resulting permutations for exemplary calls.
 [1]
 [1,2]
 
-\curryrepl length (allValues (quickSort coinCmp [1,2,3]))
+\curryrepl lengthValues (allValues (quickSort coinCmp [1,2,3]))
 49
 
-\curryrepl length (allValues (quickSort coinCmp [1,2,3]))
+\curryrepl lengthValues (allValues (quickSort coinCmp [1,2,3]))
 4225
 \end{cyrepl}
 
