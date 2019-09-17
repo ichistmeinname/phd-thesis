@@ -18,9 +18,9 @@ All interactions with KiCS2's REPL are displayed as verbatim environment with a 
 \subsection{Non-determinism}
 
 While Curry's non-determinism comes in a variety of forms, we are mostly interested in an explicit introduction of non-determinism using a dedicated operator.
-The binary operator \cyinl{(?) :: a -> a -> a} non-deterministically yields two computations: its first and its second argument.
+The binary operator \cyinl{(?) :: a -> a -> a} non-deterministically yields two computations: its first and second argument.
 Note that the non-determinism is not visibile in the type signature, it is an implicit effect with respect to Curry's type system.
-The following expression yields two results.
+The following expression non-deterministically yields two results.
 
 \begin{cyrepl}
 \curryrepl True ? False
@@ -30,7 +30,8 @@ False
 
 The other function associated with non-determinism is \cyinl{failed :: a}, which is often used in similar situations as \hinl{undefined} in Haskell.
 The crucial difference to \hinl{undefined} in Haskell is that \cyinl{failed} is a rather silent failure.
-More specifically, \cyinl{failed} is a neutral element with respect to \cyinl{(?)}; the following expressions illustrate this behaviour.
+More specifically, \cyinl{failed} is a neutral element with respect to \cyinl{(?)}.
+The following expressions illustrate this behaviour.
 
 \begin{cyrepl}
 \curryrepl True ? failed
@@ -58,7 +59,8 @@ The same applies for non-determinism in the form of choices constructed by \cyin
 \end{cyrepl}
 
 Note that KiCS2 displays a failure within a deterministic value like \cyinl{1 : failed} as a partial value.
-More precisely, in case of non-determinism the computation is computed to normal form and a failed branch is not printed at all, while in case of determinism the REPL displays a head normal form with \cyinl{!} as representation for \cyinl{failed}.
+More precisely, on the one hand the computation is computed to normal form and a failed branch is not printed at all in case of non-determinism.
+On the other hand, in case of determinism the REPL displays a head normal form with \cyinl{!} as representation for \cyinl{failed}.
 Due to the computation to normal form, the third exemplary expression yields four values: all non-determinism is pulled to the top-level leading to four different lists.
 
 The step-by-step evaluation of occurring non-deterministic computations that are pulled to the top is called \emph{pull-tabbing}.
@@ -96,10 +98,11 @@ The above expression, for example, yields the following tree.
 \end{cyrepl}
 
 The tree is a 1-to-1 representation of the simplified expression from above.
-Overall there are three branches: one top-level branch and each sub-tree has another branch, leading to four results again.
-The left (\texttt{L}) and right (\texttt{R}) sub-trees are illustrated by corresponding labels.
+Overall there are three branches: one top-level branch and two more branches as sub-trees, leading to four results again.
+The left (\texttt{L}) and right (\texttt{R}) sub-trees of a branch are illustrated by corresponding labels.
 Given the tree representation of an expression, the REPL computes all possible results using a tree traversal.
-The default traversal for KiCS2 is a breadth-first search, but depth-first search is also possible.\footnote{The user can change the behaviour of the tree traversal in the REPL using \texttt{:set dfs} and \texttt{:set bfs}, respectively.}
+The default traversal for KiCS2 is a breadth-first search, but depth-first search is also possible.
+The user can change the behaviour of the tree traversal in the REPL using \texttt{:set dfs} and \texttt{:set bfs}, respectively.
 Note that the order of results changes for expressions corresponding to unbalanced trees.
 
 \begin{minipage}{0.5\textwidth}
@@ -185,7 +188,7 @@ test2 n = let x = n ? (n+1) in x + x
 
 In Haskell we showed the effect of logging a message whenever an expression is evaluated.
 The key observation was that introducing a let-binding for such an effectful computation, i.e., sharing the computation, behaves differently than an inlined version: in the latter case the evaluation triggers the effect twice but only once when sharing the computation.
-We observe an analogue behaviour for Curry's non-determinism effect.
+We observe a similar behaviour for Curry's non-determinism effect.
 Sharing a non-deterministic computation leads to different results than its inlined version.
 
 \begin{minipage}[t]{0.5\textwidth}
@@ -205,7 +208,7 @@ Sharing a non-deterministic computation leads to different results than its inli
 \end{cyrepl}
 \end{minipage}
 
-In case of Curry the effect is not a logged message but the occurrence of non-determinism, that is, in Curry we can observe sharing of computations as it affects the number of results.
+In case of Curry non-determinism emerges as effect, that is, in Curry we can observe sharing of computations as it affects the number of results.
 We take a look at the corresponding tree visualisation for both expressions.
 
 \begin{figure}[h]
