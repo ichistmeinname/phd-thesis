@@ -1,11 +1,8 @@
 % !TEX root = thesis.tex
 
 % Declare old font to make .sty compatible
-\DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\mathtt}
-
+\DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\texttt}
 % Unicode chars not set up for the use with LaTeX
-\DeclareUnicodeCharacter{8866}{\mbox{$\vdash$}}
-\DeclareUnicodeCharacter{3BB}{\mbox{$\lambda$}}
 \DeclareUnicodeCharacter{251C}{\mbox{\kern.23em
  \vrule height2.4exdepth1exwidth.4pt\vrule height2.4ptdepth-1.8ptwidth.23em}}
 \DeclareUnicodeCharacter{2500}{\mbox{\vrule height2.4ptdepth-1.8ptwidth.5em}}
@@ -17,8 +14,7 @@
   todonotes,
   booktabs,
   tikz,
-  pgfplots,
-  alltt
+  pgfplots
 }
 \pgfplotsset{compat=newest}
 \usetikzlibrary{patterns}
@@ -52,7 +48,7 @@
 % **************************************************
 % Files' Character Encoding
 % **************************************************
-\usepackage[T1]{fontenc}
+% \usepackage[T1]{fontenc}
 \PassOptionsToPackage{utf8}{inputenc}
 \usepackage{inputenc}
 
@@ -125,23 +121,23 @@ Languages and Compiler Construction}
   }
 
 % minted-related definitions
-\newminted[curry]{haskell}{style=friendly}
+\newminted[curry]{haskell}{style=friendly,mathescape=true,escapeinside=<>}
 \newmintinline[cyinl]{haskell}{style=friendly}
 \newmintinline[hinl]{haskell}{}
 \newmintinline[cinl]{coq}{}
 
 \usemintedstyle[curry]{friendly}
-\usemintedstyle[haskell]{automn}
+\usemintedstyle[haskell]{trac}
 \usemintedstyle[coq]{tango}
 
-\newenvironment{excursus}[1]
-{\vspace{0.5cm}
-\hrule
-\vspace{0.3cm}
-\paragraph{Excursus: #1}}
-{\vspace{0.3cm}
-\hrule
-\vspace{0.5cm}}
+% \newenvironment{excursus}[1]
+% {\vspace{0.5cm}
+% \hrule
+% \vspace{0.3cm}
+% \paragraph{Excursus: #1}}
+% {\vspace{0.3cm}
+% \hrule
+% \vspace{0.5cm}}
 
 
 \newenvironment{cyrepl}
@@ -163,6 +159,17 @@ Languages and Compiler Construction}
 {%
 \end{Verbatim}
 }
+
+\newenvironment{hrepl}
+{%
+  \vspace{0.25cm}%
+  \VerbatimEnvironment%
+  \begin{BVerbatim}[commandchars=\\\{\},mathescape]%
+}
+{%
+\end{BVerbatim}%
+  \vspace{0.25cm}%
+ }
 
 \newenvironment{miniMinted}
 {%
@@ -201,15 +208,3 @@ Languages and Compiler Construction}
   \endminipage%
   \vspace{0.25cm}%
 }
-
-% \newcommand{\coqpf}[2]
-% {%
-% \VerbatimEnvironment%
-% \begin{miniMinted}{0.45}%
-% {#1}
-% \end{miniMinted}%
-% \VerbatimEnvironment%
-% \begin{miniVerb}{0.55}%
-% {#2}
-% \end{miniVerb}%
-% }  
