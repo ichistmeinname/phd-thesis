@@ -35,11 +35,11 @@ One of the \emph{hello world}-examples of Bayesian networks is the influence of 
 \autoref{fig:bayes} shows an instance of this example, the concrete probabilities differ between publications.
 A node in the graph represents a random variable, a directed edge between two nodes represents a conditional dependency.
 Each node is annotated with a probability function represented as a table.
-The input values are on the left side of the table and the right side of the table describes the possible output and the corresponding probability.
+The input values are on the left-hand side of the table and the right-hand side of the table describes the possible output and the corresponding probability.
 The input values of the function correspond to the incoming edges of that node.
 For example, the node for sprinkler depends on rain, thus, the sprinkler node has an incoming edge that originates from the rain node.
 The input parameter rain appears directly in the table that describes the probability function for sprinkler.
-For the example in \autoref{fig:bayes} the interpretation of the graph reads as follows: it rains with a probability of \SI{20}{\percent}; depending on the rain, the probability for an activated sprinkler is \SI{40}{\percent} and \SI{1}{\percent}, respectively; depending on both these factors, the grass can be observed as wet with a probability of \SI{0}{\percent}, \SI{80}{\percent}, \SI{90}{\percent} or \SI{99}{\percent}.
+For the example in \autoref{fig:bayes} the interpretation of the graph reads as follows: it rains with a probability of \SI{20}{\percent}; depending on the rain, the probability for an activated sprinkler is \SI{40}{\percent} and \SI{1}{\percent}, respectively; depending on both of these factors, the grass can be observed as wet with a probability of \SI{0}{\percent}, \SI{80}{\percent}, \SI{90}{\percent} or \SI{99}{\percent}.
 The network can answer the following exemplary questions.
 
 \begin{itemize}
@@ -104,7 +104,7 @@ extension of the logic programming language Prolog, Probabilistic
 C~\citep{paige2014compilation} is based on the imperative language C,
 and WebPPL~\citep{goodman2014design}, the successor of Church, is embedded in a functional subset of JavaScript.
 Besides full-blown languages there are also embedded domain specific languages that implement probabilistic programming as a library.
-For example, FACTORIE~\citep{mccallum2009factorie} is a library for the hybrid programming language Scala and \citet{erwig2006functional} present a library for the functional programming language Haskell.
+For example, FACTORIE~\citep{mccallum2009factorie} is a library for the hybrid programming language Scala, and \citet{erwig2006functional} present a library for the functional programming language Haskell.
 We recommend the survey by \citet{gordon2014probabilistic} about the current state of probabilistic programming for further information.
 
 \section{An Overview of the Library}
@@ -177,8 +177,8 @@ Remember that printing an expression in the REPL\footnote{We visualize the inter
 \begin{minipage}{0.48\textwidth}
 \begin{cyrepl}
 \curryrepl coin
-Dist True 0.5
-Dist False 0.5
+Dist True |(frac 1 2)|
+Dist False |(frac 1 2)|
 \end{cyrepl}
 \end{minipage}
 
@@ -291,7 +291,7 @@ dependentCoins :: Dist Bool
 dependentCoins = coin >>>= \c -> if c then coin else certainly c
 \end{curry}
 
-The implementation of \cyinl{(>>>=)} via \cyinl{let}-bindings seems a bit tedious, however, it is important that we define \cyinl{(>>>=)} as it is.
+The implementation of \cyinl{(>>>=)} via \cyinl{let}-bindings seems a bit tedious, however, it is important that we define \cyinl{(>>>=)} as introduced above.
 The canonical implementation performs pattern matching on the first argument but uses a \cyinl{let}-binding for the result of \cyinl{f}.
 
 \begin{curry}
@@ -565,8 +565,8 @@ When we use this function to flip a coin twice, the result is not what we intend
 
 \begin{cyrepl}
 \curryrepl replicateDist 2 coin
-Dist [True,True] 0.25
-Dist [False,False] 0.25
+Dist [True,True] |(frac 1 4)|
+Dist [False,False] |(frac 1 4)|
 \end{cyrepl}
 
 Because \cyinl{replicateDist} shares the variable \cyinl{d}, we only perform a choice once and replicate deterministic choices.
@@ -616,10 +616,10 @@ The only way to construct a value of type \cyinl{RT} is to explicitly use a lamb
 
 \begin{cyrepl}
 \curryrepl replicateDist 2 (\func () -> coin)
-Dist [True,True] 0.25
-Dist [True,False] 0.25
-Dist [False,True] 0.25
-Dist [False,False] 0.25
+Dist [True,True] |(frac 1 4)|
+Dist [True,False] |(frac 1 4)|
+Dist [False,True] |(frac 1 4)|
+Dist [False,False] |(frac 1 4)|
 \end{cyrepl}
 
 Instead of relying on call-time choice as default behavior, we could model \cyinl{Dist} as a function and make run-time choice the default in PFLP.
@@ -667,7 +667,7 @@ Then again, probabilistic languages need a concept like memoization in order to 
 This section illustrates the benefits from the combination of non-strictness and non-determinism with respect to performance.
 More precisely, in a setting that uses Curry-like non-determinism, non-strictness can prevent non-determinism from being \enquote{spawned}.
 Let us consider calculating the probability for throwing only sixes when throwing \cyinl{n} dice.
-First we define a uniform die as follows.
+First we define a uniform distribution for throwing a die as follows.
 
 %if False
 
@@ -718,7 +718,7 @@ Curry ND!      & \num{52} & \num{409} & \num{2568} & \num{16382} & -- & -- & -- 
 Haskell List   & \num{1} & \num{5} & \num{30} & \num{210} & \num{1415} & \num{6538} & -- & -- & -- \\
 \bottomrule
 \end{tabular}
-\caption{Overview of running times for the query \cyinl{allSix n}}
+\caption{Overview of running times for the query \cyinl{allSix n} in \SI{}{ms}}
 \label{tab:allSix}
 \end{table*}
 
@@ -731,7 +731,7 @@ filterDist (all (==Six)) (joinWith (:) (Dist One |(frac 1 6)|) dist)
 \end{cyrepl}
 
 This application yields an empty distribution without evaluating the distribution \cyinl{dist}.
-The clou here is that \cyinl{joinWith} yields a \cyinl{Dist}-constructor without inspecting its arguments.
+The trick here is that \cyinl{joinWith} yields a \cyinl{Dist}-constructor without inspecting its arguments.
 When we demand the event of the resulting \cyinl{Dist}, \cyinl{joinWith} has to evaluate only its first argument to see that the predicate \cyinl{all (==Six)} yields \cyinl{False}.
 The evaluation of the expression fails without inspecting the second argument of \cyinl{joinWith}.
 \autoref{fig:eval} illustrates the evaluation in more detail.
@@ -880,7 +880,7 @@ Curry ND!      & \num{49} & \num{382} & \num{2483} & \num{15562} & -- & -- \\
 Haskell List   & \num{2} & \num{5} & \num{31} & \num{219} & \num{1423} & \num{6670} \\
 \bottomrule
 \end{tabular}
-\caption{Overview of running times of the query \cyinl{allFiveOrSix n}}
+\caption{Overview of running times of the query \cyinl{allFiveOrSix n} in \SI{}{ms}}
 \label{tab:allFiveOrSix}
 \end{table*}
 As we can see from the running times, this query is exponential in all implementations.
@@ -958,10 +958,10 @@ For example, consider the following application.
 \begin{cyrepl}
 \curryrepl (\func (Dist _ p) -> p)
     (coin >>>= (\func x -> coin >>>= (\func y -> certainly (x && y))))
-0.25
-0.25
-0.25
-0.25
+|(frac 1 4)|
+|(frac 1 4)|
+|(frac 1 4)|
+|(frac 1 4)|
 \end{cyrepl}
 
 Since multiplication is strict, if we demand the resulting probability, the operator \cyinl{(>>>=)} has to evaluate the \cyinl{Dist}-constructor and its probability.
@@ -1034,7 +1034,7 @@ Now, let us consider the following query.
 
 \begin{cyrepl}
 \curryrepl (const True) ?? die2
-0.16666667
+|frac 1 6|
 \end{cyrepl}
 
 The result of this query is |(frac 1 6)| and not \cyinl{1.0} as expected.
@@ -1141,7 +1141,7 @@ We can then translate the above definition of \mintinline{haskell}{uniformGibbon
 > uniform2 :: [a] -> Dist a
 > uniform2 [x] = certainly x
 > uniform2 (x : xs) =  uniform2 xs >>>= \ xs' ->
->                      flip (1.0 / (i2f (length (x:xs)))) x xs'
+>                      flip (frac 1 (length (x:xs))) x xs'
 
 %endif
 
@@ -1149,7 +1149,7 @@ We can then translate the above definition of \mintinline{haskell}{uniformGibbon
 uniform2 :: [a] -> Dist a
 uniform2 [x] = certainly x
 uniform2 (x : xs) =  uniform2 xs >>>= \ xs' ->
-                     flip (1.0 / (i2f (length (x:xs)))) x xs'
+                     flip (frac 1 (length (x:xs))) x xs'
 \end{curry}
 
 Since the only way to define \cyinl{flip} with our library is to use the predefined function \cyinl{enum2}, the strictness adaption in the definition of \cyinl{enum2} is enough to trigger the evaluation of free variables used as argument of \cyinl{uniform2}.
@@ -1205,7 +1205,7 @@ By performing a query with the predicate \cyinl{const True} we can observe this 
 
 \begin{cyrepl}
 repl > (const True) ?? partialPattern
-0.5
+|(frac 1 2)|
 \end{cyrepl}
 
 We only allow to filter distributions when a probability is computed using \cyinl{(??)}, but not in any other situation.
@@ -1445,7 +1445,7 @@ Due to the combination of non-strictness and non-determinism, we can efficiently
 After presenting the basic combinators of the library and motivating
 the advantages of modelling distributions using non-determinism, we
 will implement some exemplary applications.
-First of we start with an example already motivated in the introduction of this chapter: bayesian networks.
+First, we start with an example already motivated in the introduction of this chapter: bayesian networks.
 We define a simple bayesian network and corresponding queries using our library.
 The second case study concerns examples that have been characterized as challenging
 for probabilistic logic programming by
@@ -1728,7 +1728,7 @@ What is the probability that a random string of length \cyinl{5} is a palindrome
 
 \begin{cyrepl}
 \curryrepl palindrome ?? (randomString 5)
-0.25
+|frac 1 4|
 \end{cyrepl}
 
 \noindent What is the probability that a random string of length \cyinl{10} contains two consecutive $b$s?
@@ -2351,7 +2351,7 @@ Hence, it should be possible to reuse these ideas in the setting of probabilisti
 \section{Final Remarks}
 
 The basis of this chapter has been published previously.
-The general introduction of the library PFLP and its implementation ideas have been published in the Proceedings of the twentith International Symposium on Practical Aspects of Declarative Languages \citep{dylus2018probabilistic}.
+The general introduction of the library PFLP and its implementation ideas have been published in the Proceedings of the twentieth International Symposium on Practical Aspects of Declarative Languages \citep{dylus2018probabilistic}.
 An extended version then included reasoning about the monad laws, the small case study containing the random string examples as well as performance results for these examples with comparisions to WebPPL and ProbLog.
 This extended version was published in TPLP~\citep{dylus2019implementing}.
 The chapter at hand contains additional material.
