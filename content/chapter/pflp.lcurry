@@ -1,4 +1,4 @@
-This chapter presents \emph{PFLP}, a library providing a domain specific language for probabilistic programming in the functional logic programming language Curry (\citet{antoy2010functional}).
+This chapter presents \emph{PFLP}, a library providing a domain specific language for probabilistic programming in the functional logic programming language Curry.
 Key applications of the probabilistic programming paradim are probabilistic processes and other applications based on probability distributions.
 PFLP makes heavy use of functional logic programming concepts and shows that this paradigm is well-suited for implementing a library for probabilistic programming.
 In fact, there is a close connection between probabilistic programming and functional logic programming.
@@ -21,7 +21,7 @@ strictness in order to guarantee correct results.
 \item We present performance comparisons between our library and two probabilistic programming languages.
 \end{itemize}
 
-Please note that the current state of the library cannot compete against full-blown probabilistic languages or mature libraries for probabilistic programming as it is missing features like sampling from distributions.
+Note that the current state of the library cannot compete against full-blown probabilistic languages or mature libraries for probabilistic programming as it is missing features like sampling from distributions.
 Nevertheless, the library is a good showcase for languages with built-in non-determinism, because the functional logic approach can be superior to the functional approach using lists.
 Furthermore, we want to emphasize that we use non-determinism as an implementation technique to develop a library for probabilistic programming.
 That is, we are not mainly concerned with the interaction of non-determinism and probabilism as, for example, discussed in the work of \citet{varacca2006distributing} and multiple others.
@@ -30,7 +30,7 @@ The library we developed does not combine both effects, but provides combinators
 \section{What is Probabilistic Programming}
 
 The probabilistic programming paradigm allows the succinct definition of probabilistic processes and other applications based on probability distributions, for example, Bayesian networks as used in machine learning.
-A Bayesian network is a visual, graph-based representation for a set of random variables and their dependencies.
+A Bayesian network \todo{Reference} is a visual, graph-based representation for a set of random variables and their dependencies.
 One of the \emph{hello world}-examples of Bayesian networks is the influence of rain and a sprinkler on wet grass.
 \autoref{fig:bayes} shows an instance of this example, the concrete probabilities differ between publications.
 A node in the graph represents a random variable, a directed edge between two nodes represents a conditional dependency.
@@ -110,11 +110,11 @@ We recommend the survey by \citet{gordon2014probabilistic} about the current sta
 \section{An Overview of the Library}
 \label{sec:idea}
 
-In this section we discuss the core of the PFLP library\footnote{We provide the code for the library at \url{https://github.com/finnteegen/pflp}.}.
+In this section we discuss the core of the PFLP library\footnote{We provide the code for the library at \url{https://www-ps.informatik.uni-kiel.de/~sad/pflp.html}.}.
 The implementation is based on a Haskell library for probabilistic
 programming presented by \citet{erwig2006functional}.
 The chapter at hand is a literate Curry file.
-We use the Curry compiler KiCS2\footnote{We use version \verb+0.6.0+ of KiCS2 and the source is found at \url{https://www-ps.informatik.uni-kiel.de/kics2/}.} by \citet{brassel2011kics2} for all code examples.
+We use the Curry compiler KiCS2\footnote{We use version \verb+2.0.0-b14+ of KiCS2 and the source is found at \url{https://www-ps.informatik.uni-kiel.de/kics2/}.} by \citet{brassel2011kics2} for all code examples.
 
 %if False
 
@@ -184,27 +184,27 @@ Dist False |(frac 1 2)|
 
 It is cumbersome to define distributions explicitly as in the case of \cyinl{coin}.
 Hence, we define helper functions for constructing distributions.
-Given a list of events and probabilities, \cyinl{enum} creates a distribution by folding these pairs non-de\-ter\-min\-istically with a helper function \cyinl{member}.\footnote{We shorten the implementation of \cyinl{enum} for presentation purposes; actually, \cyinl{enum} only allows valid distributions, e.g., that the given probabilities sum up to \cyinl{1.0}.}
+Given a list of events and probabilities, \cyinl{enum} creates a distribution by folding these pairs non-de\-ter\-min\-istically with a helper function \cyinl{anyOf}.\footnote{We shorten the implementation of \cyinl{enum} for presentation purposes; actually, \cyinl{enum} only allows valid distributions, e.g., that the given probabilities sum up to \cyinl{1.0}.}
 
 %if False
 
-> member :: [a] -> a
-> member xs = foldr (?) failed xs
+> anyOf :: [a] -> a
+> anyOf xs = foldr (?) failed xs
 >
 > enum :: [a] -> [Probability] -> Dist a
-> enum vs ps = member (zipWith Dist vs ps)
+> enum vs ps = anyOf (zipWith Dist vs ps)
 
 %endif
 
 \begin{curry}
-member :: [a] -> a
-member xs = foldr (?) failed xs
+anyOf :: [a] -> a
+anyOf xs = foldr (?) failed xs
 
 enum :: [a] -> [Probability] -> Dist a
-enum vs ps = member (zipWith Dist vs ps)
+enum vs ps = anyOf (zipWith Dist vs ps)
 \end{curry}
 
-As before, the function \cyinl{member} takes a list and yields a non-deterministic choice of all elements of the list.
+As before, the function \cyinl{anyOf} takes a list and yields a non-deterministic choice of all elements of the list.
 
 As a short-cut, we define a function that yields a \cyinl{uniform} distribution given a list of events as well as a function \cyinl{certainly}, which yields a distribution with a single event
 of probability one.
@@ -465,7 +465,7 @@ Remember that we represent a distribution by chaining all event-probability pair
 These non-deterministic computations introduce individual branches of computations that cannot interact with each other. %
 In order to compute the total probability of a distribution, we have to merge these distinct branches. %
 Such a merge is possible by encapsulating the non-deterministic computations. %
-Similar to the \emph{findall} construct of the logic language Prolog, in Curry we encapsulate a non-deterministic computation by using the \cyinl{allValues} introduced in \autoref{subsec:encapsulation}.
+Similar to the \emph{findall} construct of the logic language Prolog, in Curry we encapsulate a non-deterministic computation by using the function \cyinl{allValues} introduced in \autoref{subsec:encapsulation}.
 As a library developer, we can employ this function to encapsulate non-deterministic values and use these values in further computations.
 However, due to non-transparent behavior in combination with sharing as discussed by \citet{brassel2004encapsulating}, a user of the library should not use \cyinl{allValues} at all.
 In a nutshell, inner-most and outer-most evaluation strategies may cause different results when combining sharing and encapsulation.
@@ -551,7 +551,7 @@ filterDist p d = let Dist evnt prb = d
 
 The variable \cyinl{d} on the right-hand side corresponds to a single deterministic choice for the input distribution, namely, the one that satisfies the predicate and not the non-deterministic computation that was initially passed as second argument to \cyinl{filterDist}.
 
-Almost as often run-time choice is what you are looking for and call-time choice gets in your way; probabilistic programming is no exception.
+Sometimes run-time choice is what you are looking for and call-time choice gets in your way; probabilistic programming is no exception.
 For example, let us reconsider flipping a coin $n$ times.
 We parametrize the function \cyinl{flipCoin} over the given distribution and define the following generalized function.
 
@@ -573,46 +573,46 @@ Because \cyinl{replicateDist} shares the variable \cyinl{d}, we only perform a c
 In contrast, top-level nullary functions like \cyinl{coin} are evaluated every time, thus, exhibit run-time choice, which is the reason why the previously shown \cyinl{flipCoin} behaves properly.
 
 In order to implement \cyinl{replicateDist} correctly, we have to enforce run-time choice.
-We introduce the following type synonym and function to model and work with values with run-time choice behavior.
+We introduce the following type synonym and function to model and work with values with run-time choice behavior.\footnote{The adopt the names for the corresponding wrapper type and projection function of the Curry module \texttt{Plural} (\url{https://www.informatik.uni-kiel.de/~curry/cpm/DOC/plural-arguments-2.0.0/Plural.html})}.
 
 %if False
 
-> type RT a = () -> a
+> type Plural a = () -> a
 >
-> pick :: RT a -> a
-> pick rt = rt ()
+> plural :: Plural a -> a
+> plural pl = pl ()
 
 %endif
 
 \begin{curry}
-type RT a = () -> a
+type Plural a = () -> a
 
-pick :: RT a -> a
-pick rt = rt ()
+plural :: Plural a -> a
+plural pl = pl ()
 \end{curry}
 
-We can now use the type \cyinl{RT} to hide the non-determinism on the right-hand side of a function arrow.
-This way, \cyinl{pick} explicitly triggers the evaluation of \cyinl{rt}, performing a new choice for every element of the result list.
+We can now use the type \cyinl{Plural} to hide the non-determinism on the right-hand side of a function arrow.
+This way, \cyinl{plural} explicitly triggers the evaluation of \cyinl{pl}, performing a new choice for every element of the result list.
 
 %if False
 
-> replicateDist :: Int -> RT (Dist a) -> Dist [a]
+> replicateDist :: Int -> Plural (Dist a) -> Dist [a]
 > replicateDist n rt  | n == 0     = certainly []
->                     | otherwise  = joinWith (:) (pick rt) (replicateDist (n-1) rt)
+>                     | otherwise  = joinWith (:) (plural rt) (replicateDist (n-1) rt)
 
 %endif
 
 \begin{curry}
-replicateDist :: Int -> RT (Dist a) -> Dist [a]
-replicateDist n rt
+replicateDist :: Int -> Plural (Dist a) -> Dist [a]
+replicateDist n plDist
   || n == 0    = certainly []
-  || otherwise = joinWith (:) (pick rt) (replicateDist (n-1) rt)
+  || otherwise = joinWith (:) (plural plDist) (replicateDist (n-1) plDist)
 \end{curry}
 
-In order to use \cyinl{replicateDist} with \cyinl{coin}, we have to construct a value of type \cyinl{RT (Dist Bool)}.
-However, we cannot provide a function to construct a value of type \cyinl{RT} that behaves as intended.
+In order to use \cyinl{replicateDist} with \cyinl{coin}, we have to construct a value of type \cyinl{Plural (Dist Bool)}.
+However, we cannot provide a function to construct a value of type \cyinl{Plural} that behaves as intended.
 Such a function would share a deterministic choice and non-de\-ter\-min\-istically yield two functions, instead of one function that yields a non-deterministic computation.
-The only way to construct a value of type \cyinl{RT} is to explicitly use a lambda abstraction.
+The only way to construct a value of type \cyinl{Plural} is to explicitly use a lambda abstraction.
 
 \begin{cyrepl}
 \curryrepl replicateDist 2 (\func () -> coin)
@@ -648,7 +648,7 @@ replicateCoin(2,coin,[tt, tt]): 0.5
 \end{verbatim}
 
 We observe that if we flip the same side two times, the resulting probability is not as expected. ProbLog memoizes the results of a predicate call --- in this case \texttt{coin(tt)} and \texttt{coin(ff)}, respectively.
-If a coin was already flipped with `tt` and a probability of $\frac{1}{2}$, then all further coin flips that result in `tt` have probability $1$.
+If a coin was already flipped with \texttt{tt} and a probability of $\frac{1}{2}$, then all further coin flips that result in \texttt{tt} have probability $1$.
 Due to stochastic memoization the coin is not flipped a second time, but is identified as the same coin as before.
 Thus, stochastic memoization as used in ProbLog is similar to the extension of tabling in Prolog systems, but adapted to the setting of probabilistic programming that extends predicates with probabilities.
 Similar to our usage of \cyinl{RT} to mimic run-time choice in Curry, we can use a so-called trial identifier, which is basically an additional argument, to circumvent memoization for a predicate like coin in ProbLog.
@@ -822,7 +822,7 @@ filterDist  (all (==Six))
 \label{fig:evalstrict}
 \end{figure}
 
-Please note that an implementation that is similar to \cyinl{(>>>=)} is \emph{not} possible in a list-based implementation.
+Note that an implementation that is similar to \cyinl{(>>>=)} is \emph{not} possible in a list-based implementation.
 The following definition of \cyinl{concatMap} is usually used to define the bind operator for lists.
 
 %if False
@@ -986,7 +986,7 @@ With this restriction, the library guarantees that no relevant probabilities get
 We assume that all events passed to library functions are deterministic, that is, the library does not support non-deterministic events within distributions.
 In order to illustrate why this restriction is crucial, we consider an example that breaks this rule.
 
-Curry provides free variables, that is, expressions that non-deterministically evaluate to every possible value of its type.
+Curry provides free variables using the keyword \cyinl{free}, that is, expressions that non-deterministically evaluate to every possible value of its type.
 When we revisit the definition of a die, we might be tempted to use a free variable instead of explicitly enumerating all values of type \cyinl{Side}.
 
 We can define a free variable of type \cyinl{Side} as follows.
@@ -994,13 +994,15 @@ We can define a free variable of type \cyinl{Side} as follows.
 %if False
 
 > side :: Side
-> side = unknown
+> side = x
+>  where x free
 
 %endif
 
 \begin{curry}
 side :: Side
 side = unknown
+ where x free
 \end{curry}
 
 This free variable evaluates as follows.
@@ -1085,18 +1087,18 @@ An alternative idea is to only adapt the strictness behaviour of \cyinl{enum}.
 %if False
 
 > enum2 :: [a] -> [Probability] -> Dist a
-> enum2 xs ps = member (zipWith mkDist xs ps)
+> enum2 xs ps = anyOf (zipWith mkDist xs ps)
 >  where mkDist x p = (\y -> Dist y p) $## x
 
 %endif
 
 \begin{curry}
 enum2 :: [a] -> [Probability] -> Dist a
-enum2 xs ps = member (zipWith mkDist xs ps)
+enum2 xs ps = anyOf (zipWith mkDist xs ps)
  where mkDist x p = (\func y -> Dist y p) $## x
 \end{curry}
 
-The operator \cyinl{($##)} evaluates its second to normal form and instantiates free variables and applies its first argument, a function, to the resulting value. If we adapt our example above to use `enum2`, querying with a non-strict predicate does not result in an unexpected probability anymore.
+The operator \cyinl{($##)} evaluates its second to normal form and instantiates free variables and applies its first argument, a function, to the resulting value. If we adapt our example above to use \cyinl{enum2}, querying with a non-strict predicate does not result in an unexpected probability anymore.
 
 \begin{cyrepl}
 \curryrepl const True ?? enum2 [side] [|frac 1 6|]
@@ -1218,6 +1220,7 @@ When this restriction is strictly followed, the user has the guarantee that the 
 When we comply with the restrictions we have discussed above, the operators \cyinl{(>>>=)} and \cyinl{certainly} allow us to formulate probabilistic programs as one would expect.
 However, there is one obvious question that we did not answer yet.
 We did not check whether the operator \cyinl{(>>>=)} together with \cyinl{certainly} actually forms a monad as the name of the operator suggests.
+The monad typeclass and its operations usually obey three laws.
 That is, we have to check whether the following three laws hold for all distributions \cyinl{d} and all values \cyinl{x}, \cyinl{f}, and \cyinl{g} of appropriate types.
 
 \begin{itemize}
@@ -1416,37 +1419,14 @@ d >>>= (\x -> f x >>>= g)
 This reasoning shows that the associativity law actually holds without any additional context.
 All in all, |certainly| and |(>>>=)| form a valid monad from the user's point of view.
 
-\section{Related Work}
-
-The approach of the presented library PFLP for probabilistic programming in Curry is based on the work by \citet{erwig2006functional}, who introduce a Haskell library that represents distributions as lists of event-probability pairs. %
-Their library also provides a simple sampling mechanism to perform inference on distributions.
-Inference algorithms come into play because common examples in probabilistic programming have an exponential growth and it is not feasible to compute the whole distribution.
-Similarly, \citet{scibior2015practical} present a more efficient implementation using a DSL in Haskell.
-They represent distributions as a free monad and inference algorithms as an interpretation of the monadic structure.
-Thanks to this interpretation, the approach is competitive to full-blown probabilistic programming languages with respect to performance.
-PFLP provides functions to sample from distributions as well.
-However, in this work we focus on modeling distributions and do not discuss any sampling mechanism.
-
-The benefit with respect to the combination of non-strictness and non-de\-ter\-min\-ism is similar to the benefit of property-based testing using Curry-like non-determinism in Haskell (\citet{runciman2008smallcheck}) and Curry (\citet{christiansen2008easycheck}).
-In property-based testing, sometimes we want to generate only test cases that satisfy a precondition.
-With Curry-like non-determinism the precondition can prune the search space early, while a list-based implementation has to generate all test cases and filter them afterwards.
-Both applications, probabilistic programming and property-based testing, are examples, where built-in non-determinism outperforms list-based approaches as introduced by \citet{wadler1985replace}.
-In comparison to property-based testing, here, we observe that we can even add a kind of monadic layer on top of the non-determinism that computes additional information and still preserve the demand-driven behavior.
-However, the additional information has to be evaluated strictly --- as it is the case for probabilities, otherwise we might lose non-deterministic results.
-
-There are other more elaborated approaches to implement a library for probabilistic programming.
-For example, \citet{kiselyov2009embedded} extend their library for probabilistic programming in OCaml with a construct for lazy evaluation to achieve similar positive effects.
-However, they use lazy evaluation for a concrete application based on importance sampling.
-Due to the combination of non-strictness and non-determinism, we can efficiently calculate the total probability of the resulting distribution without utilizing sampling.
-
 \section{Case Study}
 \label{sec:applications}
 
 After presenting the basic combinators of the library and motivating
 the advantages of modelling distributions using non-determinism, we
 will implement some exemplary applications.
-First, we start with an example already motivated in the introduction of this chapter: bayesian networks.
-We define a simple bayesian network and corresponding queries using our library.
+First, we start with an example already motivated in the introduction of this chapter: Bayesian networks.
+We define a simple Bayesian network and corresponding queries using our library.
 The second case study concerns examples that have been characterized as challenging
 for probabilistic logic programming by
 \citet{nampally2015constraintbased}, who use the example to discuss
@@ -2174,7 +2154,7 @@ Running this implementation with an increasing value for the number of retries r
 0.2500009536026171
 \end{cyrepl}
 
-When passing `1` as limit to `pickAndRepeatRound`, the implementation is equivalent to using the function "pickRound" and normalising the results like we did in the beginning.
+When passing \cyinl{1} as limit to \cyinl{pickAndRepeatRound}, the implementation is equivalent to using the function \cyinl{pickRound} and normalising the results like we did in the beginning.
 Note that both approaches are equivalent because no picker is allowed to retry when picking himself.
 
 \subsection{Performance Comparisons}
@@ -2303,16 +2283,39 @@ This case study shows that optimising KiCS2's performance with respect to non-de
 However, we emphasise the suitability of a functional logic language like Curry for well-chosen examples and queries that explicitly use non-determinism in such a way that we can prune lot of the search space early.
 
 \paragraph{Bayesian Network}
-In order to complete the performance comparisons, we include the running times for three queries of the bayesian network example.
+In order to complete the performance comparisons, we include the running times for three queries of the Bayesian network example.
 However, as the model is quite simpel, the computational complexity to compute the queried probabilities is negligible.
 All we can deduce from these performance comparisons is overhead of the individual language.
 In this case, Curry and our library performs best followed by ProbLog, WebPPL has a more noticeable overhead that we already discussed before.
 
 \begin{figure}
 \input{content/figures/BayesBar}
-\caption{Comparisons of running times for bayesian reasoning examples}
+\caption{Comparisons of running times for Bayesian reasoning examples}
 \label{fig:bayesBar}
 \end{figure}
+\section{Related Work}
+
+The approach of the presented library PFLP for probabilistic programming in Curry is based on the work by \citet{erwig2006functional}, who introduce a Haskell library that represents distributions as lists of event-probability pairs. %
+Their library also provides a simple sampling mechanism to perform inference on distributions.
+Inference algorithms come into play because common examples in probabilistic programming have an exponential growth and it is not feasible to compute the whole distribution.
+Similarly, \citet{scibior2015practical} present a more efficient implementation using a DSL in Haskell.
+They represent distributions as a free monad and inference algorithms as an interpretation of the monadic structure.
+Thanks to this interpretation, the approach is competitive to full-blown probabilistic programming languages with respect to performance.
+PFLP provides functions to sample from distributions as well.
+However, in this work we focus on modeling distributions and do not discuss any sampling mechanism.
+
+The benefit with respect to the combination of non-strictness and non-de\-ter\-min\-ism is similar to the benefit of property-based testing using Curry-like non-determinism in Haskell (\citet{runciman2008smallcheck}) and Curry (\citet{christiansen2008easycheck}).
+In property-based testing, sometimes we want to generate only test cases that satisfy a precondition.
+With Curry-like non-determinism the precondition can prune the search space early, while a list-based implementation has to generate all test cases and filter them afterwards.
+Both applications, probabilistic programming and property-based testing, are examples, where built-in non-determinism outperforms list-based approaches as introduced by \citet{wadler1985replace}.
+In comparison to property-based testing, here, we observe that we can even add a kind of monadic layer on top of the non-determinism that computes additional information and still preserve the demand-driven behavior.
+However, the additional information has to be evaluated strictly --- as it is the case for probabilities, otherwise we might lose non-deterministic results.
+
+There are other more elaborated approaches to implement a library for probabilistic programming.
+For example, \citet{kiselyov2009embedded} extend their library for probabilistic programming in OCaml with a construct for lazy evaluation to achieve similar positive effects.
+However, they use lazy evaluation for a concrete application based on importance sampling.
+Due to the combination of non-strictness and non-determinism, we can efficiently calculate the total probability of the resulting distribution without utilizing sampling.
+
 
 \section{Conclusion and Future Work}
 We have implemented a simple library for probabilistic programming in a functional logic programming language, namely Curry.
@@ -2355,6 +2358,6 @@ The general introduction of the library PFLP and its implementation ideas have b
 An extended version then included reasoning about the monad laws, the small case study containing the random string examples as well as performance results for these examples with comparisions to WebPPL and ProbLog.
 This extended version was published in TPLP~\citep{dylus2019implementing}.
 The chapter at hand contains additional material.
-First, the case study contains three part: the aforementioned random string examples, a classical bayesian network known as grass model, and the development of several ways to model the secret santa problem.
+First, the case study contains three part: the aforementioned random string examples, a classical Bayesian network known as grass model, and the development of several ways to model the secret santa problem.
 Second, with the new examples come also new performance comparisons: we reimplemented all case studies in ProbLog as well as WebPPL and compared there performance.
 Last but not least, we also show the proof for the third monad law that was not included in either versions before.
