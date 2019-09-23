@@ -263,10 +263,9 @@ Qed.
 \subsection{Dependent Types to Encode Invariants}
 
 As stated in the beginning of the last section, the property about map preserving the length of the list is not surprising.
-We will now take a look at how to encode the length of the list in its type.
-Due to this encoding, the property of map not manipulating the length of the list becomes clear from the type signature alone.
+In the next two sections we take a look at how to encode the length of the list in its type and discuss that due to this encoding, the property of map not manipulating the length of the list becomes clear from the type signature alone.
 
-A list that has length encoded in its type is usually called a \cinl{vector} and is defined as follows.
+A list with its length encoded in its type is usually called a \cinl{vector} and is defined as follows.
 
 \begin{minted}{coq}
 Inductive vector (A : Type) : peano -> Type :=
@@ -321,8 +320,11 @@ Coq automatically applies some simplifications --- like unfolding function defin
 
 When we defined the function \cinl{vmap}, we observed that we cannot use a more general type using two type variables \cinl{n m : peano} for the input and output list.
 We can even show that there is no way to define \cinl{vmap} such that \cinl{n} and \cinl{m} are different values.
+In order to make this argument, we first define a specification and show that our defintion of \cinl{vmap} fulfills this specification.
+As second step, we show that mapping functions change the length of the input vector to not fulfill the specification as well as that implementations fulfilling this specification retain the length of the input vector.
+We know that the property holds for our implementation of \cinl{vmap} as well, cince the implementation fulfills the specification.
 
-First up, we define a proposition \cinl{vmap_spec} that represents the specifications of \cinl{vmap}.
+First up, we define the proposition \cinl{vmap_spec} that represents the specifications of \cinl{vmap}.
 
 \begin{minted}{coq}
 Inductive vmap_spec (A B : Type) (f : A -> B) :
@@ -340,7 +342,7 @@ The second case additionally assumes that the head element of the second list \c
 Of course, the specification has high resemblance with our definition of \cinl{vmap}.
 
 As first finger exercise, we show that our definition of \cinl{vmap} indeed fulfils the specification.
-Since we will use the same types \cinl{A B}, Peano numbers \cinl{n m}, function \cinl{f : A -> B} and list \cinl{xs} for several proofs, we use a section to declare these variables upfront so we do not need to introduce them for each proof or definition again.
+Since we will use the same types \cinl{A B}, Peano numbers \cinl{n m} and a function \cinl{f : A -> B} for several proofs, we use a section to declare these variables upfront so we do not need to introduce them for each proof or definition again.
 All of these \emph{section variable}s are additional arguments of the definitions using these variables after closing the section but are not arguments within the section.
 
 \begin{minted}{coq}
@@ -349,9 +351,8 @@ Section vmap_spec_proofs.
   Variable A B : Type.
   Variable n m : peano.
   Variable f : A -> B.
-  Variable xs : vector A n.
 
-  Lemma vmap_fulfils_spec : vmap_spec f xs (vmap f xs).
+  Lemma vmap_fulfils_spec : forall (xs : vector A n), vmap_spec f xs (vmap f xs).
   Proof.
     induction xs as [ | n y ys IHys ]; simpl.
     - apply spec_nil.
@@ -395,14 +396,14 @@ Definition not (A : Prop) : Prop := False.
 Notation "x <> y" := not (eq x y).
 \end{minted}
 
-The next two proofs use \cinl{vmap_spec} to demonstrate that we cannot define a mapping function fulfilling the specifications for input and output lists of different length.
-The first lemma states that assuming a list \cinl{ys} of length \cinl{m}, \cinl{n <> m} and that the specification holds for this \cinl{ys}, we can always derive \cinl{False}.
+The next two proofs use \cinl{vmap_spec} to demonstrate that we cannot define a mapping function for input and output lists of different length that fulfills the specification.
+The first lemma states that assuming an input list \cinl{xs} of length \cinl{n} and an output list \cinl{ys} of length \cinl{m} with \cinl{n <> m} fulfills the specification, we can always derive \cinl{False}.
 
 \begin{minted}{coq}
-  Lemma vmap_different_length : forall (ys : vector B m),
+  Lemma vmap_different_length : forall (xs : vector A n) (ys : vector B m),
       n <> m -> vmap_spec f xs ys -> False.
   Proof.
-    intros ys Hnot Hspec. induction Hspec.
+    intros xs ys Hnot Hspec. induction Hspec.
     - contradiction.
     - apply IHHspec. apply s_not_eq. apply Hnot.
   Qed.
@@ -436,13 +437,13 @@ Then we use the auxiliary lemma to derive the new goal \cinl{s n <> s
   m} that we can proof directly by applying the appropriate assumption
 \cinl{Hnot}.
 
-Besides showing that the output list cannot be of different length than the input list, we can also show that for all possible output lists \cinl{ys : vector B m} that fulfil the specification predicate, it must hold that the output list is of the same length as the input list.
+Besides showing that the output list cannot be of different length than the input list, we can also show that for all possible inputs lists \cinl{xs : vector A n} and output lists \cinl{ys : vector B m} that fulfil the specification predicate, it must hold that the output list is of the same length as the input list.
 
 \begin{minted}{coq}
-  Lemma vmap_same_length : forall (ys : vector B m),
+  Lemma vmap_same_length : forall (xs : vector A n) (ys : vector B m),
       vmap_spec f xs ys -> n = m.
   Proof.
-    intros ys Hspec. induction Hspec.
+    intros xs ys Hspec. induction Hspec.
     - reflexivity.
     - rewrite IHHspec; reflexivity.
   Qed.
@@ -452,7 +453,6 @@ End vspec_map_proofs.
 
 The proof follows straightforward by induction over the specification predicate.
 The last line of the code closes the section we opened above, that is, all the variables introduced are note visible anymore but inserted as additional arguments for the lemmas \cinl{vmap_different_length} and \cinl{vmap_same_length}.
-
 
 The encoding of lists associated with their lengths as well as using predicates to formalise properties for data structures are good showcases on how to use Coq's dependent type system to prove properties about programs.
 The above proofs give a compact overview on the tactics we will use throughout the thesis.
