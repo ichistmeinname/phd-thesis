@@ -200,7 +200,7 @@ Using the \cinl{induction}-tactic on a list generates two new goals: one for \ci
   ============================
   length nil = length (map f nil)
 
-subgoal 2 (ID 30) is:
+subgoal 2 is:
   length (cons y ys) =
   length (map f (cons y ys))
 \end{cproof}
@@ -417,7 +417,7 @@ Let us take a look at the two subgoals produced by inducting over the specificat
   ============================
   False
 
-subgoal 2 (ID 139) is:
+subgoal 2 is:
   ...
   Hnot : s n <> s m
   IHHspec : n <> m -> False
