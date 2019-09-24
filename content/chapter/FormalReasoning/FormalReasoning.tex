@@ -618,7 +618,7 @@ Qed.
 \label{subsub:totality_container}
 In order to see a second effect, we find some inspiration by \citet{abel2005verifying} who are interested in two effects: partiality and totality.
 Since we have already discussed partiality, we will now take a look at how to model totality.
-Totality describes the absence of any additional effects, we have pure values only.
+Of course, totality is, strictly speaking, not an effect, but describes the absence of any additional effects, we have pure values only.
 A suitable monad to represent totality is the identity monad; in order to match our naming scheme used for partiality, we name the data type \cinl{total}.
 
 \begin{minted}{coq}
@@ -733,12 +733,12 @@ In the end, we have to keep in mind that our approach using \cinl{Free} as repre
 \label{subsec:liftedFunctions}
 
 With the definition of \cinl{List} using \cinl{Free} to model generic effectful lists at hand, we can take a look at the definition of the function \cinl{append} again.
-Analogous to the definition of \cinl{append} at the end of \autoref{subsec:partial}, we need to split function into two parts: one part works on pure \cinl{List}s in case of the demanded argument while the second part handles \cinl{Free}-lifted arguments only.
+Analogous to the definition of \cinl{append} at the end of \autoref{subsec:partial}, we need to split function into two parts: one part works on pure \cinl{List}s and takes care of patternmatching while the second part handles \cinl{Free}-lifted arguments only.
 
 For the remainder of this chapter, we will use \cinl{Free} and data types like \cinl{List} as type constructors of kind \cinl{Type -> Type} when used with a generic container, that is, we do not pass the corresponding shape and position function as argument.
-Note, however, that this convention is a simplification for better readability only and the resulting definition would not compile in
+Note, however, that this convention is a simplification for better readability only and the resulting definition would not compile in Coq.
 
-In order to compare the differences to our concrete representation using \cinl{partial}, recall the definition of \cinl{append} and \cinl{append'}, respectively.
+In order to compare the differences of using \cinl{Free} to our concrete representation using \cinl{partial}, recall the definition of \cinl{append} and \cinl{append'}, respectively.
 
 \begin{minted}{coq}
 Fixpoint appendP' (A : Type) (xs : List A) (pys : partial (List A))
@@ -760,8 +760,6 @@ Definition appendP (A : Type) (pxs pys : partial (List A)) : partial (List A) :=
 
 For a better readiblity, we added the suffix \cinl{P} for this version of \cinl{append} that uses \cinl{partial}.
 Let us now try to transfer the general idea of \cinl{appendP'} to define a version using \cinl{Free}.
-In the following we assume --- for convenience reasons only --- that all functions are parametrised over variables \cinl{Shape} and \cinl{Pos} of suitable type.
-More particular, we will write types parametrised by these types, like \cinl{Free} or \cinl{List}, without the type parameters when they are polymorphic.
 
 \begin{minted}{coq}
 Fail Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
@@ -775,7 +773,7 @@ Fail Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
 \end{minted}
 
 A case distinction on the concrete constuctors of \cinl{partial} was quite simple, in the case of \cinl{Free} and its representation using \cinl{Ext}, however, the second constructor \cinl{impure} has recursive occurrences of values of type \cinl{Free}.
-That is, a case distinction like in the definition of \cinl{appendP'} needs to be defined as recursive function when using \cinl{Free}.
+That is, a case distinction like in the definition of \cinl{appendP'} needs to be defined as a recursive function when using \cinl{Free}.
 
 Recall that the basic idea is to model monadically lifted data types, that is, \cinl{Free} is a representative for a monad.
 The case distinction we are using in the definition of \cinl{appendP'} is the monadic \emph{bind} function (\cinl{(>>=)}) in disguise.
@@ -793,7 +791,7 @@ The definition of \cinl{free_bind} distinguishes between the two possible constr
 In the latter case we have variable bindings \cinl{s} and \cinl{pf} for the shape and position function to work with.
 Note that the position function applied to a position yields a \cinl{Free}-value again, that is, \cinl{pf} has type
 \cinl{Pos s -> Free A}.
-The clou now is that we just need to reconstruct the effect that we have seen, characterised by its shape \cinl{s}, and apply the function \cinl{f} recursively for all recursive occurences of the effect that we can access using the position function \cinl{pf}.
+The is that we just need to reconstruct the effect that we have seen, characterised by its shape \cinl{s}, and apply the function \cinl{f} recursively for all recursive occurences of the effect that we can access using the position function \cinl{pf}.
 
 With the definition of \cinl{free_bind} at hand, we can go ahead and start the second try to define \cinl{append'}: now we know that we need to use \cinl{free_bind} instead of an explicit case distinction.
 
@@ -819,38 +817,34 @@ What is the problem now?
 Once again Coq is not content with the way we define our programs.
 In this case, the fault is not with \cinl{append}, but with the definition of \cinl{free_bind}.
 As a recursive, higher-order function that uses the same function as its functional argument for each recursive call, we need to convince Coq that the function indeed stays the same.
-That way, Coq comprehends that the fact if the overall function terminates does not depend on the function we pass as higher-order argument.
+That way, Coq comprehends that the overall function terminates, if it does not depend on the function we pass as higher-order argument.
 That is, the problem is not specific to \cinl{free_bind} and our usage of \cinl{Free}, but a general problem for recursive, higher-order functions.
 Consider, for example, the definition of \cinl{map} for ordinary lists as well as a definition for rose trees.
 
 \begin{minted}{coq}
-Inductive List A :=
-| Nil  : List A
-| Cons : A -> List A -> List A.
-
-Fixpoint map A B (f : A -> B) (xs : List A) : List B :=
+Fixpoint map A B (f : A -> B) (xs : list A) : list B :=
  match xs with
- | Nil       => Nil
- | Cons x xs => Cons (f x) (map f xs)
+ | nil       => nil
+ | cons x xs => cons (f x) (map f xs)
  end.
 
-Inductive Rose A :=
-| Leaf     : A -> Rose A
-| Branches : List (Rose A) -> Rose A.
+Inductive rose A :=
+| leaf     : A -> rose A
+| branches : list (rose A) -> rose A.
 \end{minted}
 
-In order to now define a map-like function for \cinl{Rose} as well, we might be tempted to just reuse the \cinl{map} functions for lists to handle the \cinl{Branches}-constructor.
+In order to now define a map-like function for \cinl{rose} as well, we might be tempted to just reuse the \cinl{map} functions for lists to handle the \cinl{branches}-constructor.
 
 \begin{minted}{coq}
-Fail Fixpoint mapRose A B (f : A -> B) (r : Rose A) : Rose B :=
+Fail Fixpoint mapRose A B (f : A -> B) (r : rose A) : rose B :=
  match r with
- | Leaf x      => Leaf (f x)
- | Branches rs => Branches (map (mapRose f) rs)
+ | leaf x      => leaf (f x)
+ | branches rs => branches (map (mapRose f) rs)
  end.
 \end{minted}
 
 However, Coq once again does not recognise that this definition of \cinl{mapRose} terminates.
-It arises the following error message.
+It raises the following error message.
 
 \begin{quote}
 \emph{Recursive call to mapRose has principal argument equal to "x" instead of "rs".}
@@ -862,13 +856,13 @@ That is, \cinl{map} terminates independent of its functional argument.
 Consider the following alternative definition of \cinl{map}.
 
 \begin{minted}{coq}
-Definition map A B (f : A -> B) (xs : List A) : List B :=
+Definition map A B (f : A -> B) (xs : list A) : list B :=
  let fix map' xs :=
      match xs with
-     | Nil       => Nil
-     | Cons x xs => Cons (f x) (map' xs)
-     end in
- map' xs.
+     | nil       => nil
+     | cons x xs => cons (f x) (map' xs)
+     end
+ in map' xs.
 \end{minted}
 
 Instead of declaring a recursive function on top-level using the keyword \cinl{Fixpoint}, we declare a local fixpoint only.
@@ -883,10 +877,10 @@ Section map.
  Variable A B : Type.
  Variable f : A -> B.
 
- Fixpoint map (xs : List A) : List B :=
+ Fixpoint map (xs : list A) : list B :=
    match xs with
-   | Nil       => Nil
-   | Cons x xs => Cons (f x) (map xs)
+   | nil       => nil
+   | cons x xs => cons (f x) (map xs)
    end.
 
 End map.
@@ -894,13 +888,13 @@ End map.
 
 In fact, the code that Coq generates for the second version with section variables is exactly the first implementation given above.
 
-Whatever implementation version we chose, we can now use \cinl{map} to define \cinl{mapRose} and Coq accepts the definition as terminating.
+Indepedent of which of the two implementations we chose, we can now use \cinl{map} to define \cinl{mapRose} and Coq accepts the definition as terminating.
 
 \begin{minted}{coq}
-Fixpoint mapRose A B (f : A -> B) (r : Rose A) : Rose B :=
+Fixpoint mapRose A B (f : A -> B) (r : rose A) : rose B :=
  match r with
- | Leaf x      => Leaf (f x)
- | Branches rs => Branches (map (mapRose f) rs)
+ | leaf x      => leaf (f x)
+ | branches rs => branches (map (mapRose f) rs)
  end.
 \end{minted}
 \end{excursus}
@@ -917,7 +911,7 @@ Definition free_bind A B (f : A -> Free B) (fx : Free A) : Free B :=
      | pure x      => f x
      | impure s pf => impure s (fun p => free_bind' (pf p))
      end
-     in free_bind' fx.
+ in free_bind' fx.
 \end{minted}
 
 In order to use \cinl{free_bind} as an operator \cinl{(>>=)} as known from Haskell, we additionally define the following notation.
@@ -943,18 +937,17 @@ Definition append A (fxs fys : Free (List A)) : Free (List A) :=
 
 While we discussed the overall infrastructure and necessary preliminaries for a general framework to model non-strict effectful
 programs, we will focus on two effects occurring in Haskel: totality and partiality.
-Of course, totality is, strictly speaking, not an effect, but the absense of any effect, as we have already seen in the previous section.
-Nevertheless, in this section both instantiations are of interest to motivate our effect-generic reasoning.
+Both instantiations are of interest to motivate our effect-generic reasoning.
 That is, we follow the idea of \citet{abel2005verifying} and prove general propositions about Haskell functions in three steps: first, we show that the proposition holds in the total setting and then show that it also holds in the partial setting.
 On top of these both proofs, the last step is to make the case for our generic approach and show our framework allows to prove properties once and for all for a whole class of effects.
 
 \subsection{Three Proofs for the Associativity of Append}
 
-Since it took as a whole section to define the function \cinl{append} for an effect-generic \cinl{List} data types, it seems reasonable to first prove a property for that function.
+Since it took us a whole section to define the function \cinl{append} for an effect-generic \cinl{List} data types, it seems reasonable to first prove a property for that function.
 Thus, in this subsection we will focus on the associativity of append and prove this proposition in the total, partial and generic setting.
 Since we encounter proofs for lifted data types and functions for the first time, we will present the proofs step-by-step.
 We will, however, postpone technical details to the end of this subsection.
-Thus, we explain the details of the proof from a more abstract perspective rather than diving deep into the technical details of the used tactics.
+Thus, we explain the details of the proof from a more abstract perspective rather than diving deep into the technical details of the applied tactics.
 
 \subsubsection{Totality}
 In order to refresh the memory, the definition of the container to represent total programs shown in \autoref{subsub:totality_container} looks as follows.
@@ -989,7 +982,7 @@ In case of a pure value, we have the following goal and assumptions.
   append' xs (append fys fzs) = append (append' xs fys) fzs
 \end{minted}
 
-Now we can proceed as if we were working with ordinary list: we need to do induction on the \cinl{List} argument \cinl{xs}.
+Now we can proceed as if we were working with ordinary lists: we need to do induction on the \cinl{List} argument \cinl{xs}.
 
 \begin{minted}{coq}
  - induction xs as [ | fx fxs IH ]; simpl.
@@ -1013,6 +1006,7 @@ For the latter case, the goal looks as follows.
 \end{minted}
 
 We proceed by stripping away the \cinl{Cons}-constructor and take another look at \cinl{fxs} by destructing the induction hypothesis \cinl{IH}, which produces to cases: one for \cinl{pure} and one for \cinl{impure}.
+Note that we will discuss the induction hypotheses \cinl{IH} that makes use of a custom propostion \cinl{ForFree} in detail later.
 
 \begin{minted}{coq}
    (* xs = cons fx fxs; induction hypothesis IH *)
@@ -1034,10 +1028,10 @@ For the latter case we only need to focus on one of the assumptions, namely, \ci
 \end{minted}
 
 Since there cannot exist any value of type \cinl{Zero__S}, the subgoal is trivially true as one of the assumptions is a contradiction.
-There are several to actually finish the proof, here we use \cinl{contradiction}, we could also use \cinl{destruct s} in order to force Coq to produce subgoals for all constructors.
+There are several ways to finish the proof, here we use \cinl{contradiction}, we could also use \cinl{destruct s} in order to force Coq to produce subgoals for all constructors.
 As no constructors exist, there are no more subgoals and we have successfully proven the current goal.
 
-The same reasoning applies for the last open goal.
+The same reasoning applies for the last remaining goal.
 We started with a case distinction on the original first list arguments \cinl{fxs} and are now in the \cinl{impure}-case.
 
 \begin{minted}{coq}
@@ -1050,7 +1044,7 @@ We started with a case distinction on the original first list arguments \cinl{fx
   impure s (fun p : Zero__P s => append (append (pf p) fys) fzs)
 \end{minted}
 
-The assumption \cinl{s : Zero__S} is once again a bogus assumptions, so we clear the last remaining goal by using \cinl{contradiction} again.
+The assumption \cinl{s : Zero__S} is once again a bogus assumption, so we clear the last remaining goal by using \cinl{contradiction} again.
 
 \begin{minted}{coq}
   (* fxs = impure s pf *)
@@ -1070,19 +1064,18 @@ Lemma append_assoc_total :
 Proof.
  intros A fxs fys fzs.
  destruct fxs as [ xs | [ s pf ] ]; try contradiction; simpl.
- - (* fxs = pure xs *) induction xs as [ | fx fxs IH ]; simpl.
-   + (* xs = nil *) reflexivity.
-   + (* xs = cons fx fxs; induction hypothesis IH *)
-     do 2 f_equal. destruct IH as [ xs H | ]; try contradiction; simpl;
-     * (* fxs = pure xs *) rewrite H. reflexivity.
+ - induction xs as [ | fx fxs IH ]; simpl.
+   + reflexivity.
+   + do 2 f_equal. destruct IH as [ xs H | ]; try contradiction; simpl;
+       rewrite H. reflexivity.
 Qed.
 \end{minted}
 
-The main difference between the above proof and a proof for associativity of the append function ordinary lists is the unboxing of the additional \cinl{Free}-layer of the list argument.
+The main difference between the above proof and a proof for associativity of the append function for ordinary lists is the unboxing of the additional \cinl{Free}-layer of the list argument.
 
 \subsubsection{Partiality}
 As next step, we consider an actual effect: partiality.
-Again, we recall the definition of the container to represent partiality when using \cinl{Free} as introduced in \autoref{subsub:partial_container}.
+Again, we recall the definition of the container to represent partiality when using \cinl{Free} as introduced in \autoref{subsub:partiality_container}.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition One!$_\text{S}$! := unit.
@@ -1114,9 +1107,9 @@ Proof.
 Qed.
 \end{minted}
 
-We observe that both cases of \cinl{impure}-values, we do not have a contradiction in place as we had in the total setting.
+We observe that for both cases of \cinl{impure}-values, we do not have a contradiction in place as we had in the total setting.
 The contradiction in the total setting was introduced by the shape of the container that did not have any constructors.
-Now, we are working with \cinl{One__S}, which is a renaming for the \cinl{unit} type and has exactly one constructor, namely \cinl{tt}.
+Now, we are working with \cinl{One__S}, which is a type synonym for the \cinl{unit} type and has exactly one constructor, namely \cinl{tt}.
 We can, however, finish the \cinl{impure}-cases using \cinl{contradiction} again, but we need to have a position as an
 assumption.
 The position is introduced as assumption when we strip away the prefix of \cinl{impure s pf} on both sides of the equation, such that only the position functions \cinl{pf} remain to be proven equivalent.
@@ -1142,7 +1135,7 @@ We introduce the function argument \cinl{p} using \cinl{extensionality p} and en
   pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
 \end{minted}
 
-With \cinl{One__P s} being a renaming for \cinl{Empty}, the position \cinl{p} has no constructors and we can finish the proof using \cinl{contradiction}, again.
+Since \cinl{One__P s} is a type synonym for \cinl{Empty}, the position \cinl{p} has no constructors and we can finish the proof using \cinl{contradiction}, again.
 
 We follow the same approach to finish the second \cinl{impure}-case.
 
@@ -1213,8 +1206,7 @@ Qed.
 
 \subsubsection{The Generic Proof Owns them All}
 
-Now comes the best part.
-The generic proof is applicable for the concrete proofs in the total and partial setting as well.
+Here comes the best part about the generic proof: the generic proof is applicable to the concrete proofs in the total and partial setting as well.
 That is, instead of proving the proposition for all concrete effects again and again, as necessary in the approach introduced by \citet{abel2005verifying}, we prove the proposition once and for all.
 
 Of course, if we want to prove a property in a concrete setting, we can still reuse the generic propositions as the following alternative proofs for the concrete settings of totality and partiality illustrate.
@@ -1238,9 +1230,8 @@ Qed.
 \subsection{Induction Principle}
 
 In the preceding section we proved associativity of append using induction on the first list.
-The \cinl{induction} tactic in Coq on an expression triggers the associated induction principle for the corresponding type.
-An induction principle is a proposition with a special purpose.
-Hence, the induction principle for a data type is an ordinary function in Coq.
+The \cinl{induction} tactic makes use the associated induction principle for the corresponding type.
+An induction principle for a data type is an ordinary function of type \cinl{Prop} in Coq.
 Moreover, Coq automatically generates this induction principle for each data type declaration using \cinl{Inductive}.
 The induction principle for a inductive type \cinl{T} is available as function named \cinl{T_ind}.
 
@@ -1299,18 +1290,17 @@ Qed.
 
 When using backward-reasoning, we have to use the function \cinl{nat_ind} on a function of type \cinl{n -> P  n}, which is exactly the type of our lemma.
 Since \cinl{nat_ind} has three arguments, these arguments are now the new subgoals we need to prove.
-One of these arguments is the proposition \cinl{P} that automatically proven because it can be inferred from the goal we apply the function to.
+One of these arguments is the proposition \cinl{P}, which Coq proves automatically because it can be inferred from the goal we apply the function to.
 That is, we end up with only two subgoals: we need to prove that the proposition holds for \cinl{0} and for \cinl{S n}.
 The first goal simplifies to \cinl{even 0 = true}, which is just the definition of \cinl{even}.
 The second goal looks as follows.
 
 \begin{minted}{coq}
-  ============================
   forall n : nat, even (double n) = true -> even (double (S n)) = true
 \end{minted}
 
-Given a Peano number \cinl{n} and the induction hypothesis that the proposition already holds for that \cinl{n}, we need to prove that proposition holds for \cinl{S n} as well.
-While Coq's \cinl{induction} tactic introduces these universally quantified for us, the direct variant is not as comfortable.
+Given a Peano number \cinl{n} and the induction hypothesis that the proposition already holds for that \cinl{n}, we need to prove that the proposition holds for \cinl{S n} as well.
+While Coq's \cinl{induction} tactic introduces these universally quantified variables for us, the direct variant is not as convenient.
 That is, we need to introduce these variables ourselves, but can then prove the goal using the induction hypothesis like in the first variant.
 
 \subsubsection{Induction on Free and List}
@@ -1334,7 +1324,7 @@ Note that these arguments correspond to the variables introduced in the patterns
 induction fx as [ x | s pf IH ].
 \end{minted}
 
-The variable \cinl{xs} in the left branch of the introduction pattern corresponds to the pure value, while \cinl{s} \cinl{pf} are the arguments of the \cinl{impure} constructor and \cinl{IH} is the generated induction hypothesis.
+The variable \cinl{x} in the left branch of the introduction pattern corresponds to the pure value, while \cinl{s} \cinl{pf} are the arguments of the \cinl{impure} constructor and \cinl{IH} is the generated induction hypothesis.
 
 In case of data types that contain arguments of type \cinl{Free} due to the lifting of the constructors, the induction principle generated by Coq is not strong enough to fulfil its purpose.
 Consider, for example, the induction principle Coq generates for the \cinl{List} data type defined in \autoref{subsec:freeAndContainers}.
@@ -1350,10 +1340,11 @@ While the base case for \cinl{nil} looks fine, the generated function for the \c
 More precisely, the second function misses an induction hypothesis for the list \cinl{fxs}; without such a hypothesis at hand, there are not much propositions that we would be able to prove.
 Fortunately, we can define a custom induction principle for \cinl{List} and other data types that we might define.
 Since an induction principle is an ordinary proposition, that is, function of type \cinl{Prop}, we just need to implement a function of the right type.
-By enabling some options\footnote{\cinl{Unset Elimination Schemes.}}, we deactivate the automatic generation and define the custom induction principle named \cinl{List_ind}.
-That way, we can use \cinl{induction} as usual the tactic always applies the \cinl{_ind}-function of the corresponding type.
+By enabling an option\footnote{\cinl{Unset Elimination Schemes.}}, we deactivate the automatic generation and define the custom induction principle named \cinl{List_ind}.
+That way, we can use \cinl{induction} as we are used to.
 
 First of all, we declare the types and the functions we want to use in the induction principle.
+The keyword \cinl{Hypothesis} is commonly used for proposition functions in custom induction principles instead of using the keyword \cinl{Variable}; both keywords fulfil the same purpose though.
 
 \begin{minted}{coq}
 Variable A : Type.
@@ -1364,11 +1355,11 @@ Hypothesis consP : forall fx fxs, ?IH -> P (cons fx fxs).
 \end{minted}
 
 In order to specify the missing induction hypothesis in case of \cinl{cons}, we need to work out how this hypothesis looks like in the lifted case.
-When we consider ordinary lists, we demand that the predicate holds for a list \cinl{fxs} in order to prove that it also holds for the list \cinl{cons fx fxs} for an arbitrary \cinl{fx} of appropriate type as well.
+When we consider ordinary lists, we require that the predicate holds for a list \cinl{fxs} in order to prove that it also holds for the list \cinl{cons fx fxs} for an arbitrary \cinl{fx} of appropriate type as well.
 In case of a lifted list, the predicate is supposed to hold for all
 pure and effectful lists.
 The needed property is similar to stating that a predicate of type \cinl{A -> Prop} should hold for all elements of a list-like structure.
-In our case the list-like structure is the \cinl{Free} wrapper coming with its two constructors \cinl{pure} and \cinl{impure}.
+In our case the list-like structure is the \cinl{Free} wrapper with its two constructors \cinl{pure} and \cinl{impure}.
 We define an auxiliary proposition \cinl{ForFree} that states when a predicate of type \cinl{A -> Prop} holds for all elements occurring in a value wrapped using \cinl{Free}.
 
 \begin{minted}{coq}
@@ -1378,10 +1369,11 @@ Inductive ForFree (P : A -> Prop) : Free A -> Prop :=
     (forall p, ForFree P (pf p)) -> ForFree P (impure s pf).
 \end{minted}
 
-In case of \cinl{pure x} we can directly apply the predicate on the element \cinl{x}.
-The \cinl{impure} constructor, on the other hand, embeds values of type \cinl{Free A}, again, thus, we can apply the overall proposition \cinl{ForFree} recursively.
+In case of \cinl{pure x} we can directly apply the predicate to the element \cinl{x}.
+The \cinl{impure} constructor, on the other hand, embeds values of type \cinl{Free A}.
+Thus, we can apply the proposition \cinl{ForFree} recursively.
 We access the values of type \cinl{Free A} by applying the position function to all valid positions with respect to the used container.
-That is, the predicate holds for \cinl{impure s pf} if it already if \cinl{ForFree P} already holds for all elements that can be accessed using the position function.
+That is, the predicate holds for \cinl{impure s pf} if \cinl{ForFree P} already holds for all elements that can be accessed using the position function.
 
 Now we use the proposition \cinl{ForFree} to redeclare the necessary induction hypothesis in case of the \cinl{cons} constructor.
 
@@ -1390,14 +1382,15 @@ Hypothesis consP : forall fx fxs, ForFree P fxs -> P (cons fx fxs).
 \end{minted}
 
 Note that the predicate \cinl{P} is of type \cinl{List A -> Prop}, that is, it is a predicate on lists.
-Based on these hypothesis we define our custom induction principle by implementing a function with the following type signature.
+Based on these hypotheses we define our custom induction principle by implementing a function with the following type signature.
 
 \begin{minted}{coq}
 Fixpoint List_ind (xs : List A) : P xs.
 \end{minted}
 
 \noindent%
-Due to the declared hypothesis the goal and associated assumptions looks as follows.
+The above declaration corresponds to \cinl{Theorem} statement, that is, we can define the function like proofs using tactics.
+Due to the declared hypothesis the goal and associated assumptions look as follows.
 
 \begin{minted}{coq}
   A : Type
@@ -1429,8 +1422,8 @@ In order to show that the predicate \cinl{P} holds for the list \cinl{xs}, we ma
   P (cons fy fys)
 \end{minted}
 
-We finish the first subgoal by applying the hypotheses \cinl{apply nilP}; for the second goal we proceed by applying the hypothesis \cinl{consP}.
-The new subgoal is not the precondition of the hypothesis \cinl{consP}, namely \cinl{ForFree P fys}.
+We finish the first subgoal by applying the hypothesis \cinl{nilP}; for the second goal we proceed by applying the hypothesis \cinl{consP}.
+The new subgoal is the precondition of the hypothesis \cinl{consP} instantiated with \cinl{fy} and \cinl{fys} for the quantified variables \cinl{fx} and \cinl{fxs}, namely \cinl{ForFree P fys}.
 We proceed by induction on \cinl{fys} since the proposition \cinl{ForFree} is an inductively defined proposition with constructors in case of \cinl{pure} and \cinl{impure} values.
 Applying the tactic \cinl{induction fys as [ ys | s pf IH ]} yields two new subgoals.
 
