@@ -4,6 +4,7 @@
 {-# LANGUAGE StandaloneDeriving, FlexibleInstances #-}
 
 import Debug.Trace
+import Prelude hiding (head)
 \end{code}
 
 %endif
@@ -28,8 +29,24 @@ We display the interaction with GHC's REPL using a prompt showing a lambda  --- 
 Haskell's evaluation strategy is call-by-need.
 The strategy evaluates subexpressions only when explicitly needed and shared expressions only once -- that is, call-by-need combines the advantages of both, call-by-name and call-by-value.
 
-Consider the following example that demonstrates the non-strictness part of Haskell's lazy evaluation.
-We compute the head of a partial list: the head element is defined but the remaining list is not.
+We use the following definition of \hinl{head} to project the first element of a list in order to demonstrate the non-strictness part of Haskell's lazy evaluation.
+
+%if False
+
+\begin{code}
+head :: [a] -> a
+head []      = undefined
+head (x : _) = x
+\end{code}
+
+%endif
+
+\begin{minted}{haskell}
+head :: [a] -> a
+head (x : _) = x
+\end{minted}
+
+Let us compute the head of a partial list: the head element is defined but the remaining list is not.
 
 \begin{hrepl}
 \haskellrepl head (1 : undefined)
@@ -112,11 +129,11 @@ test4 n = doubleMult (trace "msg" n)
 \label{subsec:monadicAbstractions}
 
 As a pure language, Haskell does not allow any side effects unless they are explicitly modeled.
-Such an explicit models becomes visibile at the type-level.
-For example, Haskell models the interaction with the user trough reading input and printing output explicitly with the type \hinl{IO}.
+Such an explicit model becomes visibile at the type-level.
+For example, Haskell models the interaction with the user through reading input and printing output explicitly with the type \hinl{IO}.
 
 In this thesis, we are more interested in representations of effects like partiality and non-determinism.
-We can, for example, explicitly model partiality using the following data type.
+We can, for example, explicitly model partiality using the following data type.\footnote{Note that the definition is equivalent to the \hinl{Maybe} type, here, we decide for a aptronym using a custom definition \hinl{Partial} instead.}
 
 %if False
 
@@ -164,7 +181,7 @@ headPartial []    = Undefined
 headPartial (x:_) = Defined x
 \end{minted}
 
-The evaluation of the first exemplary expression from above represent the undefined value explicitly using the appropriate constructor.
+The evaluation of the first exemplary expression from above represents the undefined value explicitly using the appropriate constructor.
 
 \begin{hrepl}
 \haskellrepl headPartial []
@@ -177,7 +194,7 @@ Undefined
 Note that the an implementation of \hinl{tailPartial} would not compose with \hinl{headPartial} anymore as in the original example above.
 Before we talk about this downside of the model, let us take look at a representation for non-determinism as effect.
 We model functions that possibly produce several results using lists.
-In order to not confuse the modeled non-determinism with lists that we use as algebraic datatypes, we use a type synonym \hinl{ND}.
+In order to not confuse the modeled non-determinism with lists that we use as algebraic datatypes in type signatures of functions, we use a type synonym \hinl{ND}.
 
 \begin{minted}{haskell}
 type ND a = [a]
@@ -252,7 +269,7 @@ class Monad m where
 \end{minted}
 
 A type constructor class allows to define overloaded functions for type constructors like \hinl{IO}, \hinl{Partial}, and \hinl{[]}.
-Note that we define an instance for \hinl{[]} instead of \hinl{ND}, because we can define type class instances for data types only, not for type synonyms.
+Note that we define an instance for \hinl{[]} instead of \hinl{ND}, because we can define type class instances for data types only, not for type synonyms\footnote{Note that we can define such instances using \hinl{TypeSynonymInstances} if these instances do not overlap with predefined ones}.
 That is, we can define type class instances for our modeled effects \hinl{Partial} and \hinl{[]} as follows\footnote{Strictly speaking, the instance for lists is already predefined.}.
 
 %if False
@@ -367,10 +384,10 @@ We do not go into more details concerning this unintended behaviour here, but ho
 \subsection{Free Monads}
 \label{subsec:freeMonad}
 
-Recently, the functional programming community uses a slight different approach for modeling effects.
+Recently, the functional programming community started using a slight different approach for modeling effects.
 The overall monadic structure is still the key of the representation of such effects.
-One observation that lead to the other abstraction is that all representations of such effects have operations to lift a value into the effects (\hinl{return}) and to manipulate the values of an effect (\hinl{(>>=)}) in common.
-This observation lead to a monad instance that can interpret all monadic operations in an abstract way: the free monad \citep{swierstra2008data}.
+One observation that leads to the other abstraction is that all representations of such effects have operations to lift a value into the effects (\hinl{return}) and to manipulate the values of an effect (\hinl{(>>=)}) in common.
+This observation finally leads to a monad instance that can interpret all monadic operations in an abstract way: the free monad \citep{swierstra2008data}.
 Consider the following data type \hinl{Free} that is parametrised by a type constructor \hinl{f} and a value type \hinl{a}.
 
 \begin{minted}{haskell}
@@ -390,7 +407,8 @@ instance Functor f => Monad (Free f) where
 \end{minted}
 
 We represent all impure operations we need to model using the functor \hinl{f}.
-In case of \hinl{Partial}, we have one operation, namely \hinl{Undefined}; the other constructor \hinl{Defined} is already taken care of by \hinl{Pure}.
+In case of \hinl{Partial}, we have one operation, namely \hinl{Undefined} that corresponds to the Haskell's \hinl{undefined} value associated with partiality.
+The other constructor \hinl{Defined} is already taken care of by \hinl{Pure}.
 Moreover, we observe that \hinl{Undefined} does not contain any further values but is a possible value of its own: it is a nullary operation.
 In contrast, we modeled the binary operation \hinl{(?) :: ND a -> ND a -> ND a} for non-determinism that combines two non-deterministic computations.
 The corresponding functor, thus, needs to make use of the recursive type argument \hinl{Free f a}.
@@ -402,14 +420,46 @@ data One a    = One
 data Choice a = Choice a a
 \end{minted}
 
-Intuitively, the number of constructors of the functor corresponds to the number of operations the effect introduces and the arguments of constructor indicate the arity of these operations.
+\begin{table*}[t]
+\begin{tabular}{lll}
+Description & Monadic Representation & Free Representation \\
+\toprule
+Totality        & \hinl{data Identity a = Identity a}            & \hinl{Free Zero a}\\[0.25em]
+Partiality      & \hinl{data Maybe a    = Just a  || Nothing}    & \hinl{Free One a}\\[0.25em]
+Error           & \hinl{data Either b a = Right a || Left a}     & \hinl{Free (Const b) a}\\[0.25em]
+Non-determinism & \hinl{data Tree a     = Leaf a  || Branch a a} & \hinl{Free Choice a}\\
+\bottomrule
+\end{tabular}
+\caption{Overview of monads and the corresponding representation using \hinl{Free} and the associated functor}
+\label{tab:effectOverview}
+\end{table*}
+
+Intuitively, the number of constructors of the functor corresponds to the number of operations the effect introduces and the arguments of each constructor indicates the arity of the corresponding operations.
 The key idea for \hinl{Partial} is that we represent \hinl{Undefined} as \hinl{Impure One}; together with \hinl{Pure} corresponding to \hinl{Defined}, we can represent the same programs as before.
 Note that the functor \hinl{Choice} for non-determinism used in combination with \hinl{Free} resembles a tree rather than a list.
 A leaf corresponds to \hinl{det} while a branch with two subtrees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial subtrees.
+\autoref{tab:valueOverview} gives an overview of the value correspondences between the monadic representation and the representation using \hinl{Free} and the associated functor.
+
+\begin{table*}[t]
+\begin{tabular}{llll}
+Description & Functor & Monadic Values & Free Values \\
+\toprule
+Totality                         & \hinl{Identity x}   & \hinl{Pure x}\\[0.5em]
+\multirow{2}{*}{Partiality}      & \hinl{Just x}       & \hinl{Pure x}\\
+                                 & \hinl{Nothing}      & \hinl{Impure One}\\[0.5em]
+\multirow{2}{*}{Error}           & \hinl{Right x}      & \hinl{Pure x}\\
+                                 & \hinl{Left y}       & \hinl{Impure (Const y)}\\[0.5em]
+\multirow{2}{*}{Non-determinism} & \hinl{Leaf x}       & \hinl{Pure x}\\
+                                 & \hinl{Choice t1 t2} & \hinl{Impure (Choice t1' t2')}\\
+\bottomrule
+\end{tabular}
+\caption{Overview of values represented using the direct interpretion as monad and using \hinl{Free} with the corresponding functor}
+\label{tab:valueOverview}
+\end{table*}
 
 A variety of common monads are isomorphic to a representation using free monads.
-A counterexample is the list monad, which is why we rather chose a tree encoding to represent non-determinism.
-More precisely, there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]} \citep{swierstra2008data}.
+A counterexample, however, is the list monad; as \citet{swierstra2008data} states, there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]}.
+Due to this counterexample, we rather chose a tree encoding to represent non-determinism.
 In \autoref{ch:reasoning} we restate this isomorphism property and will show that the free monads applied to the functors \hinl{One} and \hinl{Choice} are isomorphic to \hinl{Maybe} and the common representation binary tree, respectively.
 Other popular representations are the identity monad and the error monad using the following functors.
 
@@ -419,6 +469,7 @@ data Const e a = Const e
 \end{minted}
 
 Using the types as underlying effect, we get the identity monad using \hinl{Free Zero} and the error monad can be represented using \hinl{Free (Const e)}, where \hinl{e} is the type of the error.
+\autoref{tab:effectOverview} gives an overview of different monads and their representation using \hinl{Free}.
 
 Our running example from the preceding section for non-deterministically inserting an element at each possibile position in a list looks as follows using a representation based on \hinl{Free Choice}.
 
@@ -432,7 +483,8 @@ insertFree x (y:ys) = return (x : y : ys)
                     ?? (insertFree x ys >>= \zs -> return (y:zs))
 \end{minted}
 
-We define the smart constructor for choices \hinl{(??)} as indicated above, but besides swapping this operator and the name of the function the implementation stays exactly the same, because we already rely on the monadic abstraction that we can reuse now.
+We define the smart constructor for choices \hinl{(??)} as indicated above and can, thus, nearly reuse the implementation from before, because we already rely on the monadic abstraction.
+Note that the underlying representation of non-determinism changed from lists to trees, but otherwise the functions behave the same.
 The exemplary call also reveals five resulting lists.
 
 \begin{hrepl}
