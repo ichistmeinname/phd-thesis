@@ -17,7 +17,7 @@ After discussing the general idea for a framework to model effectful non-strict 
 We present our approach using the example of the associativity of Haskell function to append two lists.
 
 Last but not least we give an outlook on first ideas to model Curry programs.
-The underlying effect of Curry is non-determinism with the special treatment with respect to sharing.
+The underlying effect of Curry is non-determinism with the addition of special treatment for sharing.
 As we have seen in previous chapters, the combination of non-determinism and non-strictness behaves with respect to Curry's call-time choice semantics, that is, variables declare values and not computations.
 We show how to model non-determinism and discuss the problem of modelling a language with sharing.
 That is, we make more clear that our frameworks currently models non-strict program semantics, but does not handle lazy semantics.
@@ -28,18 +28,19 @@ In summary, this chapter makes the following contributions.
 \begin{itemize}
 \item We present a generic model of effectful non-strict functional programs in the proof assistant Coq.
 \item We implement a model of effectful data structures that pleases Coq's termination checker.
-\item We take the reader on an introductory tour of Coq's intricacies in
-order to define a valid representation of effectful programs.
-\item We argue that our approach is especially interesting for proving properties for a variety of effects once-and-for-all instead of individually for each new effect of interest.
-\item We present first ideas on modelling Curry's non-determinism.
+\item In order to define a valid representation of effectful programs, we take the reader on an introductory tour of Coq's intricacies.
+\item We argue that our approach is especially interesting when proving properties for a variety of effects once-and-for-all instead of individually for each new effect of interest.
+\item We present first ideas on modelling Curry's non-determinism and discuss arising obstacles when trying to model call-time-choice.
+\item In the light of these obstacles, we discuss that our current framework works well for call-by-name semantics, but does not work for call-by-need semantics out-of-the box.
+\item Moreover, we show some examples that illustrate why this distincition comes up when modelling Curry's non-determinism but not for partiality.
 \end{itemize}
  
 \section{A Generic Model For Effectful Non-Strict Programs}
 
 In this section we will present our general approach to model effectful non-strict programs in a dependently-typed language like Coq.
-We illustrate why previous work is not applicable anymore or does not tackle the same problem as we do.
-Since the reasons for the inapplicability of the previous work is due to rather technical reasons of dependently-typed languages and the general idea of propositions as types \citep{wadler2015propositions}, we give a detailed explanation to illustrate which steps are necessary to model our approach in Coq.
-That is, this section tries to explain the obstacles and their solutions for Coq beginners.
+We illustrate why previous work is insufficiant for our goals or does not tackle the same problem as we do.
+Since the reasons for the insufficiance of the previous work is due to rather technical details of dependently-typed languages and the general idea of propositions as types \citep{wadler2015propositions}, we give a detailed explanation to illustrate which steps are necessary to model our approach in Coq.
+That is, this section tries to explain the obstacles and their solutions in Coq in a beginner-friendly way.
 
 \subsection{Representation of Partial Programs}
 \label{subsec:partial}
@@ -456,7 +457,7 @@ The main goal is to retain the generality to model arbitrary monads, but to use 
 We can achieve this goal by using a data type that represents all strictly positive types in a constructive manner.
 Fortunately, \citet{abbott2003categories} introduced the notion of containers to represent strictly positive types; their main insight is that all strictly positive types can be expressed using containers.
 A container is described as a product of shapes and a position function.
-The shape is a type \cinl{S} and the position type \cinl{P} is a type function that maps shapes to types.
+The shape is a type \cinl{Shape} and the position type \cinl{Pos} is a type function that maps shapes to types.
 Using these two components we can define a container extension that gives rise to a functor.
 
 \begin{minted}{coq}
@@ -539,17 +540,11 @@ Definition Empty := .
 Definition One!$_\text{P}$! (s : One!$_\text{S}$!) := Empty.
 \end{minted}
 
-Recall that the position type function depends on the corresponding
-shape.
-Here, however, the shape does not matter as we do not have any
-position anyhow.
+Recall that the position type function depends on the corresponding shape.
+Here, however, the shape does not matter as we do not have any position anyhow.
 
-Using Coq's ability to prove properties about programs, we can show
-that the container representation is isomorphic to the original data
-type.
-More precisely, we define two functions \cinl{from_One} and
-\cinl{to_One}, and show that both compositions yield the
-identity.
+Using Coq's ability to prove properties about programs, we can show that the container representation is isomorphic to the original data type.
+More precisely, we define two functions \cinl{from_One} and \cinl{to_One}, and show that both compositions yield the identity.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition from_One A (o : One A) : Ext One!$_\text{S}$! One!$_\text{P}$! A :=
@@ -574,9 +569,7 @@ Proof.
 Qed.
 \end{minted}
 
-Note that we need to use functional extensionality to compare the
-position functions in the second argument of \cinl{ext} in Lemma
-\cinl{from_to_One}.
+Note that we need to use the principle of functional extensionality to compare the position functions in the second argument of \cinl{ext} in Lemma \cinl{from_to_One}.
 
 The container definition corresponding to \cinl{One} is now ready to used as argument to \cinl{Free}.
 Next up, we can also show that the resulting \cinl{Free One__S}  is isomorphic to the monadic structure \cinl{partial}.
@@ -596,7 +589,7 @@ Definition from_partial A (p : partial A) : Free One__S One__P A :=
   end.
 \end{minted}
 
-Based on the conversion functions, we prove two lemmas that state that the compositions of these functions are the identity.
+Based on these conversion functions, we prove two lemmas that state that both possible compositions of these functions are the identity.
 
 \begin{minted}{coq}
 Lemma from_to_partial : forall (A : Type) (fx : Free One__S One__P A),
@@ -720,7 +713,8 @@ Qed.
 \subsubsection{Other Containers and Limitations}
 
 We will later see that monads like tree and list, which are usually used when modelling non-determinism, can be represented using our approach as well.
-There also common monads from Haskell that have corresponding effects that are interesting to reason about, for example, the writer or state monad that used to model tracing or I/O-interactions with the user.
+There are also common monads from Haskell that have corresponding effects that are interesting to reason about.
+For example, the writer or state monad that used to model tracing or I/O-interactions with the user.
 We can model these effects using \cinl{Free} and a suitable container representation of the underlying effect.
 
 Since we use container to ensure Coq that we do not define a potentially non-strictly positive type, the class of strictly positive types is the natural limitation when using our approach.
@@ -729,13 +723,13 @@ If we recall the concrete instantiation that we used to understand the problem w
 The continuation monad \cinl{Cont} was an exemplary instantiation of the type constructor variable \cinl{M}, such that \cinl{List} became non-strictly positive.
 The goal was to convince Coq that we won't use an instantiation like \cinl{Cont}, so it makes sense that we indeed cannot define a data type that is isomorphic to \cinl{Cont}.
 
-In the end, we have to keep in mind that our approach using \cinl{Free} as representative for a generic monadic parametrisation can only represent monads that correspond to strictly positive types.
+In the end, we have to keep in mind that our approach using \cinl{Free} as representative for a generic monadic parameterisation can only represent monads that correspond to strictly positive types.
 
 \subsection{Working with Free to Define Lifted Functions}
 \label{subsec:liftedFunctions}
 
 With the definition of \cinl{List} using \cinl{Free} to model generic effectful lists at hand, we can take a look at the definition of the function \cinl{append} again.
-Analogous to the definition of \cinl{append} at the end of \autoref{subsec:partial}, we need to split function into two parts: one part works on pure \cinl{List}s and takes care of patternmatching while the second part handles \cinl{Free}-lifted arguments only.
+Analogous to the definition of \cinl{append} at the end of \autoref{subsec:partial}, we need to split the function into two parts: one part works on pure \cinl{List}s and takes care of pattern matching while the second part handles \cinl{Free}-lifted arguments only.
 
 For the remainder of this chapter, we will use \cinl{Free} and data types like \cinl{List} as type constructors of kind \cinl{Type -> Type} when used with a generic container, that is, we do not pass the corresponding shape and position function as argument.
 Note, however, that this convention is a simplification for better readability only and the resulting definition would not compile in Coq.

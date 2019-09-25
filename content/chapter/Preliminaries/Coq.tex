@@ -30,6 +30,7 @@ First, we note that all definitions have explicit typing annotations, although C
 Most notably, the data type declaration for \cinl{peano} is annotated with \cinl{Type}.
 Although Coq is build upon a sophisticated type hierarchy, for us it is enough to know that we will use \cinl{Type} for inductive data types and type synonyms.
 The syntax to define constructors for data types resembles GADT-style definitions in Haskell, that is, we specify full type signature for each constructor, as we are used to it for function definitions.
+Furthermore, we list all constructors line-by-line and each line begins with a pipe \cinl{|} as delimiter.
 
 Next, we define a function to check if a Peano number is zero as well as a function for addition on Peano numbers using pattern matching.
 
@@ -47,15 +48,15 @@ Fixpoint add (p1 p2 : peano) : peano :=
   end.
 \end{minted}
 
-The definition of \cinl{isZero} additionally uses the predefined \cinl{bool} type as result.
-These definitions represent two different kinds of functions: \cinl{isZero} is a non-recursive function, whereas \cinl{add} is a representative for recursive functions.
+The pipe symbole \cinl{|} is again used as a delimiter: this time to list all patterns we want to distinguish in a \cinl{match ... with}-expression that corresponds to Haskell's \hinl{case ... of}-expressions.
+Note that the definition of \cinl{isZero} additionally uses the predefined \cinl{bool} type as result, and that we can group successive arguments of the same type in the type signature.
+The functions definitions above represent two different kinds of functions: \cinl{isZero} is a non-recursive function, whereas \cinl{add} is a representative for recursive functions.
 In Coq it is crucial to define recursive functions using the keyword \cinl{Fixpoint}.
 Definitions that are marked as \cinl{Fixpoint}s need to pass an additional check: As a total language, all functions in Coq have to terminate.
-In case of recursive functions, Coq checks if there is one argument of the recursive call that is structurally smaller than the original value passed to the function for each recursive call.
-For our example \cinl{add}, the argument \cinl{p} of the recursive call is structurally smaller than the original value \cinl{p1} in the second case of the branch, where we know that \cinl{p1} has the shape \cinl{(s p)}.
+In case of recursive functions, Coq checks if there is one argument of the recursive call that is structurally smaller than the original argument passed to the function for each recursive call.
+In our example definition \cinl{add}, the argument \cinl{p} of the recursive call is structurally smaller than the original value \cinl{p1} in the second case of the branch, where we know that \cinl{p1} has the shape \cinl{(s p)}.
 
-If we want to define a recursive function in Coq that does not follow this restriction, we can use the keyword \cinl{Program Fixpoint} and prove the termination of the function afterwards.
-An example for such a recursive function is the following artificial definition that decreases on one of its arguments at each recursive call, but does not have one designated argument that decreases for each call.
+An example for a recursive function that Coq's termination checker does accept, is the following artificial definition that decreases on one of its arguments at each recursive call, but does not have one designated argument that decreases for each call.
 
 \begin{minted}{coq}
 Fail Fixpoint test (b : bool) (n m : peano) : bool :=
@@ -68,6 +69,7 @@ Fail Fixpoint test (b : bool) (n m : peano) : bool :=
 
 The keyword \cinl{Fail} indicates that the definition was not accepted by Coq without an error.
 Here, the command has failed with the error message \texttt{Cannot guess decreasing argument of fix}.
+If we want to define such a recursive function that does not follow Coq's restriction, we can use the keyword \cinl{Program Fixpoint} and prove the termination of the function afterwards.
 In this thesis, we will not use capabilities like \cinl{Program Fixpoint} to define recursive functions that do not obey Coq's restrictions, so we abstain from going into more details concerning proving termination of recursive functions.
 
 Moving on with our definitions on Peano numbers above, we can introduce a \cinl{Notation} that allows us to write more natural expressions like \cinl{p1 + p2} for
@@ -88,10 +90,11 @@ Since we are used to having a REPL from languages like Haskell and Curry, we wil
 \end{crepl}
 
 Let us now consider a polymorphic data type definition as well as polymorphic functions using lists as example.
-We use the predefined definition for lists; as a code convention we name type variables using upper-case letters.
+We use the predefined definition for lists.
+As a code convention we name type variables using upper-case letters.
 
 \begin{minted}{coq}
-Inductive list (A : Type) :=
+Inductive list (A : Type) : Type :=
 | nil  : list A
 | cons : A -> list A -> list A.
 \end{minted}
@@ -104,11 +107,19 @@ Error: The term "z" has type "peano" while it is expected to have type
        "Type".
 \end{crepl}
 
-Constructors of polymorphic functions need to be applied to more arguments than we are used to in functional languages like Haskell.
+Constructors of polymorphic functions need to be applied to more arguments than we are used to from functional languages such as Haskell.
 More precisely, all constructors of a polymorphic data type like \cinl{list} have additional type arguments.
-In our case, \cinl{cons} is of type \cinl{forall A : Type, A -> list A -> list A} and \cinl{nil} of type \cinl{forall A : Type, list A}.
-The first argument is a type that determines the concrete type instantiation of the constructors \cinl{cons} and \cinl{nil}.
-The definition above works when we apply a type like \cinl{nat} explicitly or instruct Coq to infer the argument by using an underscore (\cinl{_}).
+In our case, \cinl{cons} and \cinl{nil} have the following types.
+
+\begin{crepl}
+\coqrepl Check nil.
+   nil : forall (A : Type), list A
+\coqrepl Check cons.
+   cons : forall (A : Type), A -> list A -> list A
+\end{crepl}
+
+The first argument is the type that determines the concrete type instantiation of the constructors \cinl{cons} and \cinl{nil}.
+The definition above works when we apply a type like \cinl{peano} explicitly or instruct Coq to infer the argument by using an underscore (\cinl{_}).
 
 \begin{crepl}
 \coqrepl Compute (cons peano z (nil peano)).
@@ -162,7 +173,7 @@ Inductive eq (A : Type) (x : A) : A -> Prop :=
 \end{minted}
 
 The data type \cinl{eq} is a propositional type, indicated by the resulting type \cinl{Prop}.
-Intuitively, Coq uses the convention that ordinary programs are of type \cinl{Type} while proofs are of type \cinl{Prop}.
+Intuitively, Coq distinguishes between ordinary programs that are of type \cinl{Type} while proofs are of type \cinl{Prop}.
 Since the definition \cinl{eq} is the proof that two expressions are structurally equal, the resulting type of \cinl{eq} is \cinl{Prop}.
 Furthermore, the type of the constructor \cinl{eq_refl} that represents the reflexivity property for structural equality is \cinl{eq x x}.
 Here, \cinl{eq} is a dependent type, because the type of the constructor \cinl{eq_refl} uses not only types but the value \cinl{x} in its type signature.
@@ -315,6 +326,7 @@ We know from the type alone that the left side of the equation evaluates to \cin
 The same applies to the right side of the equation, because \cinl{vlength} can compute the length of the list using its type information only.
 The expression \cinl{vmap f xs} is of type \cinl{vector B n}, so using the definition of \cinl{vlength} yields \cinl{n} again.
 Coq automatically applies some simplifications --- like unfolding function definitions --- when we apply the tactic \cinl{reflexivity}, so the proof consists of only one tactic.
+In summary, we observe that due to the definition of \cinl{vector}, the definition of the function \cinl{vmap} already encodes the proof about the length of the list alongside the actual computation.
 
 \subsection{Propositions and False Assumptions}
 
@@ -364,7 +376,7 @@ Section vmap_spec_proofs.
 
 The first thing we do for both cases of the induction is to simplify the given goal using the definition \cinl{vmap}.
 In order to reduce the repetition, we use the notation \cinl{tactic1; tactic2} to apply the second tactic \cinl{simpl} on all subgoals generated by the first tactic \cinl{induction}.
-Since our definition of \cinl{vmap} is a natural implement of the specification, the remaining proof is straightforward: we use the appropriate constructor of the specification predicate and the assumptions we have in place.
+Since our definition of \cinl{vmap} is a natural implementation of the specification, the remaining proof is straightforward: we use the appropriate constructor of the specification predicate and the assumptions we have in place.
 
 For our next proof, we want to show that something is false, i.e., that a value of a particular type cannot be constructed.
 In Coq, such a value that cannot be constructed is represented using the type \cinl{False}.
@@ -387,7 +399,7 @@ Proof.
 Qed.
 \end{minted}
 
-We use the tactic \cinl{discriminate} on hypotheses that state two structurally different expressions to be equal, like \cinl{z = s x}.
+We use the tactic \cinl{discriminate} on hypotheses like \cinl{z = s x}, which state that two structurally different expressions are equal, and is, thus, a false hypothesis.
 Note that other tactics might work as well but we will use \cinl{discriminate} in such cases.
 Moreover, the negation function \cinl{not} on propositions is defined using \cinl{False} and is used to define the inequality of expressions using the notation \cinl{<>}.
 
