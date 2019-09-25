@@ -64,7 +64,7 @@ head []    = undefined
 head (x:_) = x
 \end{minted}
 
-In a total language like Coq the corresponding head functions usually takes an additional argument to take care of the undefined behaviour in case of the empty list.
+In a total language like Coq, the corresponding head function usually takes an additional argument to take care of the undefined behaviour in case of the empty list.
 The following implementation is part of Coq's predefined library for lists.
 
 \begin{minted}{coq}
@@ -80,6 +80,10 @@ In case of a non-empty list we wrap the head element into the \cinl{Some}-constr
 This alternative implementation is predefined under the name \cinl{head}.
 
 \begin{minted}{coq}
+Inductive option (A : Type) :=
+| None : option A
+| Some : A -> option A.
+
 Definition head (A : Type) (l : list A) : option A  = 
   match l with
   | nil    => None
@@ -93,7 +97,7 @@ Consider the following example that uses the result of \cinl{head} as an argumen
 
 \begin{minted}{coq}
 Fail Definition exampleList (A : Type) : list A :=
-  cons (head nil) nil.
+  cons (head (cons 1 nil)) nil.
 \end{minted}
 
 We cannot use the result as an element of the newly constructed list, we get a type error.
@@ -107,7 +111,7 @@ Since we want to construct a list of type \cinl{list A}, the head element needs 
 
 As Haskell is a non-strict language, it is crucial that we allowa partial values at top-level as well as within the components of data structures, that is, within arguments of constructors in order to model Haskell's partiality correctly.
 Due to non-strictness, it is possible that an undefined value is never demanded during evaluation.
-The Haskell expression \hinl{head (1 : undefined)}, for example, does not trigger the \hinl{undefined} value in the tail of the list, because \hinl{head} only demands the first list constructor \hinl{:} and ignores the second argument.
+The Haskell expression \hinl{head (1 : undefined)}, for example, does not trigger the \hinl{undefined} value in the tail of the list, because \hinl{head} only demands the first list constructor and ignores the second argument.
 In order to have a aptronym for the representation of partial values, we define a new data type \cinl{partial} that captures the notion that a value can be undefined or defined more clearly than the predefined type \cinl{option}.
 
 \begin{minted}{coq}
@@ -163,7 +167,8 @@ The concatenation function on lists is a recursive and total function and can, t
 However, since we want to mix partial and total functions and, thus, increase the compositionality of both possible effects, we translate the append function using the same scheme as above.
 
 \begin{minted}{coq}
-Fail Fixpoint append (A : Type) (pxs pys : partial (List A)) : partial (List A) :=
+Fail Fixpoint append (A : Type) (pxs pys : partial (List A))
+  : partial (List A) :=
   match pxs with
   | undefined  => undefined
   | defined xs => match xs with
@@ -246,6 +251,7 @@ Definition append (A : Type) (pxs pys : partial (List A)) : partial (List A) :=
 
 Up to now, we have seen an encoding of Haskell programs in Coq that lifts all Haskell values to \cinl{partial} values.
 The overall goal is to not only reason about Haskell's partiality effect but a whole class of effects.
+For example the effects we enumerated and discussed in \autoref{subsec:monadicAbstractions}.
 That is, we do not want to restrict our model in Coq to one effect only, but generalise it to arbitrary effects.
 
 The first idea that comes to mind to generalise the above encoding is to change the concrete type \cinl{partial} by adding a type parameter.
@@ -258,7 +264,7 @@ Fail Inductive List (M : Type -> Type) (A : Type) :=
 | cons : M A -> M (List M A) -> List M A.
 \end{minted}
 
-Similar to \cinl{partial} that corresponds to the Maybe monad that we know from Haskell, we will be mostly interested in other monadic instantiations.
+Similar to \cinl{partial} that corresponds to the Maybe monad that we know from Haskell, we will be mostly interested in other monadic instantiations and follow the idea of monadic abstractions we discussed in \autoref{subsec:monadicAbstractions}.
 Thus, we name the type parameter \cinl{M} to indicate that it is a placeholder for a monadic type.
 This representation was already suggested by \citet{abel2005verifying}, who translated Haskell code into Agda~\citep{norell2008dependently} code in order to prove propositions about Haskell functions.
 Their approach, however, is not applicable in recent versions of Agda nor Coq anymore.
@@ -282,13 +288,10 @@ Fail Inductive NonStrictlyPos :=
 The data type \cinl{NonStrictlyPos} has no type parameters and only one unary constructor \cinl{con}.
 The argument of the constructor \cinl{con} is a function from \cinl{NonStrictlyPos} to \cinl{nat}.
 The domain of this function is the crucial part of the definition and the origin of the error message.
-As so often when using Coq, \citet{chlipala2011certified} is a great resource for typical obstacles beginners may face when using Coq for the first time; he has the following intuitive description for the strict positivity requirement.
+As so often when using Coq, \citet{chlipala2011certified} is a great resource for typical obstacles beginners may face when using Coq for the first time; he has the following escription for the strict positivity requirement.
 
 \begin{quote}
-\emph{We have run afoul of the strict positivity requirement for
-  inductive definitions, which says that the type being defined may
-  not occur to the left of an arrow in the type of a constructor
-  argument.}
+\emph{We have run afoul of the strict positivity requirement for inductive definitions, which says that the type being defined may not occur to the left of an arrow in the type of a constructor argument.}
 \end{quote}
 
 Inductive type definitions obey the strict positivity requirement, if the recursive occurrences of the type only occur strictly positive in all argument types for all constructors.
@@ -297,7 +300,7 @@ The only argument of \cinl{con} is the function type \cinl{NonStrictlyPos -> nat
 
 \begin{excursus}{Positive and Negative Occurrences}
 According to the error message Coq produces when we try to compile the data type \cinl{List}, the type definition violates a strict positivity restriction; but what is a positive occurence?
-Taking the quote of Chlipala to a more formal ground, we can describe a strictly positive occurrence of a type as follows: a type $\tau$ occurs strictly positively in a type $\tau_1\rightarrow \dots \rightarrow \tau_n \rightarrow \tau$, if and only if $\tau$ does not occur in any of the types $\tau_i$ with $i$ ranging from $1$ to $n$.
+Taking the quote of Chlipala to a more formal ground, the strictly positive occurrence of a type is described as follows: a type $\tau$ occurs strictly positively in a type $\tau_1\rightarrow \dots \rightarrow \tau_n \rightarrow \tau$, if and only if $\tau$ does not occur in any of the types $\tau_i$ with $i$ ranging from $1$ to $n$.
 Although this description might answer the question we raised to some extent, but it raises new ones: how do we distinguish between \emph{positive} and \emph{strictly positive} occurrences; can an occurrence be \emph{negative} as well?
 
 For that matter, let us consider an arbitrary type $\tau = t_1 \rightarrow \dots \rightarrow t_n$, where all $t_i$ are types as well.
@@ -466,10 +469,9 @@ We will shortly take a look at concrete instances in order to illustrate the iso
 Since we are mainly interested in monads, we can go even further and use monadic containers as proposed by \citet{altenkirch2017monadic} and \citet{uustalu2017partiality}.
 However, we decided against using monadic containers directly, as they, as far as we know, cannot be implemented in a constructive way, but are an extension of \cinl{Ext} that are modelled using a type class.
 
-Taking one step back, let us recap what we know about free monads \citep{swierstra2008data} as discussed in \autoref{subsec:freeMonad}.
-Since we know that all monads have a constructor that represent \emph{pure} values, the effect we want to model is
-everything that we gain on top of these defined values.
-We define this property more explicitly using a free monad: we either have a pure or an effectful value.
+Taking one step back, let us recap what we observed so far.
+Since we know that all monads have a constructor that represent \emph{pure} values, the effect we want to model is everything that we gain on top of these defined values.
+We define this property more explicitly using a free monad~\citep{swierstra2008data} as introduced in \autoref{subsec:freeMonad}: we either have a pure or an effectful value.
 
 \begin{minted}{coq}
 Fail Inductive Free F A :=
