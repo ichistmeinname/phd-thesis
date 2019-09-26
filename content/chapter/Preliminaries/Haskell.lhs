@@ -437,7 +437,7 @@ Non-determinism & \hinl{data Tree a     = Leaf a  || Branch a a} & \hinl{Free Ch
 Intuitively, the number of constructors of the functor corresponds to the number of operations the effect introduces and the arguments of each constructor indicates the arity of the corresponding operations.
 The key idea for \hinl{Partial} is that we represent \hinl{Undefined} as \hinl{Impure One}; together with \hinl{Pure} corresponding to \hinl{Defined}, we can represent the same programs as before.
 Note that the functor \hinl{Choice} for non-determinism used in combination with \hinl{Free} resembles a tree rather than a list.
-A leaf corresponds to \hinl{det} while a branch with two subtrees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial subtrees.
+A leaf corresponds to \hinl{det} while a branch with two sub-trees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial sub-trees.
 \autoref{tab:valueOverview} gives an overview of the value correspondences between the monadic representation and the representation using \hinl{Free} and the associated functor.
 
 \begin{table*}[t]
