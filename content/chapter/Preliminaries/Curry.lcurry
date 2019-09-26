@@ -6,7 +6,7 @@
 
 \section{Functional Logic Programming}
 
-The functional logic programming language Curry combines --- as the name already suggests --- the features of the functional and logic paradigm.
+The functional logic programming language Curry combines --- as the name already suggests --- the features of the functional and logic paradigms.
 A familiarity with Haskell is especially helpful for using Curry, since the syntax is basically the same.
 Hence, Curry has most of the features users know from Haskell: algebraic data types, higher-order functions, type classes and lazy evaluation.
 On top of these functional features, Curry adds non-determinism as a built-in effect.
@@ -124,7 +124,21 @@ Note that the order of results changes for expressions corresponding to unbalanc
 \end{cyrepl}
 \end{minipage}
 
-We can now take a look at the implementation of a non-deterministic version of \cyinl{insert} that we modeled in Haskell using lists in \autoref{subsec:monadicAbstraction}.
+As a side note consider the following adaptation of the expression above that changes the parentheses according to associativity.
+We evaluate the expression using breadth-first search again.
+
+\begin{cyrepl}
+\curryrepl :set bfs
+\curryrepl 1 ? (2 ? 3)
+3
+1
+2
+\end{cyrepl}
+
+That is, the order of results is not stable with respect to associativity in case of breadth-first search.
+When we consider only the set of results instead of considering the order of the results, then we observe that the \cinl{?}-operator is associative.
+
+We can now take a look at the implementation of a non-deterministic version of \cyinl{insert} that we modeled in Haskell using lists in \autoref{subsec:monadicAbstractions}.
 
 %if False
 
@@ -209,7 +223,7 @@ Sharing a non-deterministic computation leads to different results than its inli
 \end{minipage}
 
 In case of Curry non-determinism emerges as effect, that is, in Curry we can observe sharing of computations as it affects the number of results.
-We take a look at the corresponding tree visualisation for both expressions.
+We take a look at the corresponding tree visualisations for both expressions.
 
 \begin{figure}[h]
 \begin{minipage}{0.5\textwidth}
@@ -242,8 +256,7 @@ We take a look at the corresponding tree visualisation for both expressions.
 
 The tree structure is the same for both expressions.
 We can, however, observe that the crucial difference lies in the labels for the non-deterministic choices that are displayed as \texttt{?1}, \texttt{?2} and \texttt{?3}, respectively.
-Note that we simplified the tree visualisation we showed before by removing these labels.
-We showed a simplified version before because the labels are only of interest when an expression introduces sharing.
+Note that we simplified the tree visualisation we showed before by removing these labels, because the labels are only of interest when an expression introduces sharing.
 Let us take a look at a step-by-step evaluation of \cyinl{test2 42} that introduces sharing.
 
 \begin{figure}[h]
