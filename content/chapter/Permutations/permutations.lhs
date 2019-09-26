@@ -31,18 +31,18 @@ instance Monad ND where
 (?) = (++)
 \end{minted}
      
-Using the monadic abstraction and the helper function, we can define the non-deterministic comparison function \hinl{coinCmpList} --- corresponding to the function \hinl{coinCmp} that we have used in Curry before, which transmits easily to the list model in Haskell.
+Using the monadic abstraction and the helper function, we can define the non-deterministic comparison function \hinl{coinCmpND} --- corresponding to the function \hinl{coinCmp} that we have used in Curry before, which transfers easily to the list model in Haskell.
 
 %if False
 
-> coinCmpList :: a -> a -> ND Bool
-> coinCmpList _ _ = return True ? return False
+> coinCmpND :: a -> a -> ND Bool
+> coinCmpND _ _ = return True ? return False
 
 %endif
 
 \begin{minted}{haskell}
-coinCmpList :: a -> a -> ND Bool
-coinCmpList _ _ = return True ? return False
+coinCmpND :: a -> a -> ND Bool
+coinCmpND _ _ = [True] ? [False]
 \end{minted}
 
 \paragraph{Example: Non-deterministic application of filter}
@@ -69,7 +69,7 @@ Note that the potentially non-deterministic values occur in the result of the pr
 We need to process the potentially non-deterministic computations resulting from the predicate check \hinl{p x} and the recursive call \hinl{filterND p xs} using \hinl{(>>=)} to handle each possible value of the computation.
 The attentive reader notices that the definition of \hinl{filterND} is not specific to the specified type \hinl{ND}, but works for any monad.
 That is, since we solely rely on the abstractions provided by monads, we can generalise the type definition.
-The resulting definition is \hinl{filterM :: Monad m => (a -> m Bool) -> [a] -> m [a]}\footnote{Note that the definition of \hinl{filterM} is based on the \hinl{Applicative} instead of \hinl{Monad} type class now. \url{http://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Monad.html\#v:filterM} (last accessed: 2019-09-10)}; the implementation stays the same.
+The resulting definition is \hinl{filterM :: Monad m => (a -> m Bool) -> [a] -> m [a]}; the implementation stays the same.\footnote{Note that the definition of \hinl{filterM} is based on the \hinl{Applicative} instead of \hinl{Monad} type class now. \url{http://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Monad.html\#v:filterM} (last accessed: 2019-09-10)}
 
 %if False
 
@@ -83,11 +83,11 @@ The resulting definition is \hinl{filterM :: Monad m => (a -> m Bool) -> [a] -> 
 
 When running concrete example, we then instantiate the monadic contexts with \hinl{ND} to illustrate the behaviour of a non-deterministic version.
 
-Since \hinl{filter} needs to applied to a unary predicate, we partially apply \hinl{coinCmpList} with \hinl{42} in the examples.
+Since \hinl{filter} needs to be applied to a unary predicate, we partially apply \hinl{coinCmpND} with \hinl{42} in the examples.
 
 \begin{hrepl}
-\haskellrepl filterM (coinCmpList 42) [1,2,3]
-{ [1,2,3], [1,2], [1,3], [1], [2,3], [2], [3], [] }
+\haskellrepl filterM (coinCmpND 42) [1,2,3]
+\{ [1,2,3], [1,2], [1,3], [1], [2,3], [2], [3], [] \}
 \end{hrepl}
 
 As a side note, consider the following urge to outsource the duplicate call to \hinl{filterM p xs} in both branches of the if-then-else-expression.
@@ -113,12 +113,12 @@ filterM' f (x:xs) = f x >>= \p ->
 This transformation, which computes the non-deterministic computation \hinl{filterM p xs} only once, is still equivalent to the original implementation of \hinl{filterM}.
 
 \begin{hrepl}
-replHS> filterM' (coinCmpList 42) [1,2,3]
-{ [1,2,3], [1,2], [1,3], [1], [2,3], [2], [3], [] }
+\haskellrepl filterM' (coinCmpND 42) [1,2,3]
+\{ [1,2,3], [1,2], [1,3], [1], [2,3], [2], [3], [] \}
 \end{hrepl}
 
 We must be aware, however, that the transformation is only valid because we use the result of \hinl{filterM p xs} in both branches of the if-then-else-expression.
-The next paragraph discusses an example that yields different results before and after the transformation.
+In the next paragraph we discuss an example that yields different results before and after the transformation.
 
 \paragraph{Example: Non-deterministic application of insert}
 Consider the following two monadic versions of the function \cinl{insert} we defined in Curry.
@@ -156,29 +156,29 @@ insertM' p x (y:ys) = p x y >>= \b ->
 The alternative version \hinl{insertM'} computes the potentially non-deterministic computation of the recursive call to \hinl{insertM; p x ys} before checking the condition \hinl{b} such that it does not behave as the original version of \hinl{insertM} anymore.
  
 \begin{hrepl}
-replHS> insertM coinCmpList 1 [2,3]
-{ [1,2,3], [2,1,3], [2,3,1] }
+\haskellrepl insertM coinCmpND 1 [2,3]
+\{ [1,2,3], [2,1,3], [2,3,1] \}
 
-replHS> insertM' coinCmpList 1 [2,3]
-{ [1,2,3], [1,2,3], [2,1,3], [2,3,1] }
+\haskellrepl insertM' coinCmpND 1 [2,3]
+\{ [1,2,3], [1,2,3], [2,1,3], [2,3,1] \}
 \end{hrepl}
 
-The exemplary calls using the non-deterministic comparison function \hinl{coinCmpList} do not yield the same results.
-When we apply a monadic version of insert to \hinl{coinCmpList}, we expect $n+1$ results for a input list of length $n$ --- the same result we observed in Curry.
-The application \hinl{insertM' coinCmpList}, however, yields $n^2$ results.
+The exemplary calls using the non-deterministic comparison function \hinl{coinCmpND} do not yield the same results.
+When we apply a monadic version of insert to \hinl{coinCmpND}, we expect $n+1$ results for a input list of length $n$ --- the same result we observed in Curry.
+The application \hinl{insertM' coinCmpND}, however, yields $2^n$ results.
 
 \begin{hrepl}
-replHS> length (insertM' coinCmpList 1 [2,3])
+\haskellrepl length (insertM' coinCmpND 1 [2,3])
 4
 
-replHS> length (insertM' coinCmpList 1 [2..4])
+\haskellrepl length (insertM' coinCmpND 1 [2..4])
 8
 
-replHS> length (insertM' coinCmpList 1 [2..11])
+\haskellrepl length (insertM' coinCmpND 1 [2..11])
 1024
 \end{hrepl}
 
-Due to the call to \hinl{insertM' p x ys} before checking the boolean value \hinl{b}, we need to evaluate the recursive call, even though we do not need the resulting variable binding \hinl{zs} when taking the else-branch.
+Due to the call to \hinl{insertM' p x ys} before checking the Boolean value \hinl{b}, we need to evaluate the recursive call, even though we do not need the resulting variable binding \hinl{zs} when taking the else-branch.
 The important insight is that we need to be careful when using the \hinl{(>>=)}-operator.
 In most settings, and the list instance is no exception, \hinl{(>>=)} needs to be interpreted as a sequencing operator that is strict in its first argument.
 That is, if we have an expression \hinl{mx >>= f}, we cannot proceed with \hinl{f} without evaluating \hinl{mx} first.
@@ -199,56 +199,56 @@ That is, in order to evaluate an expression like
 insertM' p x ys >>= \zs -> return (if b then x:y:ys else y:zs)
 \end{minted}
 
-we need to evaluate \hinl{insertM' p x ys} first.
+\noindent we need to evaluate \hinl{insertM' p x ys} first.
 In this example, we trigger the evaluation of the non-deterministic comparison function \hinl{coinCmp} although we do not need the result \hinl{zs} if the condition \hinl{b} is \hinl{True}.
 
 As example, consider the excerpt of a step-wise evaluation of the example from above listed in \autoref{fig:filterMStep}.
-Note that we need to evaluate \hinl{filterM' (coinCmpList 42) [1,2,3]} and all recursive calls of \hinl{filterM'} that arise during evaluation.
+Note that we need to evaluate \hinl{filterM' (coinCmpND 42) [1,2,3]} and all recursive calls of \hinl{filterM'} that arise during evaluation.
 
 \begin{figure}
 \plainhs
 \begin{spec}
-  filterM' (coinCmpList 42) [1,2,3]
+  filterM' (coinCmpND 42) [1,2,3]
 = {- Definition of |filterM'| -}
-  coinCmpList 42 1  >>= \p -> filterM' (coinCmpList 42) [2,3]
-                    >>= \ys -> return (if p then x:ys else ys)
-= {- Definition of |coinCmpList| -}
-  Cons True (Cons False Nil) >>= \p ->  filterM' (coinCmpList 42) [2,3] >>= \ys ->
-                                        return (if p then x:ys else ys)
+  coinCmpND 42 1  >>= \p -> filterM' (coinCmpND 42) [2,3]
+                  >>= \ys -> return (if p then 1:ys else ys)
+= {- Definition of |coinCmpND| -}
+  [True, False] >>= \p ->  filterM' (coinCmpND 42) [2,3] >>= \ys ->
+                           return (if p then 1:ys else ys)
 = {- Definition of |(>>=)| -}
-  filterM' (coinCmpList 42) [2,3] >>= \ys -> return (if p then x:ys else ys)
+  filterM' (coinCmpND 42) [2,3] >>= \ys -> return (if True then 1:ys else ys)
   ++
-  Cons False Nil >>= \p ->  filterM' (coinCmpList 42) [2,3] >>= \ys ->
-                            return (if p then x:ys else ys)
+  [False] >>= \p ->  filterM' (coinCmpND 42) [2,3] >>= \ys ->
+                     return (if p then 1:ys else ys)
 = {- Definition of |(>>=)| -}
-  filterM' (coinCmpList 42) [2,3] >>= \ys -> return (if True then x:ys else ys)
+  filterM' (coinCmpND 42) [2,3] >>= \ys -> return (if True then 1:ys else ys)
   ++
-  filterM' (coinCmpList 42) [2,3] >>= \ys -> return (if False then x:ys else ys)
+  filterM' (coinCmpND 42) [2,3] >>= \ys -> return (if False then 1:ys else ys)
   ++
-  Nil >>= \p ->  filterM' (coinCmpList 42) [2,3] >>= \ys ->
-                 return (if False then x:ys else ys)
+  [] >>= \p ->  filterM' (coinCmpND 42) [2,3] >>= \ys ->
+                 return (if False then 1:ys else ys)
 = {- Definition of |filterM'| -}
-  (coinCmpList 42 2 >>= \p ->  filterM' (coinCmpList 42) [3] >>= \ys ->
-                               return (if p then x:ys else ys)) >>= \ys ->
+  (coinCmpND 42 2 >>= \p ->  filterM' (coinCmpND 42) [3] >>= \ys ->
+                             return (if p then 1:ys else ys)) >>= \ys ->
+  return (if True then 1:ys else ys)
+  ++ ... ++ ...
+= {- Definition of |coinCmpND| -}
+  [True, False] >>= \p ->  filterM' (coinCmpND 42) [3] >>= \ys ->
+                           return (if p then 1:ys else ys)) >>= \ys ->
   return (if True then x:ys else ys)
   ++ ... ++ ...
-= {- Definition of |coinCmpList| -}
-  (Cons True (Cons False Nil) >>= \p ->  filterM' (coinCmpList 42) [3] >>= \ys ->
-                                         return (if p then x:ys else ys)) >>= \ys ->
-  return (if True then x:ys else ys)
-  ++ ... ++ ...
 = {- Definition of |(>>=)| -}
-  (filterM' (coinCmpList 42) [3] >>= \ys -> return (if True then x:ys else ys)
-   ++ filterM' (coinCmpList 42) [3] >>= \ys -> return (if False then x:ys else ys)
-   ++ Nil >>= \p ->  filterM' (coinCmpList 42) [3] >>= \ys ->
-                      return (if p then x:ys else ys)) >>= \ys ->
-  return (if True then x:ys else ys)
+  (filterM' (coinCmpND 42) [3] >>= \ys -> return (if True then 1:ys else ys)
+   ++ filterM' (coinCmpND 42) [3] >>= \ys -> return (if False then 1:ys else ys)
+   ++ [] >>= \p ->  filterM' (coinCmpND 42) [3] >>= \ys ->
+                    return (if p then 1:ys else ys)) >>= \ys ->
+  return (if True then 1:ys else ys)
   ++ ... ++ ...
 = {- Definition of |filterM'| -}
   ...
 \end{spec}
 \framedhs
-\caption{Step-wise evaluation of \hinl{filterM' (coinCmpList 42) [1,2,3]}}
+\caption{Extract of a step-wise evaluation of \hinl{filterM' (coinCmpND 42) [1,2,3]}}
 \label{fig:filterMStep}
 \end{figure}
 
@@ -257,7 +257,7 @@ Note that we need to evaluate \hinl{filterM' (coinCmpList 42) [1,2,3]} and all r
 
 Thanks to the generic implementation using a monadic interface, we are free to use whatever instance fits our purpose to actually run the sorting functions.
 For example, we can generate decision trees like in Curry by using a monad that keeps track of all operations and pretty prints the non-deterministic parts of our computation.
-As first step, we generalise the comparison function \hinl{coinCmpList} to \hinl{MonadPlus}, which is an extension of the \hinl{Monad} type class that introduces an additional function \hinl{mplus} to combine monadic computations and \hinl{mzero} as neutral element for the function \hinl{mplus}.
+As first step, we generalise the comparison function \hinl{coinCmpND} to \hinl{MonadPlus}, which is an extension of the \hinl{Monad} type class that introduces an additional function \hinl{mplus} to combine monadic computations and \hinl{mzero} as neutral element for the function \hinl{mplus}.
 
 \begin{minted}{haskell}
 class Monad m => MonadPlus m where
@@ -265,8 +265,8 @@ class Monad m => MonadPlus m where
   mzero :: m a
 \end{minted}
 
-The idea of the non-deterministic comparison function \hinl{coinCmpList} is to yield two results non-deterministically.
-In the concrete implementation using lists, we define \hinl{coinCmpList} based on singleton lists \hinl{[True]} and \hinl{[False]} that are combined using the concatenation operator \hinl{(++)}.
+The idea of the non-deterministic comparison function \hinl{coinCmpND} is to yield two results non-deterministically.
+In the concrete implementation using lists, we define \hinl{coinCmpND} based on singleton lists \hinl{[True]} and \hinl{[False]} that are combined using the concatenation operator \hinl{(++)}.
 A generalisation using \hinl{MonadPlus} replaces the concatenation operator by \hinl{mplus}.
 
 %if False
@@ -282,7 +282,7 @@ coinCmp _ _ = return True `mplus` return False
 \end{minted}
   
 As second step, we use a monad instance that can interpret all monadic
-operations in an abstract way: the free monad \citet{swierstra2008data} we introduced in \autoref{subsec:freeMonad}.
+operations in an abstract way: the free monad \citep{swierstra2008data} we introduced in \autoref{subsec:freeMonad}.
 As we are interested in pretty printing the non-deterministic components of our monadic computations, we need a suitable functor to model non-determinism.
 The important primitive operations of non-determinism are exactly the ones provided by the \hinl{MonadPlus} type class: an operator to combine two effectful computations and the failing computation.
 Note that the simplified version in the introduction (\autoref{subsec:freeMonad}) does not have a representation for the latter computation.
@@ -433,20 +433,20 @@ Note that is again crucial to introduce potentially non-deterministic values onl
 This observation also applies to the definition of \hinl{insertM}, the input list \hinl{ys} needs to be deterministic.
 That is, in order to insert the head element \hinl{x} into the already sorted tail, we unwrap the monadic context using \hinl{(>>=)} and apply \hinl{insertM} to each possible value of the computation \hinl{insertionSortM p xs}.
 
-Applying \hinl{insertionSortM} to \hinl{coinCmpList} and exemplary list values yields the expected permutations, more precisely, exact the permutations of the input list.
+Applying \hinl{insertionSortM} to \hinl{coinCmpND} and exemplary list values yields the expected permutations, more precisely, exact the permutations of the input list.
 
 \begin{hrepl}
-\haskellrepl insertionSortM coinCmpList [1..3]
-{ [1,2,3], [2,1,3], [2,3,1], [1,3,2], [3,1,2], [3,2,1] }
+\haskellrepl insertionSortM coinCmpND [1..3]
+\{ [1,2,3], [2,1,3], [2,3,1], [1,3,2], [3,1,2], [3,2,1] \}
 
 \haskellrepl let fac n = if n == 0 then 1 else n * fac (n-1) in
-        all (\func n -> length (insertionSortM coinCmpList [1..n]) == fac n)
+        all (\func n -> length (insertionSortM coinCmpND [1..n]) == fac n)
             [1..10]
 True
 \end{hrepl}
 
 The second example call checks for lists of length 1 to 10, if the number of non-deterministic results is equal to the factorial of the corresponding length, which is indeed the case.
-Now we know that both implementations compute the same results.
+Now we know that both implementations compute the same number of results.
 The interesting question is, however, if they behave the same in all contexts.
 
 Recall that the Curry implementation defines \hinl{insertionSortM} using a let-declaration for the recursive call.
@@ -454,7 +454,7 @@ This recursive call only has to be evaluated if we demand more than one element 
 In the example below, we call \hinl{insertionSort} on a non-empty list to compute the head element of all non-deterministic results and count the number of non-deterministic results afterwards.
 
 \begin{hrepl}
-\haskellrepl map (\func n ->  length (insertionSortM coinCmpList [1..n] >>= \func xs ->
+\haskellrepl map (\func n ->  length (insertionSortM coinCmpND [1..n] >>= \func xs ->
                     return (head xs)))
              [5..10]
 [120,720,5040,40320,362880,3628800]
@@ -510,11 +510,11 @@ We can reconcile the computation we want to express with the explicit non-determ
 \begin{hrepl}
 \haskellrepl  return [] ? return [False] >>= \func nd ->
        let exp = True : nd in return (head exp)
-{ True, True }
+\{ True, True \}
 
 \haskellrepl  return [] ? return [False] >>= \func nd ->
        let exp = True : nd in return (tail exp)
-{ [], [False] }
+\{ [], [False] \}
 \end{hrepl}
 
 In this case, however, the non-determinism is definitely triggered: even though \hinl{head} does not need to evaluate its tail --- where the non-determinism occurs, the first argument of \hinl{(>>=)} is evaluated.
@@ -557,13 +557,13 @@ selectionSortM p xs = pickMinM p xs >>= \(m,l) ->
                       return (m:ys)
 \end{minted}
 
-The application of \hinl{selectionSortM} to \hinl{coinCmpList} yields more results than expected, the resulting function enumerates some permutations multiple times.
+The application of \hinl{selectionSortM} to \hinl{coinCmpND} yields more results than expected, the resulting function enumerates some permutations multiple times.
 
 \begin{hrepl}
-\haskellrepl selectionSortM coinCmpList [1,2,3]
-{ [1,2,3], [1,3,2], [2,1,3], [2,3,1], [1,2,3], [1,3,2], [3,1,2], [3,2,1] }
+\haskellrepl selectionSortM coinCmpND [1,2,3]
+\{ [1,2,3], [1,3,2], [2,1,3], [2,3,1], [1,2,3], [1,3,2], [3,1,2], [3,2,1] \}
 
-\haskellrepl all (\func n -> length (selectionSortM coinCmpList [1..n]) == $2^(\frac{n*(n-1)}{2})$)
+\haskellrepl all (\func n -> length (selectionSortM coinCmpND [1..n]) == $2^(\frac{n*(n-1)}{2})$)
              [1..7]
 True
 \end{hrepl}
@@ -581,11 +581,11 @@ That is, for $n=10$ there are $n! = 3 628 800$ permutations, whereas an applicat
 \]
 results.
 
-Since the number of results for \hinl{selectionSort} applied to a non-deterministic comparison function differs with the result we got for the Curry implementation, we compare the underlying decision trees.
-The non-determinism produced by \hinl{selectionSort} arises from the usage of \hinl{coinCmpList}, which is only evaluated in the auxiliary function \hinl{pickMinM}.
+Since the number of results for \hinl{selectionSort} applied to a non-deterministic comparison function differs from the result we got for the Curry implementation, we compare the underlying decision trees.
+The non-determinism produced by \hinl{selectionSort} arises from the usage of \hinl{coinCmpND}, which is only evaluated in the auxiliary function \hinl{pickMinM}.
 That is, it is sufficient to take a look at the decision tree for a sub-call of \hinl{pickMinM} to detect the different behaviour.
 We compute the decision tree displayed left in \autoref{fig:pickDecision} by applying a free monad based data type as described in \autoref{subsec:drawing}.
-The right side of the figure recaps the decision tree when using the Curry implementation.
+The right side of the figure recapitulates the decision tree when using the Curry implementation.
 
 \begin{figure}
 \begin{minipage}{0.44\textwidth}
@@ -612,27 +612,27 @@ $\quad$ \vline $\quad$
 \end{verbatim}
 \end{minipage}
 
-\caption{Decision trees for the expressions \hinl{pickMinM coinCmpList [1,2,3]} in Haskell (left) and \cyinl{pickMin coinCmp [1,2,3]} in Curry (right)}
+\caption{Decision trees for the expressions \hinl{pickMinM coinCmpND [1,2,3]} in Haskell (left) and \cyinl{pickMin coinCmp [1,2,3]} in Curry (right)}
 \label{fig:pickDecision}
 \end{figure}
 
 The monadic version is more strict: the recursive call to \hinl{pickMinM} needs to be evaluated in order to apply the predicate \hinl{p}.
 In the Curry version, however, we can already take the \cyinl{True}-branch for the application of \cyinl{p} without considering the recursive call first.
 Thus, the first result \cyinl{(1, [2,3])} triggers only one non-deterministic decision in Curry.
-Of course, the number of unnecessary triggered non-deterministic decisions in the Haskell version increases with each recursive call of \hinl{pickMinM}.
+Of course, the number of unnecessarily triggered non-deterministic decisions in the Haskell version increases with each recursive call of \hinl{pickMinM}.
 That is, when we apply \hinl{pickMinM} to a longer list, the number of duplicate results increases with the length of the list.
 
 \begin{hrepl}
-\haskellrepl map  (\func n -> length (pickMinM coinCmpList [1..n] >>= return . fst ))
+\haskellrepl map  (\func n -> length (pickMinM coinCmpND [1..n] >>= return . fst ))
              [1..20]
 [1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,
 65536,131072,262144,524288]
 \end{hrepl}
 
-More precisely, \hinl{pickMinM coinCmpList xs} yields $2^{\hinl{length xs}}$ results, while the Curry version only yields \hinl{length n} results.
+More precisely, \hinl{pickMinM coinCmpND xs} yields $2^{\hinl{length xs}}$ results, while the Curry version only yields \hinl{length n} results.
 Note that the second variant, i.e., the Curry version, is what we expect in the first place: picking a minimum with a non-deterministic predicate is basically a function that non-deterministically yields each element of the list.
 
-In the end, \hinl{pickMinM} and \cyinl{pickMin}, respectively, are the functions used to implement the selection sort algorithm and, thus, determines the number of permutations.
+In the end, \hinl{pickMinM} and \cyinl{pickMin}, respectively, are the functions used to implement the selection sort algorithm and, thus, determine the number of permutations.
 Whereas \cyinl{selectionSort} yields only the permutations of the input list in Curry, we get duplicate permutations in the Haskell version.
 
 \paragraph{Other Sorting Algorithms}
@@ -642,7 +642,8 @@ The remaining sorting algorithms discussed in \autoref{sec:NDCurry}, i.e., bubbl
 When we demand only the head elements of all permutations, the monadic Haskell versions need to trigger more non-determinism than is necessary in the Curry version.
 \autoref{fig:strictSort} visualises the number of triggered non-deterministic computations that are necessary to compute only the head element of all permutations.
 We observe that all Curry implementations (completely coloured bars) compute less non-deterministic computations than all Haskell implementations.
-One interesting contrast is the behaviour of bubble sort: the Curry version only needs to trigger a constant number of non-deterministic computation (constant with respect to the length of the input list), whereas the Haskell version triggers $n!$ non-deterministic computations for an input list of length $n$.
+One interesting contrast is the behaviour of bubble sort: the Curry version only needs to trigger one non-deterministic computation for each element of the list.
+That is, the number of non-deterministic computations is linear in the length of the list, whereas the Haskell version triggers $n!$ non-deterministic computations for an input list of length $n$.
 Note that the evaluation of all permutations for bubble sort needs to trigger $n!$ non-deterministic computations as well, that is, in this case demanding only the head of each permutations is as strict as evaluating all list elements of each permutation.
 
 \begin{figure}
@@ -665,7 +666,7 @@ Note that the evaluation of all permutations for bubble sort needs to trigger $n
 >                     fmap (y:) (bubbleSortM p ys)
 
 \begin{spec}
-replHS> bubbleSortM coinCmpList [1,2,3]
+\haskellrepl bubbleSortM coinCmpND [1,2,3]
 { [1,2,3], [1,3,2], [2,1,3], [2,3,1], [1,3,2], [1,2,3], [3,1,2], [3,2,1] }
 \end{spec}
 
@@ -687,7 +688,7 @@ replHS> bubbleSortM coinCmpList [1,2,3]
                       +- 1 <= 2 -+
                                  +-[3,2,1]
 \end{verbatim}
-\caption{Decision tree for the expression |bubbleSortM coinCmpList [1,2,3]|}
+\caption{Decision tree for the expression |bubbleSortM coinCmpND [1,2,3]|}
 \label{fig:bubbleDecision}
 \end{figure}
 
