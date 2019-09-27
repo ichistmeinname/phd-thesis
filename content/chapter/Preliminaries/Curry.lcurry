@@ -12,7 +12,7 @@ Hence, Curry has most of the features users know from Haskell: algebraic data ty
 On top of these functional features, Curry adds non-determinism as a built-in effect.
 
 There are two up-to-date maintained implementations of Curry: KiCS2 \citep{hanus2014kics2} and PAKCS \citep{hanus2017pakcs}.
-In the remainder of this thesis we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.
+In the remainder of this thesis, we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.
 All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile (\curryrepl) prompt.
 
 \subsection{Non-determinism}
@@ -200,7 +200,7 @@ test1 n = (n ? (n+1)) + (n ? (n+1))
 test2 n = let x = n ? (n+1) in x + x
 \end{curry}
 
-In Haskell we showed the effect of logging a message whenever an expression is evaluated.
+Recall that we showed the effect of logging a message whenever an expression is evaluated in Haskell.
 The key observation was that introducing a let-binding for such an effectful computation, i.e., sharing the computation, behaves differently than an inlined version: in the latter case the evaluation triggers the effect twice but only once when sharing the computation.
 We observe a similar behaviour for Curry's non-determinism effect.
 Sharing a non-deterministic computation leads to different results than its inlined version.
@@ -222,7 +222,7 @@ Sharing a non-deterministic computation leads to different results than its inli
 \end{cyrepl}
 \end{minipage}
 
-In case of Curry non-determinism emerges as effect, that is, in Curry we can observe sharing of computations as it affects the number of results.
+In case of Curry non-determinism emerges as effect: we can observe sharing of computations as it affects the number of results.
 We take a look at the corresponding tree visualisations for both expressions.
 
 \begin{figure}[h]

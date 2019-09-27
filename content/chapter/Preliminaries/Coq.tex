@@ -1,7 +1,7 @@
 \section{Programming with Dependent Types in Coq}
 \label{sec:progDT}
 
-In this section we will give an introduction to programming with the interactive theorem prover Coq.
+In this section we give an introduction to programming with the interactive theorem prover Coq.
 In order to write functional programs, Coq provides the specification language \emph{Gallina}.
 More precisely, Gallina is a dependently typed functional programming language.
 The theorem prover part of Coq is based on the calculus of inductive construction \citep{coquand1988inductively}, a derivative of the calculus of construction that was introduced by \citet{coquand1986calculus}.
@@ -9,8 +9,8 @@ As Coq is not an automatic theorem prover, it additionally provides a tactic lan
 
 This introduction is structured as follows.
 We first give an overview on writing functional programs in Coq including common obstacles with regard to Coq's totality restriction as well as how to overcome them.
-As some of these solutions will lead us to dependently typed programming, we will take a look at how to formalise properties about programs and how to prove them.
-In that light we give a beginner-friendly introduction on how to use Coq's tactic language to write proofs.
+As some of these solutions lead us to dependently typed programming, we take a look at how to formalise properties about programs and how to prove them.
+In that light, we give a beginner-friendly introduction on how to use Coq's tactic language to write proofs.
 Note that we do not give a formal definition of the calculus of constructions or other concepts with regard to the implementation of Coq's logic, but suggest the interested reader to study other textbooks for a full-blown introduction \citep{pierce2010software, chlipala2011certified}.
 Instead we focus on how to use Coq as a tool to formalise and prove properties about programs.
 
@@ -49,14 +49,14 @@ Fixpoint add (p1 p2 : peano) : peano :=
 \end{minted}
 
 The pipe symbole \cinl{|} is again used as a delimiter: this time to list all patterns we want to distinguish in a \cinl{match ... with}-expression that corresponds to Haskell's \hinl{case ... of}-expressions.
-Note that the definition of \cinl{isZero} additionally uses the predefined \cinl{bool} type as result, and that we can group successive arguments of the same type in the type signature.
+Note that the definition of \cinl{isZero} uses the predefined \cinl{bool} type as result, and that we can group successive arguments of the same type in the type signature.
 The functions definitions above represent two different kinds of functions: \cinl{isZero} is a non-recursive function, whereas \cinl{add} is a representative for recursive functions.
 In Coq it is crucial to define recursive functions using the keyword \cinl{Fixpoint}.
 Definitions that are marked as \cinl{Fixpoint}s need to pass an additional check: As a total language, all functions in Coq have to terminate.
 In case of recursive functions, Coq checks if there is one argument of the recursive call that is structurally smaller than the original argument passed to the function for each recursive call.
 In our example definition \cinl{add}, the argument \cinl{p} of the recursive call is structurally smaller than the original value \cinl{p1} in the second case of the branch, where we know that \cinl{p1} has the shape \cinl{(s p)}.
 
-An example for a recursive function that Coq's termination checker does accept, is the following artificial definition that decreases on one of its arguments at each recursive call, but does not have one designated argument that decreases for each call.
+As an example for a recursive function that Coq's termination checker does accept, we try to define the following artificial definition that decreases on one of its arguments at each recursive call, but does not have one designated argument that decreases for each call.
 
 \begin{minted}{coq}
 Fail Fixpoint test (b : bool) (n m : peano) : bool :=
@@ -99,7 +99,8 @@ Inductive list (A : Type) : Type :=
 | cons : A -> list A -> list A.
 \end{minted}
 
-When we try to compute the exemplary singleton list \cinl{cons z nil} to normalform, Coq yields an error message.
+In case of polymorphic functions, including constructors of datas types, we need to pass the instantiation of the type arguments explicitly.
+For example, when we try to compute the exemplary singleton list \cinl{cons z nil} to normalform, Coq yields an error message.
 
 \begin{crepl}
 \coqrepl Compute (cons z nil).
@@ -107,8 +108,8 @@ Error: The term "z" has type "peano" while it is expected to have type
        "Type".
 \end{crepl}
 
-Constructors of polymorphic functions need to be applied to more arguments than we are used to from functional languages such as Haskell.
-More precisely, all constructors of a polymorphic data type like \cinl{list} have additional type arguments.
+When using Coq, constructors of polymorphic functions need to be applied to more arguments than we are used to from functional languages such as Haskell.
+More precisely, all constructors of a polymorphic data type like \cinl{list} as well as polymorphic functions in general have additional type arguments.
 In our case, \cinl{cons} and \cinl{nil} have the following types.
 
 \begin{crepl}
@@ -181,12 +182,12 @@ Here, \cinl{eq} is a dependent type, because the type of the constructor \cinl{e
 The type of lemmas like \cinl{map_length} correspond to the proposition we want to prove and the implementation is one concrete proof.
 That is, if we can implement \cinl{map_length} with type \cinl{length xs = length (map f xs)}, we have proven the corresponding proposition.
 
-\subsection{Proving in Coq: A step-by-step introduction}
+\subsection{Proving in Coq: A Step-by-Step Introduction}
 For the proof of the proposition \cyinl{map_length}, on the other hand, we need to take a look at the tactic language \cinl{Ltac} for the first time.
 We enclose a proof using the commands \cinl{Proof} and \cinl{Qed} and write all tactics we want to apply between these commands.
-So, let us start with the proof; we will illustrate the progress after each step in a verbatim environment next to the presented tactic or other command.
+So, let us start with the proof; we present the tactic or other commands on the left-hand side and illustrate the progress after that command in a verbatim environment on the right-hand side.
 
-\begin{cproof}{Proof.}
+\begin{cproof}{Proof. intros A B f xs.}
   A : Type
   B : Type
   f : A -> B
@@ -195,11 +196,11 @@ So, let us start with the proof; we will illustrate the progress after each step
   length xs = length (map f xs)
 \end{cproof}
 
-The current state of the proof shows that we have the types \cinl{A} and \cinl{B} in scope as well as a function \cinl{f : A -> B} and a list \cinl{xs : list A}.
+The current state of the proof shows that we have the types \cinl{A} and \cinl{B} in scope as well as a function \cinl{f : A -> B} and a list \cinl{xs : list A}, which we introduced with the tactic \cinl{intros}.
 These types are \emph{hypotheses} we can use for the proof.
 Underneath the hypotheses we see the resulting type of \cinl{map_length} that represents the current \emph{goal}.
-We can then use tactics to manipulate hypotheses and the goal in a sensible way until we find the final proof of the goal.
- As we proceed with the proof, we will use \cinl{...} to indicate that we do not list all hypotheses, e.g., we will leave out types of identifiers variables and hypotheses that are not used in the currently focused goal.
+We can then use constructs of the tactic language to manipulate hypotheses and the goal in a sensible way until we find the final proof of the goal.
+As we proceed with the proof, we will use \cinl{...} to indicate that we do not list all hypotheses, e.g., we will leave out types of identifiers, variables and hypotheses that are not used in the currently focused goal.
 
 We cannot simplify neither the left-hand side of the equation nor the right-hand side, because the definition of \cinl{length} distinguishes between the \cinl{nil} and \cinl{cons} case.
 In order to argument about these two different cases separately, we start by doing an induction on \cinl{xs}.
@@ -212,12 +213,17 @@ Using the \cinl{induction}-tactic on a list generates two new goals: one for \ci
   length nil = length (map f nil)
 
 subgoal 2 is:
+  ...
+  H : length ys = length (map f ys)
+  ============================
   length (cons y ys) =
   length (map f (cons y ys))
 \end{cproof}
 
 We use a more involved version of the \cinl{induction}-tactic that additionally supplies the names for the new arguments that need to be introduced.
-The introduction pattern \cinl{[ | y ys H ]} describes the naming conventions for two subgoals: we do not supply any names for the first goal and the three names \cinl{y}, \cinl{ys} and \cinl{H} for the \cinl{cons}-subgoal.
+The introduction pattern \cinl{[ | y ys H ]} describes the naming conventions for the variables introduced in the two subgoals.
+We do not supply any variable names for the first goal, because the \cinl{nil}-case does not introduced new variables.
+For the \cinl{cons}-subgoal we pass the three names: \cinl{y} and \cinl{ys} for the two arguments of the \cinl{cons}-constructor as well as \cinl{H} for the induction hypothesis.
 More generally, the vertical bar is a separator for the resulting subgoals and we introduce new names depending on the arguments of the corresponding subgoal.
 The first two names correspond to the the arguments of \cinl{cons} and \cinl{H} is the name for the induction hypothesis that is automatically generated by Coq since \cinl{list} is a recursive type.
 In case of \cinl{nil}, we can simplify both sides of the equation using the definition of \cinl{length} and \cinl{map} by applying the tactic \cinl{simpl}.
@@ -239,7 +245,7 @@ Next, we take a look at the \cinl{cons}-case after simplifying both expressions 
   s (length ys) = s (length (map f ys))
 \end{cproof}
 
-Note that the induction hypothesis \cinl{H} states that the proposition already holds in case of \cinl{ys}.
+The induction hypothesis \cinl{H} states that the proposition already holds in case of \cinl{ys}.
 That is, we can directly rewrite \cinl{length ys} on the left-hand side of the equation in the goal with the right-hand side of the hypothesis.
 
 \begin{cproof}{rewrite -> H.}
@@ -263,6 +269,7 @@ In order to give a better overview of the proof in its entirety, we restate the 
 \begin{minted}{coq}
 Lemma map_length (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
 Proof.
+  intros A B f xs.
   induction xs as [ | y ys H ].
   - simpl. reflexivity.
   - simpl.
@@ -273,8 +280,8 @@ Qed.
 
 \subsection{Dependent Types to Encode Invariants}
 
-As stated in the beginning of the last section, the property about map preserving the length of the list is not surprising.
-In the next two sections we take a look at how to encode the length of the list in its type and discuss that due to this encoding, the property of map not manipulating the length of the list becomes clear from the type signature alone.
+As stated in the beginning of the last section, the property about \cinl{map} preserving the length of the list is not surprising.
+In the next two sections we take a look at how to encode the length of the list in its type and discuss that due to this encoding, the property of \cinl{map} not manipulating the length of the list becomes clear from the type signature alone.
 
 A list with its length encoded in its type is usually called a \cinl{vector} and is defined as follows.
 
@@ -311,7 +318,7 @@ Fixpoint vmap (A B : Type) (n : peano) (f : A -> B) (xs : vector A n)
 Note that we cannot define the function using two different values for the length.
 The definition of \cinl{vmap} explicitly reconstructs all constructors of the input \cinl{xs} such that the output list cannot be of different length.
 
-As the type signature of \cinl{vmap} already tells us that \cinl{vmap} does not change the length of the list, the property we proved above for ordinary lists becomes a one-liner.
+As the type signature of \cinl{vmap} already tells us that \cinl{vmap} does not change the length of the list, the property for ordinary lists we proved above becomes a one-liner.
 
 \begin{minted}{coq}
 Lemma vmap_vlength : forall A B (n : peano) (f : A -> B) (xs : vector A n),
@@ -366,6 +373,7 @@ Section vmap_spec_proofs.
 
   Lemma vmap_fulfils_spec : forall (xs : vector A n), vmap_spec f xs (vmap f xs).
   Proof.
+    intros xs.
     induction xs as [ | n y ys IHys ]; simpl.
     - apply spec_nil.
     - apply spec_cons.
@@ -385,7 +393,7 @@ In Coq, such a value that cannot be constructed is represented using the type \c
 Inductive False : Prop := .
 \end{minted}
 
-Since \cinl{False} lives in the world of proofs it is of type \cinl{Prop}.
+Since \cinl{False} is used in the context of proofs, it is of type \cinl{Prop}.
 We cannot construct any value of type \cinl{False}, simply because the inductive type has no constructors.
 The definition of \cinl{False} is valid nonetheless --- and useful as well.
 
@@ -464,7 +472,7 @@ End vspec_map_proofs.
 \end{minted}
 
 The proof follows straightforward by induction over the specification predicate.
-The last line of the code closes the section we opened above, that is, all the variables introduced are note visible anymore but inserted as additional arguments for the lemmas \cinl{vmap_different_length} and \cinl{vmap_same_length}.
+The last line of the code closes the section we opened above, that is, all the variables introduced are not visible anymore but inserted as additional arguments for the lemmas \cinl{vmap_different_length} and \cinl{vmap_same_length}.
 
 The encoding of lists associated with their lengths as well as using predicates to formalise properties for data structures are good showcases on how to use Coq's dependent type system to prove properties about programs.
 The above proofs give a compact overview on the tactics we will use throughout the thesis.

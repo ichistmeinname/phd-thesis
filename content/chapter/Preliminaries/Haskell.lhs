@@ -194,7 +194,7 @@ Undefined
 Note that the an implementation of \hinl{tailPartial} would not compose with \hinl{headPartial} anymore as in the original example above.
 Before we talk about this downside of the model, let us take look at a representation for non-determinism as effect.
 We model functions that possibly produce several results using lists.
-In order to not confuse the modeled non-determinism with lists that we use as algebraic datatypes in type signatures of functions, we use a type synonym \hinl{ND}.
+In order to not confuse the representation of non-determinism using lists with lists that we use as algebraic datatypes in type signatures of functions, we use a type synonym \hinl{ND}.
 
 \begin{minted}{haskell}
 type ND a = [a]
@@ -384,7 +384,7 @@ We do not go into more details concerning this unintended behaviour here, but ho
 \subsection{Free Monads}
 \label{subsec:freeMonad}
 
-Recently, the functional programming community started using a slight different approach for modeling effects.
+Recently, the functional programming community started using a slightly different approach for modeling effects.
 The overall monadic structure is still the key of the representation of such effects.
 One observation that leads to the other abstraction is that all representations of such effects have operations to lift a value into the effects (\hinl{return}) and to manipulate the values of an effect (\hinl{(>>=)}) in common.
 This observation finally leads to a monad instance that can interpret all monadic operations in an abstract way: the free monad \citep{swierstra2008data}.
