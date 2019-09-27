@@ -395,8 +395,29 @@ Inductive False : Prop := .
 
 Since \cinl{False} is used in the context of proofs, it is of type \cinl{Prop}.
 We cannot construct any value of type \cinl{False}, simply because the inductive type has no constructors.
-The definition of \cinl{False} is valid nonetheless --- and useful as well.
+As a consequence, we are able prove a statement that says that we can construct a value of an arbitrary type if we have a false assumption in the context.
 
+\begin{minted}{coq}
+Lemma bogus : forall (A : Type), False -> A.
+Proof.
+  intros A H.
+  destruct H.
+Qed.
+\end{minted}
+
+We introduce the argument of type \cinl{False} as \cinl{H} and try to make a case distinction, which already proves the goal.
+Instead of stating this function as lemma, we can define it as a function.
+
+\begin{minted}{coq}
+Definition bogus (A : Type) (H : False) : A :=
+  match H with end.
+\end{coq}
+
+Note that the usage of an empty pattern match.
+Since the argument \cinl{H} is of type \cinl{False} and \cinl{False} has no constructors to match on, Coq realises that we cannot have a value of type \cinl{H} in the first place.
+This construction corresponds to the usage of \cinl{destruct} in the tactic-based proof above.
+
+The definition of \cinl{False} is valid nonetheless --- and useful as well.
 We can, for example, use \cinl{False} to show that two expressions are not equal.
 
 \begin{minted}{coq}

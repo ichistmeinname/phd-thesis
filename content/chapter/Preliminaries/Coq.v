@@ -72,6 +72,15 @@ Proof.
     reflexivity.
 Qed.
 
+Definition bogus (A : Type) (H : False) : A :=
+  match H with end.
+
+Lemma bogus' : forall (A : Type), False -> A.
+Proof.
+  intros A H.
+  destruct H.
+Qed.
+
 Fixpoint map_length (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs) :=
   match xs with
   | nil => eq_refl (length nil)
