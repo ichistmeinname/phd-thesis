@@ -1,0 +1,248 @@
+\subsection{Dependent Types to Encode Invariants}
+
+As stated in the beginning of the last section, the property about \cinl{map} preserving the length of the list is not surprising.
+In the next two sections we take a look at how to encode the length of the list in its type and discuss that due to this encoding, the property of \cinl{map} not manipulating the length of the list becomes clear from the type signature alone.
+
+A list with its length encoded in its type is usually called a \cinl{vector} and is defined as follows.
+
+\begin{minted}{coq}
+Inductive vector (A : Type) : nat -> Type :=
+| vnil  : vector A z
+| vcons : forall n, A -> vector A n -> vector A (s n).
+\end{minted}
+
+Note that the type \cinl{vector} needs to be applied to two arguments to yield a type: a type for the elements and a \cinl{nat} to indicate its length.
+The two constructors illustrate how to use the type: In case of \cinl{vnil} we encode that the length is zero using the nat number \cinl{z} as second argument to \cinl{vector}; for \cinl{vcons} we encode that adding an element to the front results in a length incremented by one.
+More precisely, if we have a \cinl{vector} of length \cinl{n} adding an element to the front using \cinl{vcons} results in a \cinl{vector} of length \cinl{s n}.
+
+When defining functions of type \cinl{vector}, we need to explicitly pass the length as argument as well.
+Consider the following definition of computing the length for \cinl{vector}.
+
+\begin{minted}{coq}
+Definition vlength (A : Type) (n : nat) (xs : vector A n) : nat := n.
+\end{minted}
+
+The definition is especially convenient to define as the \cinl{nat} number \cinl{n} we pass to type \cinl{vector} is also our result.
+That is, we can use the value we construct types with in the right-hand side of the function definition as well.
+Next, we define a mapping function for \cinl{vector} that explicitly states that the length of the input and output list are the same.
+
+\begin{minted}{coq}
+Fixpoint vmap (A B : Type) (n : nat) (f : A -> B) (xs : vector A n)
+  : vector B n :=
+  match xs with
+  | vnil       => vnil
+  | vcons y ys => vcons (f y) (vmap f ys)
+  end.
+\end{minted}
+
+Note that we cannot define the function using two different values for the length.
+The definition of \cinl{vmap} explicitly reconstructs all constructors of the input \cinl{xs} such that the output list cannot be of different length.
+
+As the type signature of \cinl{vmap} already tells us that \cinl{vmap} does not change the length of the list, the property for ordinary lists we proved above becomes a one-liner.
+
+\begin{minted}{coq}
+Lemma vmap_vlength : forall A B (n : nat) (f : A -> B) (xs : vector A n),
+    vlength xs = vlength (vmap f xs).
+Proof.
+  reflexivity.
+Qed.
+\end{minted}
+
+Although we cannot simplify the expression \cinl{vmap f xs} without considering the two different constructors for \cinl{x} --- as in the case for ordinary lists, we do not need to take a look at \cinl{xs} to compute the length of the list.
+We know from the type alone that the left side of the equation evaluates to \cinl{n} for \cinl{xs : vector A n} when using the definition of \cinl{vlength}.
+The same applies to the right side of the equation, because \cinl{vlength} can compute the length of the list using its type information only.
+The expression \cinl{vmap f xs} is of type \cinl{vector B n}, so using the definition of \cinl{vlength} yields \cinl{n} again.
+Coq automatically applies some simplifications --- like unfolding function definitions --- when we apply the tactic \cinl{reflexivity}, so the proof consists of only one tactic.
+In summary, we observe that due to the definition of \cinl{vector}, the definition of the function \cinl{vmap} already encodes the proof about the length of the list alongside the actual computation.
+
+\subsection{Propositions and False Assumptions}
+
+When we defined the function \cinl{vmap}, we observed that we cannot use a more general type using two type variables \cinl{n m : nat} for the input and output list.
+We can even show that there is no way to define \cinl{vmap} such that \cinl{n} and \cinl{m} are different values.
+In order to make this argument, we first define a specification and show that our defintion of \cinl{vmap} fulfills this specification.
+As second step, we show that mapping functions change the length of the input vector to not fulfill the specification as well as that implementations fulfilling this specification retain the length of the input vector.
+We know that the property holds for our implementation of \cinl{vmap} as well, cince the implementation fulfills the specification.
+
+First up, we define the proposition \cinl{vmap_spec} that represents the specifications of \cinl{vmap}.
+
+\begin{minted}{coq}
+Inductive vmap_spec (A B : Type) (f : A -> B) :
+  forall (n m : nat), vector A n -> vector B m -> Prop :=
+| spec_nil  : vmap_spec f vnil vnil
+| spec_cons : forall (n m : nat) (x : A) (y : B)
+                (xs : vector A n) (ys : vector B m),
+    vmap_spec f xs ys -> f x = y -> vmap_spec f (vcons x xs) (vcons y ys).
+\end{minted}
+
+Given types \cinl{A B : Type} and a function \cinl{f : A -> B}, we define the predicate to relate two lists of type \cinl{vector A n} and \cinl{vector B m} for all Nat numbers \cinl{n} and \cinl{m}.
+That is, the type is general enough to allow the lists to be of different length.
+The \cinl{spec_nil} case relates empty lists whereas the second case \cinl{spec_cons} relates non-empty lists of potentially different length.
+The second case additionally assumes that the head element of the second list \cinl{y} can be constructed by applying the function to the head element \cinl{x} of the other list.
+Of course, the specification has high resemblance with our definition of \cinl{vmap}.
+
+As first finger exercise, we show that our definition of \cinl{vmap} indeed fulfils the specification.
+Since we will use the same types \cinl{A B}, Nat numbers \cinl{n m} and a function \cinl{f : A -> B} for several proofs, we use a section to declare these variables upfront so we do not need to introduce them for each proof or definition again.
+All of these \emph{section variable}s are additional arguments of the definitions using these variables after closing the section but are not arguments within the section.
+
+\begin{minted}{coq}
+Section vmap_spec_proofs.
+
+  Variable A B : Type.
+  Variable n m : nat.
+  Variable f : A -> B.
+
+  Lemma vmap_fulfils_spec : forall (xs : vector A n), vmap_spec f xs (vmap f xs).
+  Proof.
+    intros xs.
+    induction xs as [ | n y ys IHys ]; simpl.
+    - apply spec_nil.
+    - apply spec_cons.
+      + apply IHys. apply ys.
+      + reflexivity.
+  Qed.
+\end{minted}
+
+The first thing we do for both cases of the induction is to simplify the given goal using the definition \cinl{vmap}.
+In order to reduce the repetition, we use the notation \cinl{tactic1; tactic2} to apply the second tactic \cinl{simpl} on all subgoals generated by the first tactic \cinl{induction}.
+Since our definition of \cinl{vmap} is a natural implementation of the specification, the remaining proof is straightforward: we use the appropriate constructor of the specification predicate and the assumptions we have in place.
+
+For our next proof, we want to show that something is false, i.e., that a value of a particular type cannot be constructed.
+In Coq, such a value that cannot be constructed is represented using the type \cinl{False}.
+
+\begin{minted}{coq}
+Inductive False : Prop := .
+\end{minted}
+
+Since \cinl{False} is used in the context of proofs, it is of type \cinl{Prop}.
+We cannot construct any value of type \cinl{False}, simply because the inductive type has no constructors.
+As a consequence, we are able prove a statement that says that we can construct a value of an arbitrary type if we have a false assumption in the context.
+
+\begin{minted}{coq}
+Lemma bogus : forall (A : Type), False -> A.
+Proof.
+  intros A H.
+  destruct H.
+Qed.
+\end{minted}
+
+We introduce the argument of type \cinl{False} as \cinl{H} and try to make a case distinction, which already proves the goal.
+Instead of stating this function as lemma, we can define it as a function.
+
+\begin{minted}{coq}
+Definition bogus (A : Type) (H : False) : A :=
+  match H with end.
+\end{coq}
+
+Note that the usage of an empty pattern match.
+Since the argument \cinl{H} is of type \cinl{False} and \cinl{False} has no constructors to match on, Coq realises that we cannot have a value of type \cinl{H} in the first place.
+This construction corresponds to the usage of \cinl{destruct} in the tactic-based proof above.
+
+The definition of \cinl{False} is valid nonetheless --- and useful as well.
+We can, for example, use \cinl{False} to show that two expressions are not equal.
+
+\begin{minted}{coq}
+Lemma z_not_s : forall (x : nat), z = s x -> False.
+Proof.
+  intros x Heq.
+  discriminate Heq.
+Qed.
+\end{minted}
+
+We use the tactic \cinl{discriminate} on hypotheses like \cinl{z = s x}, which state that two structurally different expressions are equal, and is, thus, a false hypothesis.
+Note that other tactics might work as well but we will use \cinl{discriminate} in such cases.
+Moreover, the negation function \cinl{not} on propositions is defined using \cinl{False} and is used to define the inequality of expressions using the notation \cinl{<>}.
+
+\begin{minted}{coq}
+Definition not (A : Prop) : Prop := False.
+Notation "x <> y" := not (eq x y).
+\end{minted}
+
+The next two proofs use \cinl{vmap_spec} to demonstrate that we cannot define a mapping function for input and output lists of different length that fulfills the specification.
+The first lemma states that assuming an input list \cinl{xs} of length \cinl{n} and an output list \cinl{ys} of length \cinl{m} with \cinl{n <> m} fulfills the specification, we can always derive \cinl{False}.
+
+\begin{minted}{coq}
+  Lemma vmap_different_length : forall (xs : vector A n) (ys : vector B m),
+      n <> m -> vmap_spec f xs ys -> False.
+  Proof.
+    intros xs ys Hnot Hspec. induction Hspec.
+    - contradiction.
+    - apply IHHspec. apply s_not_eq. apply Hnot.
+  Qed.
+\end{minted}
+
+Let us take a look at the two subgoals produced by inducting over the specification predicate \cinl{vmap_spec f xs ys}, that is for the cases \cinl{xs : vector A z} and  \cinl{ys : vector B z} for the first subgoal and \cinl{xs : vector A (s n)} and \cinl{ys : vector B (s m)} for the second subgoal.
+
+\begin{cproof}{induction Hspec.}
+  ...
+  Hnot : z <> z
+  ============================
+  False
+
+subgoal 2 is:
+  ...
+  Hnot : s n <> s m
+  IHHspec : n <> m -> False
+  ============================
+  False
+\end{cproof}
+
+We can discard the first subgoal by observing that the assumption \cinl{z <> z} is a false statement: the tactic \cinl{contradiction} looks for such statements in the hypotheses and discards the proof when a suitable statement is found.
+For the second subgoal we use the following auxiliary lemma that states that if a successor construction is not structurally equal, their arguments are not structurally equal either.
+
+\begin{minted}{coq}
+Lemma s_not_eq : forall (n m : nat), s n <> s m -> n <> m.
+\end{minted}
+
+First, we apply the assumption \cinl{IHHspec} to change the goal.
+Then we use the auxiliary lemma to derive the new goal \cinl{s n <> s
+  m} that we can proof directly by applying the appropriate assumption
+\cinl{Hnot}.
+
+Besides showing that the output list cannot be of different length than the input list, we can also show that for all possible inputs lists \cinl{xs : vector A n} and output lists \cinl{ys : vector B m} that fulfil the specification predicate, it must hold that the output list is of the same length as the input list.
+
+\begin{minted}{coq}
+  Lemma vmap_same_length : forall (xs : vector A n) (ys : vector B m),
+      vmap_spec f xs ys -> n = m.
+  Proof.
+    intros xs ys Hspec. induction Hspec.
+    - reflexivity.
+    - rewrite IHHspec; reflexivity.
+  Qed.
+
+End vspec_map_proofs.
+\end{minted}
+
+The proof follows straightforward by induction over the specification predicate.
+The last line of the code closes the section we opened above, that is, all the variables introduced are not visible anymore but inserted as additional arguments for the lemmas \cinl{vmap_different_length} and \cinl{vmap_same_length}.
+
+The encoding of lists associated with their lengths as well as using predicates to formalise properties for data structures are good showcases on how to use Coq's dependent type system to prove properties about programs.
+The above proofs give a compact overview on the tactics we will use throughout the thesis.
+Other features and more involved tactics of Coq will be introduced as needed.
+
+%Without the annotation \cinl{nat} would be annotated as type \cinl{Set}.
+%Besides the types \cinl{Type} and \cinl{Set}, Coq provides a third level in the hierarchy with the type \cinl{Prop} that is used to define relations.
+%Since very object in Gallina has a type, the types \cinl{Set} and \cinl{Prop} are of type \cinl{Type}, that is, \cinl{Type} leads the typing hierarchy.
+%
+%\begin{minted}{coq}
+%Check Set.
+%(* Set : Type *)  
+%Check Prop.
+%(* Prop : Type *)
+%Check Type.
+%(* Type : Type *)
+%\end{minted}
+%
+%Furthermore, it seems that \cinl{Type} is of its own type.
+
+% \begin{itemize}
+
+% \item definitions vs fixpoints
+% \item total language
+% \item definitions using dependent types
+% \item notations
+% \item section variables
+% \item unit, empty type
+% \item proofs are programs
+% \item intro-pattern in proofs
+
+% \end{itemize}

@@ -199,3 +199,48 @@ Section vmap_spec_proofs.
   Qed.
 
 End vmap_spec_proofs.
+
+Inductive Ext (Shape : Type) (Pos : Shape -> Type) A :=
+| ext : forall s, (Pos s -> A) -> Ext Pos A.
+
+Arguments Ext : clear implicits.
+Arguments ext {_} {_} {_} _ _.
+
+Inductive One (A : Type) :=
+| one : One A.
+
+Arguments one {_}.
+
+Inductive Empty : Type :=.
+
+Definition One__S : Type := unit.
+Definition One__P (s : One__S) := Empty.
+
+Definition from_One A (o : One A) : Ext One__S One__P A :=
+  ext tt (fun (p : One__P tt) => match p with end).
+
+Definition to_One A (e : Ext One__S One__P A) : One A :=
+  one.
+
+Arguments from_One / _ _ .
+Arguments to_One / _ _.
+
+Require Import FunctionalExtensionality.
+
+Lemma from_to_One : forall (A : Type) (e : Ext One__S One__P A),
+    from_One (to_One e) = e.
+Proof.
+  intros A e; simpl.
+  destruct e as [ [] pf ].
+  unfold One__S.
+  f_equal.
+  extensionality p.
+  destruct p.
+Qed.
+
+Lemma to_from_One : forall (A : Type) (o : One A),
+    to_One (from_One o) = o.
+Proof.
+  intros A o.
+  destruct o; reflexivity.
+Qed.
