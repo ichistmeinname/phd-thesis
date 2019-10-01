@@ -63,7 +63,7 @@ Fixpoint map (A B : Type) (f : A -> B) (xs : list A) : list B :=
   | cons y ys => cons (f y) (map f ys)
   end.
 
-Lemma map_length' (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
+Lemma map_length (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
 Proof.
   induction xs as [ | y ys H ].
   - simpl. reflexivity.
@@ -71,6 +71,15 @@ Proof.
     rewrite -> H.
     reflexivity.
 Qed.
+
+Lemma map_length' (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
+Proof.
+  apply list_ind with (l := xs).
+  - simpl; reflexivity.
+  - intros y ys H; simpl.
+    rewrite -> H; reflexivity.
+Qed.
+
 
 Definition bogus (A : Type) (H : False) : A :=
   match H with end.
@@ -81,7 +90,7 @@ Proof.
   destruct H.
 Qed.
 
-Fixpoint map_length (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs) :=
+Fixpoint map_lengt2h (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs) :=
   match xs with
   | nil => eq_refl (length nil)
   | cons y ys => let H := map_length f ys in eq_ind_r (fun p => s p = s _) eq_refl H

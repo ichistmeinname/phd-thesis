@@ -1224,8 +1224,10 @@ Proof.
 Qed.
 \end{minted}
 
-\subsubsection{Induction on Free and List}
+\subsection{Induction Principle for Free and List}
 
+Recall that the \cinl{induction} tactic we use in proofs makes use of the associated induction principle for the corresponding type.
+We discussed that an induction principle is an ordinary function of type \cinl{Prop} using the example of Coq's predefined list data type in \autoref{subsub:induction}.
 Since our proofs depend on induction on values of type \cinl{Free}, we will now consider the corresponding induction principle that Coq generates.
 
 \begin{minted}{coq}

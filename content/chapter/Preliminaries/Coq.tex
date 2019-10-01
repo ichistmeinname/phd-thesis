@@ -187,7 +187,7 @@ For the proof of the proposition \cyinl{map_length}, on the other hand, we need 
 We enclose a proof using the commands \cinl{Proof} and \cinl{Qed} and write all tactics we want to apply between these commands.
 So, let us start with the proof; we present the tactic or other commands on the left-hand side and illustrate the progress after that command in a verbatim environment on the right-hand side.
 
-\begin{cproof}{Proof. intros A B f xs.}
+\begin{cproof}{Proof.}
   A : Type
   B : Type
   f : A -> B
@@ -196,7 +196,7 @@ So, let us start with the proof; we present the tactic or other commands on the 
   length xs = length (map f xs)
 \end{cproof}
 
-The current state of the proof shows that we have the types \cinl{A} and \cinl{B} in scope as well as a function \cinl{f : A -> B} and a list \cinl{xs : list A}, which we introduced with the tactic \cinl{intros}.
+The current state of the proof shows that we have the types \cinl{A} and \cinl{B} in scope as well as a function \cinl{f : A -> B} and a list \cinl{xs : list A}.
 These types are \emph{hypotheses} we can use for the proof.
 Underneath the hypotheses we see the resulting type of \cinl{map_length} that represents the current \emph{goal}.
 We can then use constructs of the tactic language to manipulate hypotheses and the goal in a sensible way until we find the final proof of the goal.
@@ -269,14 +269,64 @@ In order to give a better overview of the proof in its entirety, we restate the 
 \begin{minted}{coq}
 Lemma map_length (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
 Proof.
-  intros A B f xs.
   induction xs as [ | y ys H ].
   - simpl. reflexivity.
-  - simpl.
-    rewrite -> H.
-    reflexivity.
+  - simpl. rewrite -> H. reflexivity.
 Qed.
 \end{minted}
+
+\subsubsection{Induction Principle}
+\label{subsub:induction}
+
+In the preceding section we proved a lemma about \cinl{map} and \cinl{length} using induction on the list argument.
+The \cinl{induction} tactic makes use of the associated induction principle for the corresponding type.
+An induction principle for a data type is an ordinary function of type \cinl{Prop} in Coq.
+Moreover, Coq automatically generates this induction principle for each data type declaration using \cinl{Inductive}.
+The induction principle for a inductive type \cinl{T} is available as function named \cinl{T_ind}.
+
+Let us take a look at an example: the induction principle for Coq's predefined list datatype that we used in the last section.
+
+\begin{crepl}
+\coqrepl Check list_ind.
+  list_ind : forall (A : Type) (P : list A -> Prop),
+    P nil ->
+    (forall (x : A) (xs : list A), P xs -> P (cons x xs)) ->
+    forall xs : list A, P xs
+\end{crepl}
+
+Dissecting this type signatures gives us the following parts: given a proposition \cinl{P} on lists, we need to supply two proofs.
+A proof of type \cinl{P nil} in case of an empty list and a proof of type \cinl{P (cons x xs} otherwise, where \cinl{x} and \cinl{xs} are universally quantified.
+The first proof is the base case of the induction principles for lists, while the second proof is the inductive case.
+That is, in the second proof we assume that the proposition already holds for an arbitrary but fixed list \cinl{xs} and can then prove that the proposition also holds for \cinl{cons x xs}.
+
+As an example, we reprove the lemma above: \cinl{map} retains the length of its input list.
+Instead of using the dedicated \cinl{induction}-tactic, we use the induction principle directly.
+We adapt the above proof as follows.
+
+\begin{minted}{coq}
+Lemma map_length' (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
+Proof.
+  apply list_ind with (l := xs).
+  - simpl. reflexivity.
+  - intros y ys H.
+     simpl. rewrite -> H; reflexivity.
+Qed.
+\end{minted}
+
+When using backward-reasoning, we have to use the function \cinl{list_ind} on a function of type \cinl{l -> P  l}, which is the type of our lemma, when we instantiate that the argument list \cinl{l} with the concrete list \cinl{xs}.
+Since \cinl{list_ind} has three arguments, these arguments are now the new subgoals we need to prove.
+One of these arguments is the proposition \cinl{P}, which Coq proves automatically because it can be inferred from the goal we apply the function to.
+That is, we end up with only two subgoals: we need to prove that the proposition holds for an empty and a non-empty list.
+We can prove the first goal for the \cinl{nil}-constructor using the same tactics as before: after simplification of the involved functions, both sides of the equation are already equal.
+The second goal looks as follows.
+
+\begin{minted}{coq}
+  forall (y : A) (ys : list A), length ys = length (map f ys) -> length (cons y ys) = length (map f (cons y ys))
+\end{minted}
+
+Given a list \cinl{ys} and the induction hypothesis that the proposition already holds for that \cinl{ys}, we need to prove that the proposition holds for \cinl{cons y ys} as well.
+While Coq's \cinl{induction} tactic introduces these universally quantified variables for us, the direct variant is not as convenient.
+That is, we need to introduce these variables ourselves using \cinl{intros} to specify names for the quantified variables first, but can then prove the goal using the induction hypothesis like in the first variant.
 
 \subsection{Representing Data Types using Containers}
 
