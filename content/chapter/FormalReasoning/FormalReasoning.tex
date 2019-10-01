@@ -2102,7 +2102,7 @@ data ND (A : Set) : Set where
 \end{verbatim}
 
 Here, it comes apparent that their model is a specialisation of the generic monadic model; in case of our model we can instantiate \cinl{Free} with a variant of the non-determinism effect \cinl{ND} without \cinl{failed} results\footnote{As already noted, the approach by \citeauthor{antoy2017proving} does not consider \emph{failure} values but focuses on a non-deterministic choice operator instead.} in a representation isomorphic to their data type \texttt{ND}.
-The provided operators \texttt{\$*} and \texttt{*\$*} underline the correspondance to a monadic interface: The former operator corresponds to the \texttt{Functor} method \texttt{fmap} and the latter to the monadic operation \texttt{>>=}.
+The provided operators \texttt{\$*} and \texttt{*\$*} underline the correspondance to a monadic interface: The former operator corresponds to the functor method \hinl{fmap} and the latter to the monadic bind-operation \hinl{>>=}.
 
 Lastly, we like to mention the promising prototype developed by \citet{bunkenburg2019modeling} that was developed during his master's thesis.
 \citeauthor{bunkenburg2019modeling} implements Curry's call-time choices semantics in Coq using the \cinl{Free} model in combination with the results of \citet{wu2014effect} about scoped effects.
