@@ -1921,10 +1921,7 @@ Note that the resulting data type \hinl{Prog} is parametrised over an additional
 This type constructor is the functor for the effect with scope -- the type constructor \hinl{f} is still used for the effects, like partiality or non-determinism, that we have seen so far.
 The nested structure of the \hinl{Scope} constructor enables the separation of \emph{ordinary} and scoped effects: the inner \hinl{Prog} layer is not affected when using \hinl{(>>=)} to transform the structure.
 
-In order to illustrate how a scoped effect can help in case of Curry's call-time choice semantics, \autoref{fig:searchTreeScope} shows an adapted version of the search tree representation.
-More precisely, the illustration enhances the search tree representation resulting from the sharing primitive introduced in the previous section using explicit markers.
-
-\begin{figure}[h]
+\begin{figure}[tb]
  \centering
 \begin{Verbatim}[numbers=left, xleftmargin=5mm]
                                      < Share_1
@@ -1944,6 +1941,9 @@ More precisely, the illustration enhances the search tree representation resulti
 \caption{The search tree representation of the expression \cyinl{example} in the simple Coq model with sharing nodes adapted with explicit begin (\texttt{<}) and end (\texttt{>}) markers}
 \label{fig:searchTreeScope}
 \end{figure}
+
+In order to illustrate how a scoped effect can help in case of Curry's call-time choice semantics, \autoref{fig:searchTreeScope} shows an adapted version of the search tree representation.
+More precisely, the illustration enhances the search tree representation resulting from the sharing primitive introduced in the previous section using explicit markers.
 
 Due to the explicit markers, the interpreting function \cinl{numberChoices} uses the end-delimiter to stop numbering.
 That is, the choices in line number $5$ and $11$ are not affected by the sharing effect and do not get any number.
