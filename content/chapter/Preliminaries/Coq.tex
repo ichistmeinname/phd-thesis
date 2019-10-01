@@ -304,7 +304,8 @@ Instead of using the dedicated \cinl{induction}-tactic, we use the induction pri
 We adapt the above proof as follows.
 
 \begin{minted}{coq}
-Lemma map_length' (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
+Lemma map_length' (A B : Type) (f : A -> B) (xs : list A)
+  : length xs = length (map f xs).
 Proof.
   apply list_ind with (l := xs).
   - simpl. reflexivity.
@@ -321,7 +322,9 @@ We can prove the first goal for the \cinl{nil}-constructor using the same tactic
 The second goal looks as follows.
 
 \begin{minted}{coq}
-  forall (y : A) (ys : list A), length ys = length (map f ys) -> length (cons y ys) = length (map f (cons y ys))
+  forall (y : A) (ys : list A),
+    length ys = length (map f ys) ->
+    length (cons y ys) = length (map f (cons y ys))
 \end{minted}
 
 Given a list \cinl{ys} and the induction hypothesis that the proposition already holds for that \cinl{ys}, we need to prove that the proposition holds for \cinl{cons y ys} as well.
@@ -397,7 +400,7 @@ That is, we can define a function that yields an arbitrary polymorphic value giv
 \begin{minted}{coq}
 Definition bogus (A : Type) (e : empty) : A :=
   match e with end.
-\end{coq}
+\end{minted}
 
 The definition of \cinl{to_One}, on the other hand, is straightforward, because there is only one way to construct the value \cinl{one}.
 Note that we do not need to access a polymorphic component of type \cinl{A} in order to construct a value of type \cinl{One}.
@@ -421,13 +424,11 @@ Lemma from_to_One : forall (A : Type) (e : Ext One__S One__P A),
     from_One (to_One e) = e.
 \end{minted}
 
-\begin{cproof}{Proof. intros A e; simpl.}
+\begin{cproof1}{Proof. intros A e; simpl.}{0.4}{0.6}
   e : Ext One__S One__P A
   ============================
-  ext tt (fun p : One__P tt => match p return A with
-                               end) = e
-
-\end{cproof}
+  ext tt (fun p => match p with end) = e
+\end{cproof1}
 
 Note that in contrast to the definition of \cinl{map_length}, we introduced all variables on the right-hand side of the type signature.
 After introduced these quantified variables as hypotheses, we can directly simplify the function applications of \cinl{from_One} and \cinl{to_One} as they disregard the given argument.
@@ -436,34 +437,34 @@ More precisely, we even know that the first component, the shape, is of type \ci
 We destruct \cinl{e} directly in its two components: \cinl{tt} for the shape and \cinl{pf} for the position function using \cinl{[]} as a nested destruction for the shape.
 The pattern \cinl{[]} can be used for deconstruction of values with only one constructors and without any arguments.
 
-\begin{cproof}{destruct e as [ [] pf ].}
+\begin{cproof1}{destruct e as [ [] pf ].}{0.4}{0.6}
   s : One__S
   pf : One__P s -> A
   ============================
-  ext tt (fun p : One__P tt => match p with end) = ext tt pf
-\end{cproof}
+  ext tt (fun p => match p with end) =
+  ext tt pf
+\end{cproof1}
 
 Next, we observe that we have the \cinl{ext}-constructor on both sides of the equation.
 By applying the tactic \cinl{f_equal}, we use the following predefined lemma about functional equality.
 
 \begin{crepl}
 \coqrepl Check f_equal.
-  f_equal : forall (A B : Type) (f : A -> B) (x y : A),
-    x = y -> f x = f y
+  f_equal : forall (A B : Type) (f : A -> B) (x y : A), x = y -> f x = f y
 \end{crepl}
 
-In the case above, we have \cinl{ext tt} as function that is applied to \cinl{ we know that the function application of \cinl{ext tt} to the argument \cinl{(fun p : One__P tt => match p with end)} on the left-hand side and to \cinl{pf} on the right-hand side of the equation.
+In the case above, we apply the function \cinl{ext tt} to \cinl{(fun p => match p with end)} on the left-hand side and to \cinl{pf} on the right-hand side of the equation.
  
-\begin{cproof}{f_equal.}
+\begin{cproof1}{f_equal.}{0.3}{0.7}
   pf : One__P tt -> A
   ============================
   (fun p : One__P tt => match p with end) = pf
-\end{cproof}
+\end{cproof1}
 
 The assumption of the \cinl{f_equal}-lemma becomes the new goal: we now need to show that the two position functions are the same.
 In functional programming we are used to a property called functional extensionality: two functions \cinl{f : A -> B} and \cinl{g : A -> B} are equal, if for all possible input argument of appropriate type, they yield the same result.
 
-\begin{minted}{crepl}
+\begin{crepl}
 \coqrepl Check  functional_extensionality.
   functional_extensionality : forall (A B : Type) (f g : A -> B),
     (forall x : ?A, f x = g x) -> f = g
@@ -475,7 +476,7 @@ We can use the corresponding tactic \cinl{extensionality} to introduce a new var
   pf : One__P tt -> A
   p : One__P tt
   ============================
-  match p return A with end = pf p
+  match p with end = pf p
 \end{cproof}
 
 Finally, we prove the statement by realising that the newly introduced argument \cinl{p} of type \cinl{One__P tt} is a value of an empty type.
@@ -489,7 +490,7 @@ from_to_One is defined
 
 The second direction of the isomorphism proof is straightforward.
 After introducing all variables and destructing the argument \cinl{o : One A}, we simplify the left-hand side of the equation using the function definitions of \cinl{from_One} and \cinl{to_One}.
-The simplification already leads to the value \cinl{one : One A}} on the left-hand side as well as on the right-hand side.
+The simplification already leads to the value \cinl{one : One A} on the left-hand side as well as on the right-hand side.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Lemma to_from_One : forall (A : Type) (o : One A),
