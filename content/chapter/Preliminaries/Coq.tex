@@ -332,6 +332,7 @@ While Coq's \cinl{induction} tactic introduces these universally quantified vari
 That is, we need to introduce these variables ourselves using \cinl{intros} to specify names for the quantified variables first, but can then prove the goal using the induction hypothesis like in the first variant.
 
 \subsection{Representing Data Types using Containers}
+\label{sub:container}
 
 Up to now, the only dependent type we have seen is the equality type we use to state properties for our programs.
 Another prominent example for the usage of dependent types originates from generic programming \citep{altenkirch2003generic,hinze2000new}: we can encode a variety of polymorphic data types using containers as introduced by \citet{abbott2003categories}.

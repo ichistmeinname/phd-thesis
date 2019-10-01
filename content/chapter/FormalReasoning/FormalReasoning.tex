@@ -516,7 +516,7 @@ In order to understand better how we can work with our lifted data types based o
 Let us take a look at how we can represent \cinl{partial} using \cinl{Free}.
 As already mentioned, we use free monads by applying a functor \cinl{F} that describes the effect we want to model, i.e., the additional constructs on top of pure values.
 In case of \cinl{partial} the additional effect is the undefinedness of values; hence, we need a type with one nullary constructor.
-We name the functor the same as \citet{swierstra2008data}, the name captures the number of representable values quite well.
+Recall that we defined the data type \cinl{One} and its corresponding container representation in \autoref{sub:container}.
 
 \begin{minted}{coq}
 Inductive One (A : Type) :=
@@ -524,27 +524,15 @@ Inductive One (A : Type) :=
 \end{minted}
 
 In case of our definition of \cinl{Free}, the functor was exchanged by a container representation.
-That is, we have to represent \cinl{One} as a container described as a type of shapes and a position type function.
-The data type \cinl{One} has only one constructor, that is, there is only one shape that we need to represent.
+That is, we use the following container representation of \cinl{One} described as a type of shapes and a position type function.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition One!$_\text{S}$! := unit.
-\end{minted}
-
-The position type function, on the other hand, describes the possible positions of polymorphic arguments of the corresponding constructor.
-The constructor of \cinl{One} does not have any polymorphic arguments, so we need to use the empty type.
-The empty type is a data type without any values, that is, we cannot construct values of that type.
-
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
-Definition Empty := .
 Definition One!$_\text{P}$! (s : One!$_\text{S}$!) := Empty.
 \end{minted}
 
-Recall that the position type function depends on the corresponding shape.
-Here, however, the shape does not matter as we do not have any position anyhow.
-
-Using Coq's ability to prove properties about programs, we can show that the container representation is isomorphic to the original data type.
-More precisely, we define two functions \cinl{from_One} and \cinl{to_One}, and show that both compositions yield the identity.
+In \autoref{sub:container} we used Coq's ability to prove properties about programs and showed that the container representation is isomorphic to the original data type.
+More precisely, we defined two functions \cinl{from_One} and \cinl{to_One}, and show that both compositions yield the identity.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition from_One A (o : One A) : Ext One!$_\text{S}$! One!$_\text{P}$! A :=
@@ -568,8 +556,6 @@ Proof.
   destruct o; reflexivity.
 Qed.
 \end{minted}
-
-Note that we need to use the principle of functional extensionality to compare the position functions in the second argument of \cinl{ext} in Lemma \cinl{from_to_One}.
 
 The container definition corresponding to \cinl{One} is now ready to used as argument to \cinl{Free}.
 Next up, we can also show that the resulting \cinl{Free One__S}  is isomorphic to the monadic structure \cinl{partial}.
