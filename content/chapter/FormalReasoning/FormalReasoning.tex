@@ -1626,7 +1626,8 @@ More precisely, the property we define is more specific, as we do not quantify t
 
 \begin{minted}{coq}
 Lemma ndInsert_inc :
-  AllND (fun fxs => length fxs = pure 3) (ndInsert (pure 1) (Cons (pure 2) (Cons (pure 3) Nil))).
+  AllND (fun fxs => length fxs = pure 3)
+        (ndInsert (pure 1) (Cons (pure 2) (Cons (pure 3) Nil))).
 \end{minted}
 
 Let's take a more detailed look at this example, as the first try to prove the property fails.
@@ -2175,7 +2176,13 @@ The second definition will not typecheck, because both arguments of \cinl{?} are
 The resulting expression is of type \cinl{Free (Free nat -> Free nat)}.
 When thinking about the translation of types in more detail, it indeed makes sense to translate a Curry (or Haskell) function of type \hinl{a -> a} to \cinl{Free (Free a -> Free a)} in our monadic lifting.
 We have corresponding type definition that lift all arguments of the corresponding constructors.
-For example, a type for pairs has a constructor \cinl{pair : Free A -> Free B -> Pair A B}.
+For example, a type for pairs has a constructor \cinl{pair} of the following type.
+
+\begin{crepl}
+\coqrepl Check pair.
+  pair : Free A -> Free B -> Pair A B.
+\end{crepl}
+
 Applying this rule to a function type, we need a constructor for lifted arguments as well.
 
 \begin{minted}{coq}
