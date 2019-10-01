@@ -330,7 +330,8 @@ That is, we need to introduce these variables ourselves using \cinl{intros} to s
 
 \subsection{Representing Data Types using Containers}
 
-A prominent example for the usage of dependent types is generic programming: we can encode a variety of polymorphic data types using containers as introduced by \citet{abbott2003categories}.
+Up to now, the only dependent type we have seen is the equality type we use to state properties for our programs.
+Another prominent example for the usage of dependent types originates from generic programming \citep{altenkirch2003generic,hinze2000new}: we can encode a variety of polymorphic data types using containers as introduced by \citet{abbott2003categories}.
 
 A container is described as a product of shapes and a position function.
 The shape is a type \cinl{Shape} and the position type \cinl{Pos} is a type function that maps shapes to types.
@@ -342,6 +343,7 @@ Inductive Ext (Shape : Type) (Pos : Shape -> Type) (A : Type) : Type :=
 \end{minted}
 
 A container extension \cinl{Ext Shape Pos} is then isomorphic to a type constructor \cinl{F}, where \cinl{F A} represents the polymorphic data type.
+The position type \cinl{Pos} is a dependent type: the type depends on a value of type \cinl{Shape} as first argument
 
 As an example, let us consider the polymorphic data type \cinl{One} we discussed in \autoref{subsec:freeMonad} in the context of free monads.
 Recall that the definition was used by \citet{swierstra2008data} and that the name captures the number of representable values quite well.
@@ -427,7 +429,8 @@ Lemma from_to_One : forall (A : Type) (e : Ext One__S One__P A),
 
 \end{cproof}
 
-We can directly simplify the function applications of \cinl{from_One} and \cinl{to_One} as they disregard the given argument.
+Note that in contrast to the definition of \cinl{map_length}, we introduced all variables on the right-hand side of the type signature.
+After introduced these quantified variables as hypotheses, we can directly simplify the function applications of \cinl{from_One} and \cinl{to_One} as they disregard the given argument.
 Next, we observe that the argument \cinl{e} on the right-hand side of the equation is of type\cinl{Ext}: it must be constructed using \cinl{ext} as well.
 More precisely, we even know that the first component, the shape, is of type \cinl{One__S}, and, hence, the only valid value is \cinl{tt}.
 We destruct \cinl{e} directly in its two components: \cinl{tt} for the shape and \cinl{pf} for the position function using \cinl{[]} as a nested destruction for the shape.
