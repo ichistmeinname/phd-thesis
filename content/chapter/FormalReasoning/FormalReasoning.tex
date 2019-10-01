@@ -1426,21 +1426,22 @@ Hence, using introduction pattern \cinl{[ | fy fys IH ]} corresponds to the argu
 
 \section{First Ideas to Model Curry Programs}
 
-In this section we want to take a look at how to model the functional logic language Curry.
+In this section we want to take a look at how to model non-strict non-determinism, motivated by the functional logic programming language Curry.
 As we have seen in previous chapters, Curry combines the functional programming paradigm with concepts known from logic programming.
-More precisely, Curry combines non-strictness and non-determinism leading to a call-time choice semantics.
+More precisely, Curry combines non-determinism and laziness introduced by shared variables via let-bindings.
+This combination leads to a call-time choice semantics.
 The approach we illustrated in the first sections enables to reason about non-strict functional programs.
 The difference that we want to illuminate in this section is that sharing expressions via let-bindings in a model of Haskell with \hinl{undefined} values is an optimisation only, but cannot be observed by the programmer.
 In Curry, on the other side, we can observe the difference between sharing a non-deterministic computation that is evaluated once and duplicating non-deterministic computations due to Curry's call-time choice semantics.
 
-Before we dive deep into a potential implementation of call-time choice, we first model Curry's non-determinism effect using
-\cinl{Free}.
-Based on this implementation, we discuss why the model cannot express call-time choice and possible ideas to implement the intended semantics. There are two aspects we want to note here.
+Before we dive deep into the problems when modelling call-time choice, we first implement Curry's non-determinism effect using \cinl{Free}.
+Based on this implementation, we discuss why the model cannot express call-time choice and give an outlook on ideas to implement the intended semantics.
+There are two aspects we want to emphasise here.
 
-First, the ideas we illustrate to model call-time choice can be used to incorporate sharing for other effects as well.
+First, the outlook we give on modelling call-time choice can be used to incorporate sharing for other effects as well.
 For instance, a common extension of Haskell is the function \hinl{trace} that enables to track information of type \hinl{String} while evaluating a program.
 The effect of tracing results in an observable difference between sharing and duplicating an effectful expression.
-Hence, we need a similar technique for more involved effects than we have seen so far.
+Hence, we need a similar technique to model call-time choice semantics as well as for more involved effects than we have seen so far.
 
 Second, the ideas about how to model sharing are still work-in-progress.
 That is, we illustrate the motivation only and then reference related work that tackle similar problems and we think is applicable for our problem.
@@ -1601,7 +1602,6 @@ Lemma pulltab_if_strict : forall (A B : Type)
    f (fx ? fy) = f fx ? f fy.
 \end{minted}
 
-
 \paragraph{Third Example}
 The third example considers not only a non-deterministic computation but a non-deterministic function.
 The function \cinl{ndInsert} non-deterministically inserts a value at each position of a list.
@@ -1745,9 +1745,8 @@ The model we use so far, however, is not a suitable model for Curry's call-time 
 The difference between Curry's call-time choice semantics and the non-strict non-determinism we are currently able to model can be generalised to the difference between call-by-name and call-by-need.
 In the following, we will first compare our example definition of \cinl{double} with an alternative version to exhibit the call-by-name behaviour of our model.
 We discuss an ad-hoc solution to mimic call-by-need for concrete examples and give an examples that shows the limitations of that idea.
-Secondly, we give an outlook on how to add an explicit sharing operator on top of the current setting involving \cinl{Free} monads.
-On that account, we sketch the underlying mechanism of the \emph{KiCS2} compiler to implement Curry's call-time choice semantics in Haskell.
-We then discuss how the KiCS2 approach can be combined with related work on algebraic effects with scoped operations to implement Curry's call-time choice semantics.
+Secondly, we propose a combination of the underlying mechanism of the \emph{KiCS2} compiler with related work on algebraic effects with scoped operations to implement Curry's call-time choice semantics.
+
 
 \subsubsection{Call-by-name vs. Call-by-need}
 \label{subsubsec:cbneed}
@@ -1817,6 +1816,8 @@ Lemma even_doublePlus_Failed :
 \end{minted}
 
 We observe here that the difference between call-by-name and call-by-need, i.e., between sharing a value or duplicating its evaluation, cannot be observed for effects like partiality (here: \cinl{Failed}) but becomes observable for an effect like non-determinism.
+
+\subsubsection{An Ad-hoc Solution}
 
 In order to regain the property that we want to prove, we need to evaluate a shared non-deterministic computation once and use the pure value of that computation for all occurrences in the expression.
 
@@ -1899,368 +1900,10 @@ Lemma share_with_const : forall (A : Type) (fx : FreeND A),
 
 At the end, although we can use the explicit sharing function \cinl{shareStrict} to mimic the sharing behaviour of Curry for some concrete examples, the usage is limited to situation that demand the evaluation of the shared expression anyways.
 In order to enable a more generic version of the explicit sharing function that does not rely on the demand of the shared expression, a more sophisticated underlying model is required.
-We discuss first ideas for such a model and give an outlook on the implementation in the next section.
-
-\subsubsection{Modelling Curry's Call-Time Choice}
-
-The Curry compiler \emph{KiCS2} translates Curry into Haskell code.
-For that purpose, Curry code is lifted in a similar manner as in our approach using \cinl{Free} and model effects using functors.
-In the case of KiCS2, the translation is more explicit, that is, all data types implemented in Curry are translated to data types in Haskell that have two additional constructors: one for a failed computation and one for a non-deterministic choice between two computations.
-Hence, all values of data types become trees: the original pure constructors are leaves, the failed computation is an empty tree and the non-deterministic choice represents a branch.
-The concrete instantiation of the effect using \cinl{ND} has the same effect, that is, the type \cinl{FreeND} represents the same expression tree that is used for KiCS2.
-
-Let us, for example, consider the Curry expression \cyinl{0 ? (failed ? 1)} in Coq using \cinl{FreeND}.
-
-\begin{minted}{coq}
-Compute ((pure 0) ? (Failed ? pure 1)).
-(*
-impure true (fun p1 =>
-   if p1 then pure 0
-         else impure true (fun p2 =>
-                 if p2 then impure false (fun p3 => match p3 with end)
-                       else pure 1))
-*)
-\end{minted}
-
-While the not pretty-printed version does not seem that readable, we can instead represent the expression as tree: the constructor \cinl{impure} in combination with the possible shapes are nodes of the tree and a tree ends with \cinl{pure} values or nodes that do not have any children --- like for example the effectful computation \cinl{Failed}.
-
-\begin{verbatim}
-        Choice
-      /        \
-   pure 0    Choice
-            /      \
-         Failed   pure 1
-\end{verbatim}
-
-Here, the constructor \cinl{impure true} corresponds to a node labeled with \texttt{Choice} and \cinl{impure false} represents a node labeled with \texttt{Failed}.
-We can easily define a function, a so-called effect handler, that transforms the representation using \cinl{Free} and the effect functor into the concrete monad it represents.
-In case of the effect of non-determinism, the underlying monad is the tree monad defined as follows.
-
-\begin{minted}{coq}
-Inductive tree (A : Type) :=
-| empty  : tree A
-| leaf   : A -> tree A
-| branch : tree A -> tree A -> tree A.
-\end{minted}
-
-We have already discussed the isomorphism between the free monad instantiated by a concrete functor and a concrete monad when we introduced the partiality effect in \autoref{subsub:partiality_container}.
-In case of non-determinism, we can also define the isomorphism by implementing two functions \cinl{to_tree} and \cinl{from_tree}, respectively.
-
-\begin{minted}{coq}
-Fixpoint to_tree A (fx : FreeND A) : tree A :=
-  match fx with
-  | pure x          => leaf x
-  | impure true  pf => branch (to_tree (pf true)) (to_tree (pf false))
-  | impure false pf => empty
-  end.
-
-Fixpoint from_tree A (t : tree A) : FreeND A :=
-  match t with
-  | empty        => let '(ext s pf) := from_ND failed in impure s pf
-  | leaf x       => pure x
-  | branch t1 t2 =>
-      let '(ext s pf) := from_ND (choice (from_tree t1) (from_tree t2))
-      in impure s pf
-  end.
-\end{minted}
-
-Based on these definitions we can then prove the isomorphism between \cinl{FreeND A} and \cinl{tree A} by showing the usual round-trip properties.
-
-\begin{minted}{coq}
-Lemma from_to_tree : forall (A : Type) (fx : FreeND A),
-  from_tree (to_tree fx) = fx.
-
-Lemma to_from_tree : forall (A : Type) (t : tree A),
-  to_tree (from_tree t) = t.
-\end{minted}
-
-The interesting examples we now want to take a look at are \cinl{doublePlus oneOrTwo} and \cinl{doubleShare oneOrTwo} from the
-previous section.
-In Curry sharing of arguments in a function definitions does not need to be handled explicitly but happens implicitly.
-That is, the Curry version of \cinl{doublePlus} needs to encode run-time choice explicitly.
-A more simplified version of equivalent code using an explicit let-binding that also triggers an evaluation respecting call-time
-choice semantics.
-The two examples above are equivalent to the following Curry code.
-
-\begin{curry}
-doublePlus = (1 ? 2) + (1 ? 2)
-doubleShare = let x = 1 ? 2 in x + x
-\end{curry}
-
-Since the representation using trees is more convenient, we will take a look at the corresponding trees.
-The overall tree structure is the same for both resulting expression, the results of the computation, however, differ.
-
-\begin{verbatim}
-        Choice
-      /       \
-  Choice     Choice
-   /   \      /   \
-  2     3    3     4
-\end{verbatim}
-
-That is, the evaluation from a tree structure to a set of values --- results --- needs to handle the shared computation in \cinl{doubleShare} differently.
-The KiCS2 approach is here to introduce identifier for all choices.
-Let us consider a step-by-step reduction of the \cyinl{doubleShare} example.
-By inlining the let-binding the resulting tree contains the same subtree in both its branches.
-
-\begin{verbatim}
-  let x = 1 ? 2 in x + x
-= {- name the choice explicitly -}
-  let x = Choice (ID 1) 1 2 in x + x
-= {- inline the let-binding -}
-  Choice (ID 1) 1 2 + Choice (ID 1) 1 2
-= {- pull-tab-step on first argument because of the demand of (+) -}
-  Choice (ID 1) (1 + Choice (ID 1) 1 2) (2 + Choice (ID 1) 1 2)
-= {- pull-tab-step on second argument because of the demand of (+) -}
-  Choice (ID 1) (Choice (ID 1) (1+1) (1+2)) (Choice (ID 1) (2+1) (2+2))
-= {- evaluate (+) on pure values -}
-  Choice (ID 1) (Choice (ID 1) 2 3) (Choice (ID 1) 3 4)
-\end{verbatim}
-
-In case of the step-by-step evaluation of \cyinl{doublePlus}, we observe that the outermost choice's identifier differs from the identifier of its children.
-This identifier is introduced due to the second argument of \cyinl{(+)} that is independent from the first non-deterministic computation of \cyinl{1 ? 2}.
-
-\begin{verbatim}
-  (1 ? 2) + (1 ? 2)
-= {- name the choice explicitly -}
-  Choice (ID 1) 1 2 + Choice (ID 2) 1 2
-= {- pull-tab-step on first argument because of the demand of (+) -}
-  Choice (ID 1) (1 + Choice (ID 2) 1 2) (2 + Choice (ID 2) 1 2)
-= {- pull-tab-step on second argument because of the demand of (+) -}
-  Choice (ID 1) (Choice (ID 2) (1+1) (1+2)) (Choice (ID 2) (2+1) (2+2))
-= {- evaluate (+) on pure values -}
-  Choice (ID 1) (Choice (ID 2) 2 3) (Choice (ID 2) 3 4)
-\end{verbatim}
-
-That is, the above tree representation needs to be adapted in order to illustrate the difference between the two examples; the adaptions are illustrated in \autoref{fig:doubleShare}
-The left tree represents the expression tree produced by \cyinl{doubleShare} that shares the non-deterministic computation, whereas the right tree represents the example \cyinl{doublePlus} with independent calls to the non-deterministic computation.
-
-\begin{figure}[t]
-\begin{minipage}{0.49\textwidth}
-\begin{verbatim}
-       Choice 1
-      /        \
- Choice 1    Choice 1
-  /   \       /   \
- 2     3     3     4
-\end{verbatim}
-\end{minipage}
-\begin{minipage}{0.49\textwidth}
-\begin{verbatim}
-       Choice 1
-      /        \
- Choice 2    Choice 2
-  /   \       /   \
- 2     3     3     4
-\end{verbatim}
-\end{minipage}
-\caption{Doubling a shared non-deterministic computation (left) and doubling two
-  individual non-deterministic computation (right)}
-\label{fig:doubleShare}
-\end{figure}
-
-In the end, the overall result is computed by a tree traversal that keeps track of each decision of a choice and reproduces that choice for all future encounters of the same identifier.
-
-A simplified version of a depth-first search traversal using an adapted version of \cinl{tree} with identifier in branches might look as follows.
-
-\begin{minted}{coq}
-Inductive tree (A : Type) :=
-| empty  : tree A
-| leaf   : A -> tree A
-| branch : nat -> tree A -> tree A -> tree A.
-
-Fixpoint dfs (A : Type) (choices : nat -> option bool) (t : tree A) : list A :=
-  match t with
-  | empty           => nil
-  | leaf x          => cons x nil
-  | branch id lt rt =>
-    dfs' (fun n => if Nat.eqb n id then Some true else choices n) lt
-    ++ dfs' (fun n => if Nat.eqb n id then Some false else choices n) rt
-  end.
-\end{minted}
-
-We use \cinl{true} as decision for the left tree and \cinl{false} for the right tree --- similar to the position we used in the Coq model.
-The first call to \cinl{dfs} does not have any information about decisions yet, so we use an optional value in order to represent this third possibility.
-That is, we add the decision \cinl{Some true} for the recursive traversal of the left tree and add the decision \cinl{Some false} for the right tree.
-
-\subsubsection{A First Attempt to Model Call-Time Choice with Free
-  Monads}
-\label{subsubsec:modelcalltime}
-
-The current idea to model call-time choice is based on the observation that let-bindings of non-deterministic computation introduce an effect that needs to be handled differently than an ordinary non-deterministic computation.
-That is, a let-binding and sharing of computations, respectively, needs to be modeled as an explicit effect on top of the
-non-determinism.
-The general idea is inspired by KiCS2's approach: all choices within a shared non-deterministic computation get identifiers that we use when traversing the tree-like structure to track the information about previous choices.
-Consider an effect \cinl{NDSharing} that adds an identifier to choices as well as a new primitive for sharing a computation.
-For simplifications, the identifier for choices are optional: they will only get identifier if they occur in shared computations.
-Moreover, we will use an explicit identifier that we pass to the primitive \cinl{Share}.
-That is, we have the following definitions in place where \cinl{FreeShare} is the concrete effect that combines non-determinism
-and sharing; the concrete implementations of the involving shape and position function types can be found in \autoref{subsec:appendix:NDSharing}.
-
-\begin{minted}{coq}
-Definition FreeShare := Free ShareND__S ShareND__P.
-
-Definition Failed (A : Type) : FreeShare A :=
- let '(ext s pf) := from_ShareND failed in impure s pf.
-
-Notation "x ? y" := (let '(ext s pf) := from_ShareND (choice None x y) in impure s pf)
-                      (at level 28, right associativity).
-
-Definition Share (A : Type) (n : nat) (fx : FreeShare A) : FreeShare (FreeShare A) :=
-  let '(ext s pf) := from_ShareND (share n fx) in pure (impure s pf).
-\end{minted}
-
-The definitions for \cinl{Failed} and \cinl{?} are analogous to the definitions we defined for the non-determinism effect alone; the only difference is that the representation for a non-determinism computation has an additional optional identifier.
-The \cinl{Share} primitive is of the same type as before in order to enable usages of \cinl{>>=} without triggering the potential non-deterministic computation.
-
-Let us now consider our running example again: doubling the non-deterministic computation \cyinl{1 ? 2}.
-
-\begin{minted}{coq}
-Definition coin : FreeShare nat :=
-  pure 1 ? pure 2.
-
-Definition doubleSharePlus1 (fn : FreeShare nat) : FreeShare nat :=
-  Share 1 fn >>= fun fn' => liftM2 plus fn' fn'.
-
-Lemma doubleSharePlus :
-  doubleSharePlus coin <> pure 2 ? pure 4.
-Proof.
-  unfold doubleSharePlus1; simpl.
-  (* impure (inr (shareS 1)) (fun _ : unit => ...) <>
-     impure (inl (choiceS None)) (fun p : bool => ...)
-   *)
-  discriminate.
-Qed.
-\end{minted}
-
-Due to the representation using an explicit representation for sharing, the resulting \cinl{Free}-expressions diverge: the shapes do not match, such the overall expression are not structurally equal.
-The following enhanced tree representation illustrates the resulting expression on the left-hand side.
-
-\begin{verbatim}
-       Share_1
-          |      
-        Choice
-      /        \
-   Share_1   Share_1
-      |         |
-    Choice    Choice
-    /    \    /    \
-   2      3  3      4
-\end{verbatim}
-
-In order to reason about equality in this setting, we first need to interprete the sharing-primitive in order to transfer the introduced identifies to the choice-primitive.
-Second, we apply the already mentioned tree traversal that tracks already made choices in order to make consistent choices only.
-
-That is, we define a function \cinl{numberChoices : FreeShareND A -> FreeND A} to interpret the sharing nodes.
-Applying the function to the expression above leads to the following tree representation without sharing-primitives but with choices that have identifiers.
-
-\begin{verbatim}
-     Choice_1
-    /        \
- Choice_1  Choice_1
-  /   \     /   \
- 2     3   3     4
-\end{verbatim}
-
-Now we can use the function \cinl{dfs : FreeND A -> list A} to traverse the resulting tree in a depth-first manner.
-The code for both implementations can be found in the \autoref{subsec:appendix:NDSharing} as well.
-Using these helper function, we can prove that the list of results for the expression \cinl{doubleSharePlus coin} equals \cinl{[2;4]}.
-
-\begin{minted}{coq}
-Lemma doubleSharePlus_correct :
-  dfs (numberChoices (doubleSharePlus coin)) = [2;4].
-\end{minted}
-
-Unfortunately, the model we illustrated so far stretches to its limits for the following Curry expression that mixes a shared non-deterministic computation with individually triggered non-deterministic computations.
-
-\begin{curry}
-example :: Int
-example = let x = 1 ? 2 in (x + (1 ? 2)) + (x + (1 ? 2))  
-\end{curry}
-
-Evaluating this expression in Curry leads to eight results; for readability we draw only the left half of the resulting tree representation in \autoref{fig:searchTree}.
-
-\begin{figure}[h]
-\centering
-\begin{BVerbatim}
-                              ?_1
-               //                           \\
-              ?_2                           ?_2
-        //            \\              //            \\
-       ?_1            ?_1            ?_1            ?_1
-    //     \       //     \       /     \\       /     \\
-   ?_3    ?_3     ?_3    ?_3     ?_3    ?_3     ?_3    ?_3
-  //\\     /\    //\\     /\     /\     //\\    /\     //\\
-  4  5    5  6   5  6    6  7   5  6    6  7   6  7    7  8
-\end{BVerbatim}
-\caption{Search tree representation of the expression \cyinl{example}
-  in Curry}
-\label{fig:searchTree}
-\end{figure}
-
-The traversal over the tree with respect to call-time choice then leads to the results \cyinl{4 ? 5 ? 5 ? 6 ? 6 ? 7 ? 7 ? 8}.
-The traversed path with respect to call-time choice are marked as double-line \verb|//| and \verb|\\|, respectively.
-
-In the Coq model, however, the example evaluates to a different result and tree representation.
-To understand what is going here, we display the tree representation that still has sharing nodes in the left part of \autoref{fig:searchTee2}.
-The problem is that the introduced sharing primitive is not limited to its scope: the example only shares the expression \cyinl{1 ? 2}, but also non-shared, individual non-deterministic computations of \cyinl{1 ? 2} get the same identifier due to the outermost sharing.
-
-\begin{figure}[h]
-\begin{minipage}{0.50\textwidth}
- \centering
-\begin{BVerbatim}
-                         Share_1
-                           |
-                           ?
-                /                   \
-               ?                    ...
-         /            \
-      Share_1       Share_1
-        |              |
-        ?              ?
-     /     \        /     \
-    ?       ?      ?       ?
-   / \     / \    / \     / \
-  4   5   5   6  5   6   6   7
-\end{BVerbatim}
-\end{minipage}
-\begin{minipage}{0.49\textwidth}
-\centering
-\begin{BVerbatim}
-
-
-
-  
-                      ?_1
-               //            \\
-              ?_2             ...
-        //            \\
-       ?_1            ?_1
-    //     \       //     \
-   ?_2     ?_2    ?_2     ?_2
-  //\       /\    /\\      /\
-  4  5    5  6   5  6    6  7
-\end{BVerbatim}
-\end{minipage}
-\caption{Search tree representation of the expression \cyinl{example}
-  in the current Coq model with sharing-nodes (left) and with labeled
-  choices (right)}
-\label{fig:searchTree2}
-\end{figure}
-
-More precisely, when we evaluate the sub-expression \cyinl{x + (1 ? 2)}, where \cyinl{x} is the shared expression, the demand on \cyinl{x} pulls the sharing constructor to the top.
-Both choice-constructors, one originating from the shared expression \cyinl{1 ? 2} and one originating from the individual non-deterministic computation \cyinl{1 ? 2} are now underneath that sharing constructor.
-The former gets $1$ and the latter $2$ as label.
-Due to the demand of the outermost addition, both sub-expressions are then pulled to the top-level, finally leading to the tree depicted in \autoref{fig:searchTree2}.
-The traversal of \cinl{numberChoices}, thus, labels both choices underneath the sharing constructor with label $1$ with exactly the same identifiers --- including identifiers for the individual choice of the second argument \cyinl{1 ? 2}.
-
-Let us recap our findings: the difference to the effects that we have discussed so far is the scope of the sharing effect.
-While a non-deterministic choice will be propagated to top-level when a function needs to evaluate the choice, sharing a computation is a rather local effect.
 
 \subsubsection{Free Monads with Scope}
 
-A more promising approach to modell Curry's call-time choice semantics is to use scoped operations as discussed by \citet{wu2014effect} and \citet{pirog2018syntax}.
-
+A promising approach to modell Curry's call-time choice semantics is to use scoped operations as discussed by \citet{wu2014effect} and \citet{pirog2018syntax}.
 More precisely, \citeauthor{wu2014effect} present two approaches for implementations in Haskell: (a) using explicit primitives to mark the beginning and the end a scoped expression; (b) adapting the free monad construction by replacing the underlying functor with a higher-order functor.
 The higher-order functor is a type constructor that takes a functor as argument, i.e., is of kind \hinl{(* -> *) -> * -> *}.
 The former approach leads to an administrative overhead to keep track of well-balanced begin and end tags and the problem that it is able to construct an unbalanced program in the first place.
@@ -2278,8 +1921,6 @@ Note that the resulting data type \hinl{Prog} is parametrised over an additional
 This type constructor is the functor for the effect with scope -- the type constructor \hinl{f} is still used for the effects, like partiality or non-determinism, that we have seen so far.
 The nested structure of the \hinl{Scope} constructor enables the separation of \emph{ordinary} and scoped effects: the inner \hinl{Prog} layer is not affected when using \hinl{(>>=)} to transform the structure.
 
-\paragraph{Intuitive Representation using Explicit Markers}
-
 In order to illustrate how a scoped effect can help in case of Curry's call-time choice semantics, \autoref{fig:searchTreeScope} shows an adapted version of the search tree representation.
 More precisely, the illustration enhances the search tree representation resulting from the sharing primitive introduced in the previous section using explicit markers.
 
@@ -2289,8 +1930,8 @@ More precisely, the illustration enhances the search tree representation resulti
                                      < Share_1
                                          |
                                          ? >
-                                   /           \
-                                  ?            ...
+                                   /            \
+                                  ?             ...
                            /            \
                       < Share_1     < Share_1
                           |              |
@@ -2306,97 +1947,7 @@ More precisely, the illustration enhances the search tree representation resulti
 
 Due to the explicit markers, the interpreting function \cinl{numberChoices} uses the end-delimiter to stop numbering.
 That is, the choices in line number $5$ and $11$ are not affected by the sharing effect and do not get any number.
-Note that a numbering that affects only the choices within the markers corresponds to the tree in \autoref{fig:searchTree} when evaluating the example expression in Curry.
-
-\paragraph{Implementation}
-\label{para:implementationcalltime}
-
-All of the above approaches for scoped effects using free monads are implemented in Haskell.
-Taking the idea basis for an implementation in Coq, the most promising approach is \citeauthor{wu2014effect}'s work using explicit markers as well as the alternative using higher-order functors. \citet{bunkenburg2019modeling} developed a prototypic implementation for Curry's call-time choice semantics in Coq as master's thesis that looks quite promising.
-There are, however, downsides for both approaches.
-Before we go into more detail for these approaches, we discuss why we do cannot implement the approach by \citeauthor{pirog2018syntax} in Coq.
-
-\subparagraph{Free Monad with additional constructor}
-The problem with the approach by \citeauthor{pirog2018syntax} is the \hinl{Scope} constructor in the definition of \hinl{Prog}.
-Due to the \hinl{Scope} constructor \hinl{Prog} is a truly nested data type.
-\citet{matthes2008recursion} defines truly nested data types as follows.
-
-\begin{quote}
-A nested datatype will be called “truly nested” ([or non-linear]) if the intuitive recursive equation for the inductive family has at least one summand with a nested call to the family name, i. e., the family name appears somewhere inside the type argument of a family name occurrence of that summand.
-\end{quote}
-
-That is, the type \hinl{Prog} is truly nested because its constructor \hinl{Scope} applies the type to define to itself.
-The problem with respect to an implementation in Coq is that a truly nested data type like \hinl{Bush} cannot be implemented directly in current versions of the Calculus of Inductive Constructions, the underlying calculus of Coq \citep{matthes2008recursion}.
-
-\subparagraph{Approach with Explicit Markers}
-In case of the first approach using explicit markers, the corresponding function that interprets the \cinl{Free} structure by numbering the choices within the markers needs to explicitly handle mismatches.
-For example, consider the following simplified representation for a sharing effect with two markers.
-
-\begin{minted}{coq}
-Inductive Sharing__S :=
-| bshareS : nat -> Sharing__S
-| eshareS : Sharing__S.
-
-Definition Sharing__P (s : Sharing__S) := unit.
-\end{minted}
-
-An adaption of \cinl{numberChoices} leads to a problematic situation in case unbalanced markers, that is, if a \cinl{eshare} appears without a preceding \cinl{bshare} that it corresponds to.
-
-\begin{minted}{coq}
-Fixpoint numberChoices (A : Type) (t : FreeShare A) : FreeND A :=
-  match t with
-  | impure (bshareS n)  pf => numberChoices' n (pf tt)
-  | impure eshareS      pf => numberChoices (pf tt) (** unbalanced **)
-  | ...
-  end.
-\end{minted}
-
-Since the resulting program does not have a corresponding definition in Haskell, the implementation by \citeauthor{bunkenburg2019modeling} ignores the mismatch and simply transforms the remaining program.
-An alternative solution is to lift the return type to \cinl{option} in order to indicate an invalid program using \cinl{None} in case the program has unbalanced markers.
-This solution complicates, however, the usage of the interpreting function \cinl{numberChoices} that is used to define in combination with the tree traversal function \cinl{dfs} to state propositions about Curry programs.
-
-\subparagraph{Higher-Order Approach}
-The higher-order approach, on the other hand, remedies the mismatching markers but comes along with a more involved container representation.
-The free monad adapted to higher-order functors and the sharing effect look as follows in the Haskell implementation.
-
-\begin{minted}{haskell}
-data Free h a = Pure a
-              | Op (h (Free h) a)  
-
-data HShare m a = forall x. Share (m x) (x -> m a)
-\end{minted}
-
-That is, the functor \hinl{h} is of kind \hinl{(* -> *) -> * -> *} taking a type constructor as its first argument.
-In the definition of the effect functor \hinl{HShare} the existential quantified type variable \hinl{x}  allows to represent the shared expression as its first argument \hinl{m x} and a continuation \hinl{x -> m a} that specifies the remaining as second argument.
-This representation corresponds to let-expressions in \emph{Higher-Order Abstract Syntax (HOAS)} first introduced by \citet{pfenning1988higher}.
-Consider the following two AST-representation for a simple language with variables and let-expressions.
-
-\begin{minted}{haskell}
-data Expr   var = Var var
-                | Let var (Expr var) (Expr var)
-
-data ExprHO var = Var var
-                | Let (Expr var) (Expr var -> Expr var)
-\end{minted}
-
-That is, let-expression \hinl{let x = 1 + 2 in x + x} corresponds to the following expressions in the different AST-representations assuming a function symbol \hinl{+} and numeric literals of appropriate type are already defined.
-
-\begin{minted}{haskell}
-expr :: Expr String
-expr = Let "x" (1 + 2) (Var "x" + Var "x")
-
-exprHO :: Expr
-exprHO = Let (1 + 2) (\exp -> exp + exp)
-\end{minted}
-
-The former representation can be considered as standard implementation, while the latter reflects the concepts of the mentioned HOAS.
-
-The correspondence to a let-construction should not be too surprising since we introduce shared expression using let-expressions in Curry.
-The main difference to the AST-representation is the existential quantification due to the monadic wrapper of the shared expression.
-
-The container representation used before needs to be adapted due to the higher-order argument and the existential quantification.
-The implementation by \citeauthor{bunkenburg2019modeling} combines indexed containers and bi-containers introduced by \citet{altenkirch2015indexed} and \citet{ghani2007higher}, respectively.
-We do not go into more detail here but refer the interested reader to the master's thesis as well as future work to come.
+Note that a numbering that affects only the choices within the markers corresponds to the tree in \autoref{fig:searchTreeScope} when evaluating the example expression in Curry.
 
 \section{Related and Future Work}
 
@@ -2469,7 +2020,6 @@ Their approach does not only parametrise over the effects but also the data type
 That is, they describe an abstraction using \emph{initial f-and-m-algebras}, where \emph{m} describes the interleaved effects as monads and \emph{f} is a functor that describes the pure part of the respective data type.
 The part we like to investigate further is the custom proof principle they use to prove properties about programs modeled as f-and-m-algebras.
 
-
 \subsection{Reasoning About Haskell Programs}
 
 In addition to related work that models effects using mondas, there is also a variety of work that focuses on modelling and reasoning about Haskell programs.
@@ -2532,7 +2082,7 @@ These two layers of monads of the result of the sharing function is necessary to
 The first monadic layer additionally performs bookkeeping in order to implement call-time choice in case of sharing involving non-deterministic computations.
 In order to track the decisions of shared non-deterministic computations during evaluation, \citeauthor{fischer2009purely} use an untyped heap that stores computations corresponding to variable references.
 That is, their implementation is a realisation of the heap used in the operational call-by-need semantics as introduced by \citet{launchbury1993natural}.
-The main contribution of the ideas we presented about modelling Curry's call-time choice in Coq in \autoref{subsubsec:modelcalltime} in contrast to the implementation of \citeauthor{fischer2009purely} is that we avoid using unpure features.
+The main contribution of an implementation for Curry's call-time choice in Coq using \cinl{Free} in contrast to the implementation of \citeauthor{fischer2009purely} is to avoid unpure features.
 This avoidance originates in our usage of Coq, where these features are not available, but are also of interest for an implementation in Haskell as well.
 As future work, we plan to investigate if a Haskell implementation that tracks the decisions of choices instead of references to computations can compete with respect to performance.
 
@@ -2555,7 +2105,7 @@ Here, it comes apparent that their model is a specialisation of the generic mona
 The provided operators \texttt{\$*} and \texttt{*\$*} underline the correspondance to a monadic interface: The former operator corresponds to the \texttt{Functor} method \texttt{fmap} and the latter to the monadic operation \texttt{>>=}.
 
 Lastly, we like to mention the promising prototype developed by \citet{bunkenburg2019modeling} that was developed during his master's thesis.
-As already discussed in \autoref{para:implementationcalltime}, \citeauthor{bunkenburg2019modeling} implements Curry's call-time choices semantics in Coq using the \cinl{Free} model in combination with the results of \citet{wu2014effect} about scoped effects.
+\citeauthor{bunkenburg2019modeling} implements Curry's call-time choices semantics in Coq using the \cinl{Free} model in combination with the results of \citet{wu2014effect} about scoped effects.
 \citeauthor{wu2014effect} describe two representation for scoped effects: explicit syntax with begin- and end-tags to delimit the scope and higher-order syntax that uses a higher-order functor to describe effects.
 The first approach leads to cumbersome implementations for handlers of scoped effects when also considering possible mismatches of the tags.
 The higher-order syntax, on the other hand, takes the scoped program directly as argument and, thus, avoids to mark the begin and end of the scope manually.
