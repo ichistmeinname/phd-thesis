@@ -3,8 +3,24 @@
 
 \cleanchapterquote{Something something.}{Someone}{(Some profession)}
 
-\section{Motivation and Problem Statement}
-\label{sec:motivation}
+Many features that are most commonly associated with functional programming gain presence in mainstream as well as new programming languages in particular.
+Version 5 of Java brings polymorphism in the form of generics to an object-oriented language that is heavily used in industry; version 8 introduces a more convenient way to write lambda functions.
+New programming languages like Elm or Reason, which are heavily influenced by the functional languages Haskell and OCaml, respectively, fill the gap concerning statically typed, functional languages for front-end developers.
+Over the last decades, programmers seek the comfort of a compiler that warns about potentially bad programs before actually running them.
+Furthermore, they long for abstractions to simplify and generalise their code basis in order to increase the stability and maintainability of their software products.
+Such abstractions like higher-order functions, algebraic data types, polymorphism and purity are highly regarded in the functional programming language community since the beginning of ML in the 70s.
+Among functional languages, the superset of declarative languages inclues also the paradigm of logic programming.
+Features associated with logic programming like non-determinism, free variables and constraint solving have not caught on mainstream languages such as the functional features we mentioned above --- yet.
+One part of this thesis illustrates the advantages of a functional logic programming language, which combines both of these paradigms, over encoding logic features in a functional language.
+We let the functional logic programming language Curry compete against a common implementation of non-determinism in Haskell using lists.
+Haskell and Curry do not only share the same syntax, but also add lazy evaluation to their rich feature list: non-strict evaluation with sharing.
+The advantage we discuss in this thesis is specific to Curry's non-strict non-determinism.
 
-\section{Overall Structure}
-\label{sec:structure}
+Moreover, pure functional programming languages like Haskell and Curry are said to be particularly well-suited for equational reasoning.
+Most equational reasoning efforts do not bother about disruptive properties like partiality that may occur in programs we want to prove properties about.
+Partial programs are allowed in both of these languages and complicate equational reasoning.
+In case of partiality, we can argue that a total subset of, for example, Haskell is reasonable, because Haskell users are interested in preventing the possibility of run-time error anyway.
+In case of Curry, however, partiality comes in a different flavour: Curry's non-determinism consists of a non-determinism choice operator as well as a failure value that behaves as neutral element with respect to the choice operator.
+More precisely, we would exclude all Curry programs except the ones that would also compile in Haskell.
+Whereas the restriction concerning partiality in the context of Haskell might be acceptable, it is rather radical to exclude non-deterministic programs when we want to reason about Curry.
+As the second part of this thesis, we discuss how to model non-strict functional languages with effects like partiality and non-determinism in a proof assistant in order to apply equational reasoning in a computer-assisted approach.
