@@ -7,99 +7,52 @@
 \selectlanguage{english}
 \chapter*{Abstract}
 \label{sec:abstract}
-This thesis investigates effectful declarative programming with an
-emphasise on non-determinism as an effect.
+This thesis investigates effectful declarative programming with an emphasis on non-determinism as an effect.
 
-On the one hand, we are interested in developing applications using
-non-determinism as underlying implementation idea.
-We discuss two applications in the functional logic programming
-language Curry.
-The key idea of these implementations is to exploit the interplay of
-non-determinism and non-strictness that Curry employs.
+On the one hand, we are interested in developing applications using non-determinism as underlying implementation idea.
+We discuss two applications using the functional logic programming language Curry.
+The key idea of these implementations is to exploit the interplay of non-determinism and non-strictness that Curry employs.
 
-The first application is a rather toy example that investigates
-sorting algorithms parametrised over a comparison function.
-By applying a non-deterministic predicate to these sorting functions,
-we gain a permutation enumeration function.
-We compare the implementation in Curry with an implementation in
-Haskell using a monadic interface to model non-determinism.
+The first application investigates sorting algorithms parametrised over a comparison function.
+By applying a non-deterministic predicate to these sorting functions, we gain a permutation enumeration function.
+We compare the implementation in Curry with an implementation in Haskell that uses a monadic interface to model non-determinism.
 
-The other application that we discuss in this work is a library for
-probabilistic programming.
-Instead of modelling distributions as list of event and probability
-pairs, we model distributions using Curry's built-in non-determinism.
+The other application that we discuss in this work is a library for probabilistic programming.
+Instead of modelling distributions as list of event and probability pairs, we model distributions using Curry's built-in non-determinism.
 
-In both cases we observe that the combination of non-determinism and
-non-strictness has advantages over an implementation using lists to
-model non-determinism.
+In both cases we observe that the combination of non-determinism and non-strictness has advantages over an implementation using lists to model non-determinism.
 
-On the other hand, we present an idea to apply formal reasoning on
-effectful declarative programming languages.
-In order to start with simple effects, we focus on modelling a
-functional subset first.
+On the other hand, we present an idea to apply formal reasoning on effectful declarative programming languages.
+In order to start with simple effects, we focus on modelling a functional subset first.
 That is, the effects of interest are totality and partiality.
-We then observe that the general scheme to model these two effects can
-be generalised to capture a wide range of effects.
-Obviously, the next step is to apply the idea to model
-non-determinism.
-More precisely, we like to model the non-determinism of Curry: that is,
-non-strict non-determinism with call-time-choice.
-Therefore, we give discuss why the current representation that models
-call-by-name rather than Curry's call-by-need semantics.
+We then observe that the general scheme to model these two effects can be generalised to capture a wide range of effects.
+Obviously, the next step is to apply the idea to model non-determinism.
+More precisely, we implement a model for the non-determinism of Curry: non-strict non-determinism with call-time choice.
+Therefore, we finally discuss why the current representation that models call-by-name rather than Curry's call-by-need semantics and give an outlook on ideas to tackle this problem.
 
 \selectlanguage{ngerman}
 \chapter*{Zusammenfassung (deutsch)}
 \label{sec:abstract-diff}
 
-Diese Arbeit besch\"aftigt sich mit der deklarativen
-Programmierung mit Effekten und legt dabei besonderen Fokus auf
-Nichtdeterminismus als Effekt.
+Diese Arbeit besch\"aftigt sich mit der deklarativen Programmierung mit Effekten und legt dabei besonderen Fokus auf Nichtdeterminismus als Effekt.
 
-Einerseits m\"ochten wir Anwendungen entwicklen, dessen
-zugrundeliegende Implementierunsidee auf Nichtdeterminismus basiert.
-Wir stellen dazu zwei beispielhafte Anwendungen vor, die in der
-funktional logischen Programmiersprache Curry implementiert sind.
-Die Kernidee dieser Implementierung ist dabei die Kombination von
-Nichtstriktheit und Nichtdeterminismus, die Curry unterliegen,
-gewinnbringend auszunutzen.
+Einerseits m\"ochten wir Anwendungen entwicklen, dessen zugrundeliegende Implementierunsidee auf Nichtdeterminismus basiert.
+Wir stellen dazu zwei beispielhafte Anwendungen vor, die in der funktional logischen Programmiersprache Curry implementiert sind.
+Die Kernidee dieser Implementierungen ist dabei die Kombination von Nichtstriktheit und Nichtdeterminismus, die Curry unterliegen, gewinnbringend auszunutzen.
 
-Die erste Anwendung ist letztendlich eher eine nette Spielerei mit
-Sortierfunktionen als eine echte Anwendung.
-Wir untersuchen Sortierfunktionen die \"uber eine Vergleichsfunktion
-parametrisiert sind und wenden diese Funktionen auf ein
-nichtdeterministisches Pr\"adikat an.
-Dabei entsteht eine Funktion, die Permutationen der Eingabeliste
-auflistet.
-Wir vergleichen unsere Implementierung in Curry mit einer
-Implementierung in Haskell, die den Nichtdeterminismus monadisch
-modelliert.
+F\"uer die erste Anwendung untersuchen wir Sortierfunktionen, die \"uber eine Vergleichsfunktion parametrisiert sind, und wenden diese Funktionen auf ein nichtdeterministisches Pr\"adikat an.
+Dabei entsteht eine Funktion, die Permutationen der Eingabeliste berechnet.
+Wir vergleichen unsere Implementierung in Curry mit einer Implementierung in Haskell, die den Nichtdeterminismus monadisch modelliert.
 
-Als zweite Anwendung werden wir \"uber eine Bibliothek zur
-probabilistischen Programmierung diskutieren.
-Statt der \"ublichen Modellierung von Wahrscheinlichkeitsverteilungen
-als Liste von Ereignis-Wahrscheinlichtkeits-Paar modellieren wir diese
-Verteilungen mithilfe von Currys eingebauten Nichtdeterminismus.
+Als zweite Anwendung werden wir \"uber eine Bibliothek zur probabilistischen Programmierung diskutieren.
+Statt der \"ublichen Modellierung von Wahrscheinlichkeitsverteilungen als Liste von Paaren von Ereignis- und korrespondierenden Wahrscheinlichtkeitswerten modellieren wir diese Verteilungen mithilfe von Currys eingebauten Nichtdeterminismus.
 
-Beide Implementierung haben dadurch die Kombination von
-Nichtdeterminismus und Nichtstriktheit Vorteile geben\"uber
-einer Implementierung, die den Nichtdeterminismus durch Listen
-repr\"asentiert.
+Beide Implementierung haben durch die Kombination von Nichtdeterminismus und Nichtstriktheit Vorteile geben\"uber einer Implementierung, die den Nichtdeterminismus durch Listen repr\"asentiert.
 
-Andererseits m\"ochten wir eine M\"oglichkeit schaffen, \"uber die
-Programme, die wir in den effektbehafteten deklarativen
-Programmiersprachen entwickelt haben, in einem formalen Rahmen zu
-argumentieren.
-Dabei fangen wir mit einfachen der Teilmenge der rein funktionalen
-Effekten, das hei\ss{}t, wir interessieren uns zun\"achst f\"ur
-Totalit\"at und Partialit\"at von Programmen.
-Die zugrundeliegende Idee zur Modellierung dieser zwei Effekte kann
-dann auch f\"ur weitere Effekte genutzt werden.
-Als nat\"urlichen n\"achsten Schritt betrachten wir den Effekte, der
-bei der Sprache Curry zus\"atzlich hinzukommt: nicht-strikter
-Nichtdeterminismus mit \emph{Call-Time-Choice} Semantik.
-Dabei geben wir eine grobe \"Ubersicht dar\"uber, warum die aktuelle
-Repr\"asentation \emph{call-by-name} modelliert sowie erste Ideen, wie
-die f\"ur Curry erforderliche \emph{call-by-name} Semantik modelliert
-werden k\"onnte.
+Andererseits m\"ochten wir eine M\"oglichkeit schaffen, \"uber die Programme, die wir in effektbehafteten deklarativen Programmiersprachen entwickelt haben, in einem formalen Rahmen zu argumentieren.
+Dabei fangen wir mit der Teilmenge der rein funktionalen Effekten, das hei\ss{}t, wir interessieren uns zun\"achst f\"ur totale und partielle Programme.
+Die zugrundeliegende Idee zur Modellierung dieser zwei Effekte kann dann auch f\"ur weitere Effekte genutzt werden.
+Als nat\"urlichen n\"achsten Schritt betrachten wir den Effekt, der bei der Sprache Curry zus\"atzlich hinzukommt: nicht-strikter Nichtdeterminismus mit \emph{Call-Time Choice} Semantik.
+Dabei geben wir eine \"Ubersicht dar\"uber, warum die aktuelle Repr\"asentation \emph{call-by-name} modelliert, sowie erste Ideen, wie die f\"ur Curry erforderliche \emph{call-by-name} Semantik modelliert werden k\"onnte.
 
 \endgroup
