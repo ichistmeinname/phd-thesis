@@ -267,7 +267,8 @@ At that point, Coq provides the information that the lemma \cinl{map_length} was
 In order to give a better overview of the proof in its entirety, we restate the proposition as lemma including the complete proof script.
 
 \begin{minted}{coq}
-Lemma map_length (A B : Type) (f : A -> B) (xs : list A) : length xs = length (map f xs).
+Lemma map_length (A B : Type) (f : A -> B) (xs : list A)
+  : length xs = length (map f xs).
 Proof.
   induction xs as [ | y ys H ].
   - simpl. reflexivity.
