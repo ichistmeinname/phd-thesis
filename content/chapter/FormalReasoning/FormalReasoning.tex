@@ -2296,8 +2296,8 @@ In case of Curry, however, we more naturally stumble about this problem, because
 For an effect like tracing, on the other hand, that is common for Haskell programmers as well, we can again observe the difference.
 Thus, this observation leads us to the goal to define a model that enables us to reason about call-by-need semantics.
 We discussed a first naive approach to reproduce the wanted semantics for simple programs, but could not use this approach in a more general setting.
-As a good first step in the right direction, we sketched ideas about a prototypical implementation using scoped operations, which apply let-bindings that introduce the shared operations crucial for call-by-needs semantics.
-We hope to apply the same idea to reason about Haskell's tracing effects and other effects that rely on call-by-need semantics.
+In order to overcome this obstacle, we refer to a prototypical implementation using scoped operations to model Curry's call-time choice semantics.
+We hope to apply the ideas on scoped operations to reason about Haskell's tracing effects and other effects that rely on call-by-need semantics.
 
 \section{Final Remarks}
 
