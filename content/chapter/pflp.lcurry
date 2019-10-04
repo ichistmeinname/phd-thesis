@@ -2317,22 +2317,7 @@ However, they use lazy evaluation for a concrete application based on importance
 Due to the combination of non-strictness and non-determinism, we can efficiently calculate the total probability of the resulting distribution without utilizing sampling.
 
 
-\section{Conclusion and Future Work}
-We have implemented a simple library for probabilistic programming in a functional logic programming language, namely Curry.
-Such a library proves to be a good fit for a functional logic language, because both paradigms share similar features.
-While other libraries need to reimplement features specific to probabilistic programming, we solely rely on core features of functional logic languages.
-
-The key idea of the library is to use non-determinism to model distributions.
-We discussed design choices as well as the disadvantages and advantages that result from this approach.
-In the end, the library provides non-strict probabilistic combinators in order to avoid spawning unnecessary non-deterministic computations.
-These non-strict combinators have benefits in terms of performance due to early pruning.
-Using combinators that are too strict leads to a loss of these performance benefits.
-Fortunately, the user does not have to worry about using the right amount of strictness as long as she only uses the provided combinators.
-There are, however, two restrictions, the user has to follow when using the library.
-If the user does not follow these restrictions, a program may behave unexpectedly, in particular, the usual monad laws do not hold.
-Events may not be non-deterministic and the second argument of \cyinl{(>>>=)}-operator may not be partial.
-Considering these restrictions, we showed that the library obeys the expected monad laws.
-
+\section{Future Work}
 As future work, we see a high potential for performance improvements for the Curry compiler KiCS2.
 PFLP serves as a starting point for further studies of functional logic features in practical applications.
 For example, we would expect the running times of the strict implementation based on non-determinism to be approximately as efficient as a list-based implementation.
@@ -2350,6 +2335,22 @@ For instance,~\citet{christiansen2010free} investigate free theorems for functio
 As their work considers non-determinism and sharing, adapting it to probabilistic programming should be easy.
 As another example,~\citet{brassel2009technique} presents a debugger for Curry that works well with non-determinism.
 Hence, it should be possible to reuse these ideas in the setting of probabilistic programming as well.
+
+\section{Conclusion}
+We have implemented a simple library for probabilistic programming in a functional logic programming language, namely Curry.
+Such a library proves to be a good fit for a functional logic language, because both paradigms share similar features.
+While other libraries need to reimplement features specific to probabilistic programming, we solely rely on core features of functional logic languages.
+
+The key idea of the library is to use non-determinism to model distributions.
+We discussed design choices as well as the disadvantages and advantages that result from this approach.
+In the end, the library provides non-strict probabilistic combinators in order to avoid spawning unnecessary non-deterministic computations.
+These non-strict combinators have benefits in terms of performance due to early pruning.
+Using combinators that are too strict leads to a loss of these performance benefits.
+Fortunately, the user does not have to worry about using the right amount of strictness as long as she only uses the provided combinators.
+There are, however, two restrictions, the user has to follow when using the library.
+If the user does not follow these restrictions, a program may behave unexpectedly, in particular, the usual monad laws do not hold.
+Events may not be non-deterministic and the second argument of \cyinl{(>>>=)}-operator may not be partial.
+Considering these restrictions, we showed that the library obeys the expected monad laws.
 
 \section{Final Remarks}
 

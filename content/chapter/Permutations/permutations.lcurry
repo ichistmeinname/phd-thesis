@@ -899,25 +899,8 @@ The utilisation of the precondition leads to a efficient sorting algorithm: no t
 
 %include Permutations.lhs
 
-\section{Conclusion and Future Work}
-In this chapter we implemented a variety of sorting functions parametrised over a comparison function in Curry as well as in Haskell.
-Instead of ordinary sorting tasks, we applied the sorting functions to a non-deterministic comparison function.
-The resulting function enumerates permutations of the input list.
-For the Curry implementation there are several sorting functions that compute only the permutations of the input list without any duplicates: insertion sort, selection sort, merge sort and a variant of quick sort that uses \cyinl{partition} instead of two \cyinl{filter} calls.
-We then compared these Curry implementations to their Haskell counterparts.
-In order to mimic the non-deterministic component that Curry brings along out of the box, we use a monadic lifting to define potentially effectful computations in Haskell.
-In the end, the Haskell implementations use a monadic lifting of the ordinary, pure sorting function in order to use a non-deterministic comparison function and compute non-deterministic results.
-One particularly interesting observation was that whereas the Curry version of selection sort computes only the permutations, the Haskell version does not.
-This difference was the main reason we investigated the difference of both implementations in the first place.
-The other sorting functions compute the same non-deterministic results: insertion sort, merge sort, and quick sort using \cyinl{partition} do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
-Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementations can exploit non-strictness better than their Haskell counterparts.
-As an example, we demanded the head elements of all permutations and counted the number of non-deterministic choices that were triggered in to compute the result.
-The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
-On top of that, none of the Curry implementations need to trigger all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n!$ computations.
-This property for the Curry implementation feels impressive since $n!$ non-deterministic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
-That is, selecting only the head element of the permutations has no effect on the non-determinism that needs to be triggered.
-
-While we started first investigations to compare the strictness behaviour of the different sorting functions, we think that a more rigorous investigation might lead to further interesting properties.
+\section{Future Work}
+While we started first investigations to compare the strictness behaviour of different sorting functions, we think that a more rigorous investigation might lead to further interesting properties.
 For example, it would be interesting to analyse the run-time behaviour for the resulting permutation functions.
 As we only compared the non-deterministic version in Curry and the monadic version in Haskell, it would be interesting to compare the non-deterministic version with deterministic permutation algorithms as well.
 For example, according to \citet{sedgewick1977permutation} the classical permutation
@@ -949,6 +932,24 @@ Namely, we used \cyinl{filter} to implement quick sort in \ref{subsec:quicksort}
 We have seen that using \cyinl{filter} with a non-deterministic predicate yields all sublists of the input list.
 It might be interesting to search for more predicate-based functions and their non-deterministic counterparts.
 The first other common functions that come to mind are \cyinl{takeWhile, dropWhile :: (a -> Bool) -> [a] -> [a]}, but we are keen to search for other functions that have interesting and useful non-deterministic counterparts.
+
+\section{Conclusion}
+In this chapter we implemented a variety of sorting functions parametrised over a comparison function in Curry as well as in Haskell.
+Instead of ordinary sorting tasks, we applied the sorting functions to a non-deterministic comparison function.
+The resulting function enumerates permutations of the input list.
+For the Curry implementation there are several sorting functions that compute only the permutations of the input list without any duplicates: insertion sort, selection sort, merge sort and a variant of quick sort that uses \cyinl{partition} instead of two \cyinl{filter} calls.
+We then compared these Curry implementations to their Haskell counterparts.
+In order to mimic the non-deterministic component that Curry brings along out of the box, we use a monadic lifting to define potentially effectful computations in Haskell.
+In the end, the Haskell implementations use a monadic lifting of the ordinary, pure sorting function in order to use a non-deterministic comparison function and compute non-deterministic results.
+One particularly interesting observation was that whereas the Curry version of selection sort computes only the permutations, the Haskell version does not.
+This difference was the main reason we investigated the difference of both implementations in the first place.
+The other sorting functions compute the same non-deterministic results: insertion sort, merge sort, and quick sort using \cyinl{partition} do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
+Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementations can exploit non-strictness better than their Haskell counterparts.
+As an example, we demanded the head elements of all permutations and counted the number of non-deterministic choices that were triggered in to compute the result.
+The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
+On top of that, none of the Curry implementations need to trigger all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n!$ computations.
+This property for the Curry implementation feels impressive since $n!$ non-deterministic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
+That is, selecting only the head element of the permutations has no effect on the non-determinism that needs to be triggered.
 
 \section{Final Remarks}
 
