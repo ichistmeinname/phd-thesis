@@ -14,7 +14,8 @@
   todonotes,
   booktabs,
   tikz,
-  pgfplots
+  pgfplots,
+  multirow
 }
 \pgfplotsset{compat=newest}
 \usetikzlibrary{patterns}
@@ -130,14 +131,14 @@ Languages and Compiler Construction}
 \usemintedstyle[haskell]{trac}
 \usemintedstyle[coq]{tango}
 
-% \newenvironment{excursus}[1]
-% {\vspace{0.5cm}
-% \hrule
-% \vspace{0.3cm}
-% \paragraph{Excursus: #1}}
-% {\vspace{0.3cm}
-% \hrule
-% \vspace{0.5cm}}
+\newenvironment{excursus}[1]
+{\vspace{0.5cm}
+\hrule
+\vspace{0.3cm}
+\paragraph{Excursus: #1}}
+{\vspace{0.3cm}
+\hrule
+\vspace{0.5cm}}
 
 
 \newenvironment{cyrepl}
@@ -201,6 +202,22 @@ Languages and Compiler Construction}
   \end{minipage}%s
   \VerbatimEnvironment%
   \minipage[t]{0.55\textwidth}%
+  \begin{Verbatim}%
+}
+{%
+ \end{Verbatim}%
+  \endminipage%
+  \vspace{0.25cm}%
+}
+
+\newenvironment{cproof1}[3]
+{%
+  \vspace{0.25cm}%
+  \begin{minipage}[t]{#2\textwidth}%
+    \mintinline{coq}{#1}%
+  \end{minipage}%
+  \VerbatimEnvironment%
+  \minipage[t]{#3\textwidth}%
   \begin{Verbatim}%
 }
 {%
