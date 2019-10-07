@@ -18,6 +18,7 @@
 % **************************************************
 % Setup YOUR thesis document in this file !
 % **************************************************
+
 \input{setup}
 \newcommand{\coqrepl}{$\Pi$>}
 \newcommand{\curryrepl}{$\mathbf{\vdash}$}
@@ -30,6 +31,9 @@
 %include greek.fmt
 
 %format not = "not"
+%format ?* = "\mathbin{?_1}"
+%format ? = "\mathbin{?}"
+%format ^ = "\mathbin{^}"
 %format +++ = "\mathbin{+\!\!\!+\!\!\!+}"
 %format >>>= = "\mathbin{>\!\!\!>\!\!\!>\mkern-6.7mu=}"
 %format >>>=! = "\mathbin{>\!\!\!>\!\!\!>\mkern-6.7mu=!}"
@@ -45,10 +49,7 @@
 
 \def\commentbegin{\quad\{\ }
 \def\commentend{\}}
-
-\newcommand{\coqrepl}{$\Pi$>}
-\newcommand{\curryrepl}{\boldmath$\vdash$\normalfont}
-
+                
 % **************************************************
 % Document CONTENT
 % **************************************************
@@ -82,7 +83,7 @@
 \input{content/abstract}
 \cleardoublepage
 %
-\input{content/acknowledgement}
+%\input{content/acknowledgement}
 \cleardoublepage
 %
 \setcounter{tocdepth}{2}		% define depth of toc
@@ -99,33 +100,29 @@
 \chapter{Introduction}
 \label{ch:intro}
 \input{content/chapter/introduction}
-
+ 
 \chapter{Declarative Programming}
 \label{ch:dp}
 %include content/chapter/preliminaries.lhs
 %include content/chapter/Preliminaries/Haskell.lhs
 %include content/chapter/Preliminaries/Curry.lcurry
-%\input{content/chapter/Preliminaries/Coq.tex}
-
+\input{content/chapter/Preliminaries/Coq.tex}
+ 
 \chapter{Generating Permutations via Non-deterministic Sorting}
 \label{ch:permutations}
-% %include content/chapter/Permutations/permutations.lcurry
+%include content/chapter/Permutations/permutations.lcurry
 
-\chapter{A Library for Probabilistic Functional Logic Programming}
+\chapter{Implementing a Library for Probabilistic Functional Logic Programming}
 \label{ch:pflp}
-% %include content/chapter/pflp.lcurry
-
+%include content/chapter/pflp.lcurry
+ 
 \chapter{Formal Reasoning About Effectful Non-Strict Programs}
 \label{ch:reasoning}
-%\input{content/chapter/FormalReasoning/FormalReasoning.tex}
-
-%\chapter{Modelling Lazy Functional Logic Programming with Call-Time-Choice}
-%\label{ch:modelling} 
-%\input{content/chapter/free-curry}
-
-\chapter{Conclusions}
+\input{content/chapter/FormalReasoning/FormalReasoning.tex}
+ 
+\chapter{Conclusion}
 \label{ch:conclusion}
-%\input{content/chapter/conclusion}
+\input{content/chapter/conclusion}
 
 % --------------------------
 % Back matter
@@ -141,7 +138,7 @@
 \cleardoublepage
 
 \appendix\cleardoublepage
-%\input{content/appendix}
+\input{content/appendix}
 
 % **************************************************
 % End of Document CONTENT
