@@ -1,42 +1,52 @@
 % !TEX root = ../thesis.tex
 %
 
-\subsection*{Combination of Non-determinism and Non-strictness}
+This thesis investigated effectful declarative programming by means of two practical applications as well as formal reasoning.
+In case of the applications we set the focus on the effect of non-determinism, especially the combination of non-determinism and non-strictness.
+We implemented both applications using the functional logic programming language Curry.
+Furthermore, we investigated how to formally reason about effectful non-strict programs using a proof assistant like Coq.
+Here, the effects of main interest were partiality --- as it occurs in Haskell --- and, again, non-determinism as known from Curry.
+The results for Haskell-like partiality are mature, whereas modelling Curry's call-time choice semantics remains a challenge.
+First ideas to tackle this challange are, however, promising.
 
-\autoref{ch:permutations} and \autoref{ch:pflp} include two applications to investigate the advantages of non-strict non-determinism as it occurs in Curry.
-In case of \autoref{ch:permutations} we implemented a variety of sorting functions parametrised over a comparison function and applied these sorting functions to a non-deterministic comparison function.
-This application leads to a function that enumerates permutations of the input list.
+\section{Combination of Non-determinism and Non-strictness}
+
+In \autoref{ch:permutations} we implemented a variety of sorting functions parametrised over a comparison function and applied these sorting functions to a non-deterministic comparison function.
+The resulting functions enumerate permutations of the input list.
 We implemented this approach in Curry using the built-in non-determinism as well as in Haskell using lists as representation for non-deterministic computations.
-In order to mimic the non-deterministic component that Curry brings along out of the box, we use a monadic lifting to define potentially effectful computations in Haskell.
-In the end, the Haskell implementations use a monadic lifting of the ordinary, pure sorting function in order to use a non-deterministic comparison function and compute non-deterministic results.
-One particularly interesting observation was that whereas the Curry version of selection sort computes only the permutations, the Haskell version does not.
+The Haskell implementation uses a generic, monadic lifting of the ordinary, pure sorting function in order to use a non-deterministic comparison function and compute non-deterministic results.
+One particularly interesting observation was that the Haskell version of selection sort computes more lists than the permutations of the input list whereas the Curry version computes exactly all permutations.
 This difference was the main reason we investigated the difference of both implementations in the first place.
-Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementations can exploit non-strictness better than their Haskell counterparts.
-As an example, we demanded the head elements of all permutations and counted the number of non-deterministic choices that were triggered in to compute the result.
-The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
-On top of that, none of the Curry implementations need to trigger all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n!$ computations.
-This property for the Curry implementation feels impressive since $n!$ non-deterministic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
-That is, selecting only the head element of the permutations has no effect on the non-determinism that needs to be triggered.
+Furthermore, we observed that the Curry version of these implementations can exploit non-strictness better than their Haskell counterparts.
+We investigated this property for all sorting function that computed exactly all permutations in Curry as well as in Haskell.
+In order to check for this property, we computed only the head elements of the permutations and counted the number of non-deterministic choices that were demanded to compute the result.
+The most impressive sorting functions for this example are selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
+On top of that, none of the Curry implementations need to demand all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations demand at least $n!$ computations.
+This comparison shows a clear advantage of the Curry implementation: $n!$ non-deterministic computations in Haskell corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
+On the other hand, selecting only the head element of the permutations has no effect on the non-determinism that needs to be demanded in Curry.
 
-In \autoref{ch:pflp} we presentation an implementation for probabilistic programming in Curry.
-Such a library proves to be a good fit for a functional logic language, because both paradigms share similar features.
+In \autoref{ch:pflp} we presented an implementation for probabilistic programming in Curry.
+Such a library proves to be a good fit for an implementation using a functional logic language, because both paradigms share similar features.
 While other libraries need to reimplement features specific to probabilistic programming, we solely rely on core features of functional logic languages.
-The key idea of the library is to use non-determinism to model distributions.
+The key idea of the library is to use non-determinism to model distributions, which consist of pairs of an event and the corresponding probability.
 We discussed design choices as well as the disadvantages and advantages that result from this approach.
-In the end, the library provides non-strict probabilistic combinators in order to avoid spawning unnecessary non-deterministic computations.
-These non-strict combinators have benefits in terms of performance due to early pruning.
-Using combinators that are too strict leads to a loss of these performance benefits.
-Fortunately, the user does not have to worry about using the right amount of strictness as long as she only uses the provided combinators.
-We showed that the library operations that corresponds to a monadic interface obey the expected monad laws, if the user meets two restrictions concerning their usage.
+Besides modeling distributions, users of probabilistic programming are interested in asking queries about their models.
+The presented implementation provides non-strict probabilistic combinators in order to avoid spawning unnecessary non-deterministic computations when modeling distributions and performing queries.
+On the one hand, these non-strict combinators have benefits in terms of performance due to early pruning when performing queries.
+Using combinators that are too strict, on the other hand, leads to a loss of these performance benefits.
+Fortunately, the user does not have to worry about strictness as long as she only uses the provided combinators.
+On top of that, we showed that the library operations that corresponds to a monadic interface obey the expected monad laws, if the user meets two restrictions concerning their usage.
 
-\subsection*{Modelling Effectful Programs in Coq}
+\section{Modelling Effectful Programs in Coq}
 
-In chapter \autoref{ch:reasoning} we discussed an approach to model and reason about non-strict effectful programs in a proof assistant like Coq.
-One of the advantages of the framework is its generality: Although we are especially interested in an effect like partiality that can occur in Haskell, we emphasise the definition of effect-generic functions and proofs.
-In case of our framework the generalisation of proofs is especially interesting: if a propositions holds for arbitrary effects, we can reuse these propositions in other generic proofs as well as in proofs about more specialised settings like partiality.
+In chapter \autoref{ch:reasoning} we discussed an approach to model and reason about non-strict effectful programs in the proof assistant Coq.
+One of the advantages of the framework is its generality: although we are mainly interested in an effect like partiality that can occur in Haskell, we emphasise the definition of effect-generic functions and proofs.
+In case of our framework the generalisation of proofs is especially beneficial: if a proposition holds for arbitrary effects, we can reuse this proposition in other generic proofs as well as in proofs about more specialised settings like partiality.
 That is, we can even reuse a variety of functions and properties we define to model Haskell programs when reasoning about Curry programs.
-We observe that the current model we use for Haskell as well as Curry follows call-by-name semantics instead of the wanted call-by-need semantics.
-We stumble about this problem in case of Curry, because we can observe the difference between call-by-name and call-by-need in case of non-determinism whereas we cannot observe this difference in case of partiality only.
-In Haskell we can again observe the difference for an effect like tracing.
-Thus, this observation leads us to the goal to define a model that enables us to reason about call-by-need semantics.
+
+We observed that the current model we use for Haskell as well as Curry follows call-by-name semantics instead of the wanted call-by-need semantics.
+We stumbled about this problem in case of Curry, because we can observe the difference between call-by-name and call-by-need in case of non-determinism.
+In case of Haskell, we cannot observe this difference when modelling partiality only.
+In Haskell we can, however, again observe the difference for an effect like tracing.
+Thus, this observation lead us to the goal to define a model that enables us to reason about call-by-need semantics.
 We hope to apply ideas of a prototypical implementation using scoped operations to model Curry's call-time choice semantics to reason about Haskell's tracing effects and other effects that rely on call-by-need semantics as well.
