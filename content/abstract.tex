@@ -7,27 +7,27 @@
 \selectlanguage{english}
 \chapter*{Abstract}
 \label{sec:abstract}
-This thesis investigates effectful declarative programming with an emphasis on non-determinism as an effect.
+This thesis investigates effectful declarative programming with an emphasis on non-deter\-mi\-nism as an effect.
 
-On the one hand, we are interested in developing applications using non-determinism as underlying implementation idea.
+On the one hand, we are interested in developing applications using non-deter\-mi\-nism as underlying implementation idea.
 We discuss two applications using the functional logic programming language Curry.
-The key idea of these implementations is to exploit the interplay of non-determinism and non-strictness that Curry employs.
+The key idea of these implementations is to exploit the interplay of non-deter\-mi\-nism and non-strictness that Curry employs.
 
 The first application investigates sorting algorithms parametrised over a comparison function.
 By applying a non-deterministic predicate to these sorting functions, we gain a permutation enumeration function.
-We compare the implementation in Curry with an implementation in Haskell that uses a monadic interface to model non-determinism.
+We compare the implementation in Curry with an implementation in Haskell that uses a monadic interface to model non-deter\-mi\-nism.
 
 The other application that we discuss in this work is a library for probabilistic programming.
-Instead of modelling distributions as list of event and probability pairs, we model distributions using Curry's built-in non-determinism.
+Instead of modelling distributions as list of event and probability pairs, we model distributions using Curry's built-in non-deter\-mi\-nism.
 
-In both cases we observe that the combination of non-determinism and non-strictness has advantages over an implementation using lists to model non-determinism.
+In both cases we observe that the combination of non-deter\-mi\-nism and non-strictness has advantages over an implementation using lists to model non-deter\-mi\-nism.
 
 On the other hand, we present an idea to apply formal reasoning on effectful declarative programming languages.
 In order to start with simple effects, we focus on modelling a functional subset first.
 That is, the effects of interest are totality and partiality.
 We then observe that the general scheme to model these two effects can be generalised to capture a wide range of effects.
-Obviously, the next step is to apply the idea to model non-determinism.
-More precisely, we implement a model for the non-determinism of Curry: non-strict non-determinism with call-time choice.
+Obviously, the next step is to apply the idea to model non-deter\-mi\-nism.
+More precisely, we implement a model for the non-deter\-mi\-nism of Curry: non-strict non-deter\-mi\-nis with call-time choice.
 Therefore, we finally discuss why the current representation that models call-by-name rather than Curry's call-by-need semantics and give an outlook on ideas to tackle this problem.
 
 \selectlanguage{ngerman}
