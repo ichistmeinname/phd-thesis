@@ -4,9 +4,9 @@ Representatives of declarative programming are functional and logic programming 
 
 The first group of languages consists of functions in the mathematical sense: input arguments uniquely determine the result.
 This property is especially interesting in the context of purely functional programming languages and called \emph{referential transparency}: every function call with the same arguments always evaluates to the same result regardless of the context and concrete order of evaluation \citep{horowitz1983fundamentals}.
-A pure programming language does not have any side effects like mutable state, i.e., variables are only abbreviations for expressions and not references that are manipulated by updates or other modifications.
+A pure programming language does not have any side effects like mutable state, that is, variables are only abbreviations for expressions and not references that are manipulated by updates or other modifications.
 In this thesis, all declarative programming languages we consider are pure and also statically typed.
-That is, every expression has a type that is checked at compile time, which does not change within the course of evaluating the overall program.
+That is, every expression has a type, which is checked at compile time and does not change within the course of evaluating the overall program.
 
 In this thesis we work with three different languages: Haskell \citep{jones2002haskell} as representative for a functional language, Curry \citep{hanus1995curry} for functional logic programming, and Coq \citep{barras1997coq} as dependently typed language and representative for interactive theorem provers.
 We expect the reader to be familiar with the basics of Haskell in order to directly start with more advanced features in the next section.

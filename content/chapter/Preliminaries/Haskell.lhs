@@ -26,10 +26,13 @@ We display the interaction with GHC's REPL using a prompt showing a lambda  --- 
 
 \subsection{Non-strictness and Laziness}
 
-Haskell's evaluation strategy is call-by-need.
-The strategy evaluates subexpressions only when explicitly needed and shared expressions only once -- that is, call-by-need combines the advantages of both, call-by-name and call-by-value.
+Haskell's evaluation strategy is call-by-need \citep{ariola1997call}.
+The strategy evaluates sub-expressions only when explicitly needed and shared expressions only once.
+That is, call-by-need combines the advantages of both, call-by-name and call-by-value.
+Call-by-name semantics behaves non-strict and evaluates expressions only when needed; call-by-value semantics corresponds to a strict evaluation, having the advantage that it evaluates expressions only once.
+The combination of non-strictness and sharing, which Haskell employs, is often called lazy evaluation.
 
-We use the following definition of \hinl{head} to project the first element of a list in order to demonstrate the non-strictness part of Haskell's lazy evaluation.
+In order to demonstrate the non-strictness part of Haskell's lazy evaluation we use the following definition of \hinl{head} to project the first element of a list.
 
 %if False
 
@@ -43,10 +46,12 @@ head (x : _) = x
 
 \begin{minted}{haskell}
 head :: [a] -> a
+head []      = undefined
 head (x : _) = x
 \end{minted}
 
 Let us compute the head of a partial list: the head element is defined but the remaining list is not.
+In Haskell the value \hinl{undefined} represents a partial value that produces a run-time error, when evaluation demands the value.
 
 \begin{hrepl}
 \haskellrepl head (1 : undefined)
@@ -104,7 +109,7 @@ msg
 84
 \end{hrepl}
 
-The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \hinl{trace "msg" 42} by binding it to a variable \hinl{x} and doubles the value.
+The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \hinl{trace "msg" 42} by binding it to a variable \hinl{x} and doubles the pure value \hinl{42} only.
 Although the first example \hinl{test1} looks like an inlined version of \hinl{test2}, due to Haskell's call-by-need semantics these expressions have different results when used in combination with a side effect like tracing.
 
 %if False
