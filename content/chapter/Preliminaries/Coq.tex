@@ -114,9 +114,9 @@ In our case, \cinl{cons} and \cinl{nil} have the following types.
 
 \begin{crepl}
 \coqrepl Check nil.
-   nil : forall (A : Type), list A
+   nil : \(\forall\) (A : Type), list A
 \coqrepl Check cons.
-   cons : forall (A : Type), A -> list A -> list A
+   cons : \(\forall\) (A : Type), A -> list A -> list A
 \end{crepl}
 
 The first argument is the type that determines the concrete type instantiation of the constructors \cinl{cons} and \cinl{nil}.
@@ -289,10 +289,10 @@ Let us take a look at an example: the induction principle for Coq's predefined l
 
 \begin{crepl}
 \coqrepl Check list_ind.
-  list_ind : forall (A : Type) (P : list A -> Prop),
+  list_ind : \(\forall\) (A : Type) (P : list A -> Prop),
     P nil ->
-    (forall (x : A) (xs : list A), P xs -> P (cons x xs)) ->
-    forall xs : list A, P xs
+    (\(\forall\) (x : A) (xs : list A), P xs -> P (cons x xs)) ->
+    \(\forall\) xs : list A, P xs
 \end{crepl}
 
 Dissecting this type signatures gives us the following parts: given a proposition \cinl{P} on lists, we need to supply two proofs.
@@ -322,8 +322,8 @@ That is, we end up with only two subgoals: we need to prove that the proposition
 We can prove the first goal for the \cinl{nil}-constructor using the same tactics as before: after simplification of the involved functions, both sides of the equation are already equal.
 The second goal looks as follows.
 
-\begin{minted}{coq}
-  forall (y : A) (ys : list A),
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+  !$\forall$! (y : A) (ys : list A),
     length ys = length (map f ys) ->
     length (cons y ys) = length (map f (cons y ys))
 \end{minted}
@@ -342,9 +342,9 @@ A container is described as a product of shapes and a position function.
 The shape is a type \cinl{Shape} and the position type \cinl{Pos} is a type function that maps shapes to types.
 Using these two components we can define a container extension that gives rise to a data type.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Inductive Ext (Shape : Type) (Pos : Shape -> Type) (A : Type) : Type :=
-| ext : forall s, (Pos s -> A) -> Ext Pos A.
+| ext : !$\forall$! s, (Pos s -> A) -> Ext Pos A.
 \end{minted}
 
 A container extension \cinl{Ext Shape Pos} is then isomorphic to a type constructor \cinl{F}, where \cinl{F A} represents the polymorphic data type.
@@ -395,19 +395,19 @@ Definition to_One A (e : Ext One!$_\text{S}$! One!$_\text{P}$! A) : One A :=
   one.
 \end{minted}
 
-The definition of \cinl{from_One} uses an empty pattern match, because there are no possible values of type \cinl{One_P tt} that is just a type synonym for \cinl{empty}.
-Since the argument \cinl{p} is of type \cinl{empty} and \cinl{empty} has no constructors to match on, Coq realises that we cannot have a value of type \cinl{empty} in the first place and accepts the definition.
+The definition of \cinl{from_One} uses an empty pattern match, because there are no possible values of type \cinl{One!$_{\text{P}}$! tt} that is just a type synonym for \cinl{Empty}.
+Since the argument \cinl{p} is of type \cinl{Empty} and \cinl{Empty} has no constructors to match on, Coq realises that we cannot have a value of type \cinl{Empty} in the first place and accepts the definition.
 That is, we can define a function that yields an arbitrary polymorphic value given an empty type as argument.
 
 \begin{minted}{coq}
-Definition bogus (A : Type) (e : empty) : A :=
+Definition bogus (A : Type) (e : Empty) : A :=
   match e with end.
 \end{minted}
 
 The definition of \cinl{to_One}, on the other hand, is straightforward, because there is only one way to construct the value \cinl{one}.
 Note that we do not need to access a polymorphic component of type \cinl{A} in order to construct a value of type \cinl{One}.
 
-An alternative definition of the above function displays the components of the argument type \cinl{Ext One_S One_P A} more explicitly.
+An alternative definition of the above function displays the components of the argument type \cinl{Ext One!$_{\text{S}}$! One!$_{\text{P}}$! A} more explicitly.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition to_One A (e : Ext One!$_\text{S}$! One!$_\text{P}$! A) : One A :=
@@ -415,19 +415,19 @@ Definition to_One A (e : Ext One!$_\text{S}$! One!$_\text{P}$! A) : One A :=
 \end{minted}
 
 Since \cinl{Ext} has only one constructor, Coq allows a let-binding for such irrefutable patterns using the above syntax using a tick \cinl{'}.
-The function \cinl{pf} is of type \cinl{One_P tt -> A}, which becomes a function of type \cinl{empty -> A} after inlining the definition of \cinl{One_P tt}.
-As a side note, we could not produce a value of type \cinl{A} using the function \cinl{pf} if we needed to: we cannot construct the appropriate argument of type \cinl{empty}.
+The function \cinl{pf} is of type \cinl{One!$_\text{P}$! tt -> A}, which becomes a function of type \cinl{Empty -> A} after inlining the definition of \cinl{One!$_\text{P}$! tt}.
+As a side note, we could not produce a value of type \cinl{A} using the function \cinl{pf} if we needed to: we cannot construct the appropriate argument of type \cinl{Empty}.
 
 With these definitions at hand, we can prove that they form an isomorphism.
 We start with the more involved proof \cinl{from_to_One} first.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-Lemma from_to_One : forall (A : Type) (e : Ext One__S One__P A),
+Lemma from_to_One : !$\forall$! (A : Type) (e : Ext One!$_\text{S}$! One!$_\text{P}$! A),
     from_One (to_One e) = e.
 \end{minted}
 
 \begin{cproof1}{Proof. intros A e; simpl.}{0.4}{0.6}
-  e : Ext One__S One__P A
+  e : Ext One\(\sb{\text{S}}\) One\(\sb{text{P}}\) A
   ============================
   ext tt (fun p => match p with end) = e
 \end{cproof1}
@@ -440,8 +440,8 @@ We destruct \cinl{e} directly in its two components: \cinl{tt} for the shape and
 The pattern \cinl{[]} can be used for deconstruction of values with only one constructors and without any arguments.
 
 \begin{cproof1}{destruct e as [ [] pf ].}{0.4}{0.6}
-  s : One__S
-  pf : One__P s -> A
+  s : One\(\sb{\text{S}}\)
+  pf : One\(\sb{\text{P}}\)s -> A
   ============================
   ext tt (fun p => match p with end) =
   ext tt pf
@@ -452,15 +452,15 @@ By applying the tactic \cinl{f_equal}, we use the following predefined lemma abo
 
 \begin{crepl}
 \coqrepl Check f_equal.
-  f_equal : forall (A B : Type) (f : A -> B) (x y : A), x = y -> f x = f y
+  f_equal : \(\forall\) (A B : Type) (f : A -> B) (x y : A), x = y -> f x = f y
 \end{crepl}
 
 In the case above, we apply the function \cinl{ext tt} to \cinl{(fun p => match p with end)} on the left-hand side and to \cinl{pf} on the right-hand side of the equation.
  
 \begin{cproof1}{f_equal.}{0.3}{0.7}
-  pf : One__P tt -> A
+  pf : One\(\sb{\text{P}}\) tt -> A
   ============================
-  (fun p : One__P tt => match p with end) = pf
+  (fun p : One\(\sb{\text{P}}\) tt => match p with end) = pf
 \end{cproof1}
 
 The assumption of the \cinl{f_equal}-lemma becomes the new goal: we now need to show that the two position functions are the same.
@@ -468,15 +468,15 @@ In functional programming we are used to a property called functional extensiona
 
 \begin{crepl}
 \coqrepl Check  functional_extensionality.
-  functional_extensionality : forall (A B : Type) (f g : A -> B),
-    (forall x : ?A, f x = g x) -> f = g
+  functional_extensionality : \(\forall\) (A B : Type) (f g : A -> B),
+    (\(\forall\) x : ?A, f x = g x) -> f = g
 \end{crepl}
 
 We can use the corresponding tactic \cinl{extensionality} to introduce a new variable \cinl{x} f appropriate type that is used as argument on both sides of the equation.
 
 \begin{cproof}{extensionality p.}
-  pf : One__P tt -> A
-  p : One__P tt
+  pf : One\(\sb{\text{P}}\) tt -> A
+  p : One\(\sb{\text{P}}\) tt
   ============================
   match p with end = pf p
 \end{cproof}
@@ -495,7 +495,7 @@ After introducing all variables and destructing the argument \cinl{o : One A}, w
 The simplification already leads to the value \cinl{one : One A} on the left-hand side as well as on the right-hand side.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-Lemma to_from_One : forall (A : Type) (o : One A),
+Lemma to_from_One : !$\forall$! (A : Type) (o : One A),
     to_One (from_One o) = o.
 Proof.
   intros A o.

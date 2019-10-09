@@ -125,7 +125,7 @@ Languages and Compiler Construction}
 \newminted[curry]{haskell}{style=friendly,mathescape=true,escapeinside=<>}
 \newmintinline[cyinl]{haskell}{style=friendly}
 \newmintinline[hinl]{haskell}{}
-\newmintinline[cinl]{coq}{}
+\newmintinline[cinl]{coq}{escapeinside=!!,mathescape=true}
 
 \usemintedstyle[curry]{friendly}
 \usemintedstyle[haskell]{trac}
@@ -154,11 +154,10 @@ Languages and Compiler Construction}
 }
 \newenvironment{crepl}
 {%
-\VerbatimEnvironment
-\begin{Verbatim}[commandchars=\\\{\}]%
+\begin{alltt}%
 }
 {%
-\end{Verbatim}
+\end{alltt}
 }
 
 \newenvironment{hrepl}
@@ -200,12 +199,11 @@ Languages and Compiler Construction}
   \begin{minipage}[t]{0.45\textwidth}%
     \mintinline{coq}{#1}%
   \end{minipage}%s
-  \VerbatimEnvironment%
   \minipage[t]{0.55\textwidth}%
-  \begin{Verbatim}%
+  \begin{alltt}%
 }
 {%
- \end{Verbatim}%
+ \end{alltt}%
   \endminipage%
   \vspace{0.25cm}%
 }
@@ -216,12 +214,11 @@ Languages and Compiler Construction}
   \begin{minipage}[t]{#2\textwidth}%
     \mintinline{coq}{#1}%
   \end{minipage}%
-  \VerbatimEnvironment%
   \minipage[t]{#3\textwidth}%
-  \begin{Verbatim}%
+  \begin{alltt}%
 }
 {%
- \end{Verbatim}%
+ \end{alltt}%
   \endminipage%
   \vspace{0.25cm}%
 }
