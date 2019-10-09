@@ -15,6 +15,7 @@ In the remainder of this thesis, we use KiCS2 to compile and run all Curry progr
 All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile --- ~\curryrepl~ --- prompt.
 
 \subsection{Non-determinism}
+\label{subsec:non-determinism}
 
 While Curry's non-determinism comes in a variety of forms, we are mostly interested in an explicit introduction of non-determinism using a dedicated operator.
 The binary operator \cyinl{(?) :: a -> a -> a} non-deterministically yields two computations: its first and second argument.

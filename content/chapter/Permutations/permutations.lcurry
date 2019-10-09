@@ -5,7 +5,7 @@
 %endif
 
 The most prominent use of non-determinism in combination with sorting is permutation sort: a sorting algorithm that generates all permutations and selects the one that is sorted to yield as result.
-This sorting function has a bad running time: the best case performs in $O(2^n)$ for an input list of length $n$.
+This sorting function has a bad running time: the best case performs in $O(2^n)$ for an input list of length $n$.\todo{Benchmark in Appendix}
 On the good side, we can argue that the worst case is as good as the best case.
 However, the best case is also as bad as the worst case.
 
@@ -41,17 +41,18 @@ The main idea here is to enhance the underlying monad to track the decisions the
 In summary, this chapter makes the following contributions.
 
 \begin{itemize}
-\item We inspect sorting functions implemented in Curry and apply these functions to a non-deterministic comparison function and a given list to enumerate permutations of that given list.
+\item We inspect sorting functions implemented in Curry and apply these functions to a non-deterministic comparison function and a list to enumerate permutations of that list.
 \item When taking a closer look at the resulting lists, we observe that the functions enumerate every possible permutation of the input list at least once.
 \item Some sorting functions yield duplicate results. We investigate why these duplicates emerge.
 \item Furthermore, we discover that some sorting functions even enumerate lists that are not a permutation of the input list.
 \item As a second step, we transfer the sorting functions to Haskell and model non-determinism explicitly using monads.
-\item We investigate the difference between Curry's non-determinism and the list-based model in Haskell for the resulting permutation enumeration functions
+\item We investigate the difference between Curry's non-determinism and the list-based model in Haskell for the resulting permutation enumeration functions.
 %if False
 \item Thanks to the flexibility of using monads, we can enrich the non-deterministic comparison function which necessary properties to eliminate duplicate results. We show three examples for properties that yield to an enumeration of the exact number of permutations for sorting functions that yield too many results with a simple non-deterministic comparison function.
 %endif
-\item At last, we discuss a variety of questions that follow from the results and observations presented above.
 \end{itemize}
+
+At the end of the chapter, we discuss a variety of questions that follow from the results and observations presented above.
 
 \section{Non-deterministic Sorting Functions in Curry}
 \label{sec:NDCurry}
@@ -91,9 +92,10 @@ Otherwise, if a specific permutation is not part of the result, we can deduce th
 In the following all of our examples use lists of integer, more particular, we use lists of the shape \cyinl{[1..n]} with $n$ as length of the list.
 These integers are only meant to be placeholders for concrete values and represent the position of the element within the original list.
 That is, when we produce permutations of the input list, we can deduce the behaviour for a variety of input lists of other types, because we know where elements end up in the result based on their position in the input list.
-Moreover, when we describe how a function produces its results, we use \emph{less than or equal} with respect to the comparison function in question, that is, not every usage of \emph{less than or equal} refers to the natural order on integer values $\leq$.
-For example, we will use the same terminology when describing the behaviour of the non-deterministic predicate \cyinl{coinCmp}.
-We think, however, these descriptions are easier to read when we use \emph{less than or equal} as an overloaded relation.
+Moreover, when we describe how a function produces its results, we say that a value is \emph{less than or equal} to another value with respect to the comparison function in question.
+Considering that \cyinl{coinCmp} is a comparision function that does not have the usual property of order relations, not every usage of \emph{less than or equal} refers to the natural order on integer values (that is, the relation $\leq$).
+More particular, we will use the same terminology when describing the behaviour of the non-deterministic predicate \cyinl{coinCmp}.
+We think, however, these descriptions are easier to read when we use \emph{less than or equal} in this overloaded manner.
 
 \subsection{Insertion Sort}
 \label{subs:insertion}
@@ -118,7 +120,7 @@ insert p x (y:ys) || p x y     = x : y : ys
                   || otherwise = y : insert p x ys
 \end{curry}
 
-We then define \cyinl{insertionSort} using \cyinl{insert} to sort a list by inserting each element into the already sorted intermediate result.
+We then define \cyinl{insertionSort} using \cyinl{insert} to sort a list by inserting each element into the already sorted intermediate list.
 
 %if False
 
@@ -157,7 +159,27 @@ We see that the expression non-deterministically yields six different results.
 All of these results are a permutation of the input list \cyinl{[1,2,3]}.
 Since a list of length $n$ has $n!$ number of permutations, the example above yields exactly all $3!=6$ permutations of the list.
 
-In order to better understand how \cyinl{insertSort} computes the permutations of its input list when applied to \cyinl{coinCmp}, we take a look at the decision tree for the exemplary call above on the left of \autoref{fig:dtInsert}.
+In order to demystify the generation of permutations using \cyinl{coinCmp} as predicate.
+Let us revise the implementation of \cyinl{insert} by inlining the applied predicate \cyinl{coinCmp}.
+
+%if False
+
+> insertCoin :: a -> [a] -> [a]
+> insertCoin x []     = [x]
+> insertCoin x (y:ys) = x:y:ys ? y : insertCoin x ys
+
+%endif
+
+\begin{curry}
+insertCoin :: a -> [a] -> [a]
+insertCoin x []     = [x]
+insertCoin x (y:ys) = x:y:ys ? y : insertCoin x ys
+\end{curry}
+
+This variant of \cyinl{insert} is exactly the definition of a non-deterministic insertion that is used to define a permutation function, for example in the overview of Curry by \citet{hanus1994integration}.
+The attentive reader recognises the definition as the definition we discussed in \autoref{subsec:non-determinism} as well as its Hsakell equivalent \hinl{insertND} we defined using a representation for non-determinism in \autoref{subsec:monadicAbstractions}.
+
+As a second step to better understand how \cyinl{insertSort} computes the permutations of its input list when applied to \cyinl{coinCmp}, we take a look at the decision tree for the exemplary call above on the left of \autoref{fig:dtInsert}.
 As the comparison function \cyinl{coinCmp} non-deterministically yields \cyinl{True} and \cyinl{False}, the decision tree of our example reflects all possible control flows for \cyinl{insertionSort} depending on the results of \cyinl{coinCmp}.
 
 \begin{figure}[t]
@@ -210,34 +232,14 @@ The right tree of \autoref{fig:dtInsert} displays the modified decision tree.
 Note that the first comparison is between the last two elements of the list: \cyinl{2} and \cyinl{3}.
 Thus, \cyinl{insertionSort} starts by inserting the last element into the empty list, moves one position to the front at each recursive step and inserts the next element to the currently accumulated list.
 Depending on the decision of \cyinl{coinCmp} that takes place when evaluating \cyinl{insert}, the element to be inserted moves one position to the right in the resulting list.
-For example, the decisions that lead to the permutation \cyinl{[1,2,3]} are that \cyinl{2} and \cyinl{3} as well as \cyinl{1} and \cyinl{2} relate with respect to \cyinl{coinCmp}.
+For example, the decisions that lead to the permutation \cyinl{[1,2,3]} are that \cyinl{2} and \cyinl{3} as well as \cyinl{1} and \cyinl{2} are already in order with respect to \cyinl{coinCmp}.
 The first decision leads to the temporary list \cyinl{[2,3]}, as \cyinl{2} and \cyinl{3} are already in correct order.
 As next step we want to insert \cyinl{1}; as \cyinl{1} and \cyinl{2} are in the correct order as well, we insert \cyinl{1} at the front of the list yielding the resulting permutation \cyinl{[1,2,3]}.
-
-We take a second step to demystify the generation of permutations using \cyinl{coinCmp} as predicate.
-Let us revise the implementation of \cyinl{insert} by inlining the applied predicate \cyinl{coinCmp}.
-
-%if False
-
-> insertCoin :: a -> [a] -> [a]
-> insertCoin x []     = [x]
-> insertCoin x (y:ys) = x:y:ys ? y : insertCoin x ys
-
-%endif
-
-\begin{curry}
-insertCoin :: a -> [a] -> [a]
-insertCoin x []     = [x]
-insertCoin x (y:ys) = x:y:ys ? y : insertCoin x ys
-\end{curry}
-
-This variant of \cyinl{insert} is exactly the definition of a non-deterministic insertion that is used to define a permutation function, for example in the overview of Curry by \citet{hanus1994integration}.
-The attentive reader recognises the definition as the Curry equivalent of \hinl{insertND} we defined in Haskell using a representation for non-determinism in \autoref{subsec:monadicAbstractions}.
 
 \subsection{Selection Sort}
 Next, we consider the permutation function derived from selection sort.
 The key idea of selection sort is to find the minimum of the list and placing it at the front of the resulting list.
-First, we define a function to find a minimum of a given list parametrised by the comparison function.
+First, we define a function to find a minimum of a given list parametrised by a comparison function.
 
 %if False
 
@@ -291,7 +293,7 @@ delete x (y:ys) || x == y    = ys
 \end{curry}
 
 Here, it is crucial that we use the comparison function \cyinl{(==)} to make sure that the element is correctly removed from the list.
-Now we can define \cyinl{selectionSort}: we pick the minimum of the input list, place it into the front of the resulting list, and continue with the list without the minimum.
+Now we can define \cyinl{selectionSort}: we pick the minimum of the input list, place it at the front of the resulting list, and continue with the list without the minimum.
 
 %if False
 
@@ -318,8 +320,8 @@ We are ready to take a look at the resulting permutations.
 [2,1,3]  [3,2,1]
 \end{cyrepl}
 
-We see that \cyinl{selectionSort} yields exactly the permutations of the input list like \cyinl{insertionSort}.
-One difference of both implementation comes apparent when we look at the type: \cyinl{selectionSort} has an \cyinl{Eq}-constraint on the elements of the list.
+We see that \cyinl{selectionSort} yields exactly the permutations of the input list like our implementation \cyinl{insertionSort}.
+One difference of both implementations comes apparent when we look at the type: \cyinl{selectionSort} has an \cyinl{Eq}-constraint on the elements of the list.
 As the resulting \cyinl{Eq}-constraint breaks with the general scheme that we parametrise all functions with a comparison function, we define a function \cyinl{pickMin} that finds the minimum and yields the remaining list in one traversal of the input list.
 
 %if False
@@ -356,7 +358,7 @@ selectionSortPick p l@@(_ : _) = let (m,l') = pickMin p l
                                 in m : selectionSortPick p l'
 \end{curry}
 
-Sorting the same example list as before using the adapted implementation \cyinl{selectionSortPick} yields the expected results.
+Using the adapted implementation \cyinl{selectionSortPick}, we sort the same example list as before, and get the six expected results.
 
 \begin{cyrepl}
 \curryrepl selectionSortPick coinCmp [1,2,3]
@@ -438,7 +440,7 @@ Sorting the same example list as before using the adapted implementation \cyinl{
 
 Due to the let-bindings used in the implementation of \cyinl{selectionSortPick} as well as the auxiliary function \cyinl{pickMin}, the corresponding decision tree is not as easy to look at as for \cyinl{insertionSort}.
 Instead, we take a look at the decision tree for \cyinl{pickMin} and \cyinl{minList} in \autoref{fig:select1}.
-
+\noindent%
 \begin{figure}
 \begin{center}
 \begin{minipage}{0.4\textwidth}
@@ -473,20 +475,19 @@ $\quad\quad\quad$ \vline $\quad\quad\quad$
 \caption{Decision trees for the expressions \cyinl{pickMin coinCmp [1,2,3]} (left) and \cyinl{minList coinCmp [1,2,3]} (right)}
 \label{fig:select1}
 \end{figure}
-
-Note that the decision tree for \cyinl{pickMin} is an example for the visualisation of sharing: the decision labeled \emph{?6} occurs in each of the two preceding sub-trees again.
-This decision originates in the usage of the let-binding for the recursive call in the second rule for \cyinl{pickMin}.
-The recursive call \cyinl{pickMin p xs} binds the minimum and the list without that minimum to the variables \cyinl{m} and \cyinl{l}, respectively.
+\noindent%
+Note that the decision tree for \cyinl{pickMin} is an example for the visualisation of sharing: the decision labeled \texttt{?6} occurs in each of the two subsequent sub-trees again.
+This decision originates from the usage of the let-binding for the recursive call in the second rule of \cyinl{pickMin}.
+The recursive call \cyinl{pickMin p xs} binds the minimum, and the list without that minimum to the variables \cyinl{m} and \cyinl{l}, respectively.
 In particular, we cannot use case-expressions without altering the non-strictness-property of the original definition using let-bindings.
 Therefore, in the following, we represent decision trees in a reduced version, where we fuse shared decisions by only displaying the branches that would be considered in a search traversal.
-\autoref{fig:selectAndBubble} displays this reduced decision tree --- with the additional modification that we label branches with the corresponding comparisons like before.
+\autoref{fig:selectAndBubble} displays this reduced decision tree on the left --- with the additional modification that we label branches with the corresponding comparisons like before.
 %
 \begin{figure}
 \begin{center}
-\begin{minipage}{0.25
-\textwidth}
+\begin{minipage}{0.27\textwidth}
 \begin{alltt}
-1 \(\leq\) _ (*)
+1 \(\leq\) _             (*)
 ├── 2 \(\leq\) 3
 │   ├── [1,2,3]
 │   └── [1,3,2]
@@ -503,13 +504,13 @@ $\quad$ \vline $\quad$ $\quad$
 \begin{minipage}{0.6\textwidth}
 \begin{alltt}
 1 \(\leq\) head (bubble [2,3])
-├── 2 \(\leq\) head (bubble [3])         *** / ****
+├── 2 \(\leq\) head (bubble [3])        *** / ****
 │    ├── 2 \(\leq\) head (bubble [3])    ***
 │    │    ├── [1,2,3]
 │    │    └── [1,3,2]              <+++
 │    └── 3 \(\leq\) head (bubble [2])    ****
 │        ├── [1,3,2]
-│        └── [1,2,3]               <++++
+│        └── [1,2,3]              <++++
 └── 2 \(\leq\) head (bubble [3])
     ├── 1 \(\leq\) head (bubble [3])
     │   ├── [2,1,3]
@@ -520,7 +521,7 @@ $\quad$ \vline $\quad$ $\quad$
 \end{alltt}
 \end{minipage}
 \end{center}
-\caption{Reduced and modified decision tree for \cyinl{bubbleSort coinCmp [1,2,3]} (left) and reduced decision tree for \cyinl{selectionSortPick coinCmp [1,2,3]} (right)}
+\caption{Reduced decision tree for \cyinl{selectionSortPick coinCmp [1,2,3]} (left) and reduced and modified decision tree for \cyinl{bubbleSort coinCmp [1,2,3]} (right)}
 \label{fig:selectAndBubble}
 \end{figure}
 %
@@ -537,7 +538,7 @@ Consider the following expressions involving a list with \cyinl{failed} as eleme
 \end{cyrepl}
 \noindent
 In theory, the permutations of the list \cyinl{[1,failed]} are \cyinl{[1,failed]} and \cyinl{[failed,1]}; in practice, the expression \cyinl{failed} is not a value like \cyinl{42} or \cyinl{True}, printing \cyinl{failed} in the REPL propagates the failure to the top-level, that is, there are no results to print.
-The first expression computes all possible permutations, but the expression does not have any result: \cyinl{failed} causes the computation propagate the failure to the top-level.
+The first expression computes all possible permutations, but the expression does not have any result: \cyinl{failed} causes the computation to propagate the failure to the top-level.
 The second expression, however, computes only the head element and yields indeed a solution.
 That is, in order to yield the first element of the first list, we do not need to compute any further elements of the input list.
 
@@ -546,7 +547,7 @@ That is, in order to yield the first element of the first list, we do not need t
 
 The next sorting function we examine is bubble sort.
 We define an implementation of the bubble sort algorithm that bubbles the minimum element to the front of a list.
-Bubbling to the front of the list allows for a more efficient implementation with respect to the selecting the minimum and the remaining list.
+Bubbling to the front of the list allows for a more efficient implementation with respect to the selection of the minimum and the remaining list.
 The following function \cyinl{bubble} defines the bubbling of the minimum element of the list to the front.
 
 %if False
@@ -597,13 +598,13 @@ When used with a deterministic comparison function like \cyinl{(<=)}, the implem
 [1,2,3,4]
 \end{cyrepl}
 
-During the traversal of the list, each local minumum of a comparison bubbles to a front position of the list.
-That is, while the first two examples use lists with only on element that occurs out of order (\cyinl{1} for the first and \cyinl{2} for the second example), the next three lists have at least two elements that need to be rearranged to be sorted.
+During the traversal of the list, each local minimum of a comparison bubbles towards the front of the list.
+That is, while the lists in the first two examples have only one element that occurs out of order (\cyinl{1} for the first and \cyinl{2} for the second example), the next three lists have at least two elements that need to be rearranged.
 Bubbling the local minimum to the front yields, nevertheless, a sorted list for the last example: the pairs \cyinl{4 <= 3}, \cyinl{1 <= 4} and \cyinl{2 <= 1} make sure that \cyinl{3} and \cyinl{1} bubble to the right place within the list.
-This behaviour, however, is rather than a lucky coincidence than the normal case for the usage of \cyinl{bubble}.
+This behaviour, however, is rather a lucky coincidence than the normal case for the usage of \cyinl{bubble}.
 The third and fourth lists are counterexamples: when bubbling \cyinl{1} (in the third example) and \cyinl{2} (in the fourth example), respectively, to the front of the list, \cyinl{3} is never picked as local minumum to bubble to the front.
 
-Using a non-deterministic comparison function like \cyinl{coinCmp}, enumerates all possible \emph{bubblings}.
+Using a non-deterministic comparison function like \cyinl{coinCmp}, \cyinl{bubble} enumerates all possible \emph{bubblings}.
 Consider the following two examples.
 
 \begin{cyrepl}
@@ -635,7 +636,7 @@ bubbleSort p xs@@(_ : _) = let (y:ys) = bubble p xs
                           in y : bubbleSort p ys
 \end{curry}
 
-Finally, the application of the sorting function to the non-deterministic comparison function \cyinl{coinCmp} yields more results than expected.
+Finally, the application of a sorting function to the non-deterministic comparison function \cyinl{coinCmp} yields more results than expected.
 
 \begin{cyrepl}
 \curryrepl bubbleSort coinCmp [1,2,3]
@@ -646,45 +647,50 @@ Finally, the application of the sorting function to the non-deterministic compar
 \end{cyrepl}
 
 Instead of six results corresponding to all permutations of the input list, we observe that two permutations occur twice: \cyinl{[1,2,3]} and \cyinl{[1,3,2]}.
-In order to understand why these duplicates occur, we take a look at the decision tree for the example call above listed in \autoref{fig:selectAndBubble}.
-
+In order to understand why these duplicates occur, we take a look at the decision tree for the example call
+\begin{curry}
+    bubbleSort coinCmp [1,2,3]
+\end{curry}
+listed in \autoref{fig:selectAndBubble}.
 Note that the second argument of the comparison function \cyinl{coinCmp} is, again, an unevaluated expression --- we have already seen a similar example when talking about \cyinl{selectionSort}.
-The computation of all results in the REPL as well as drawing the decision tree demand the evaluation of expressions like \cyinl{head (bubble [2,3])} not until the corresponding list element will be printed.\footnote{The actual expression appearing in the evaluation steps is a let-binding that references the head element in the comparison. That is, \cyinl{let (x:xs) = bubble [2,3] in if 1 <= x then ... else ...} is closer to the expressions occurring during the evaluation.}x
-The new thing about the decision tree for an application of \cyinl{bubbleSort} is that some results occur twice.
+The computation of all results in the REPL as well as drawing the decision tree do not demand the evaluation of expressions like \cyinl{head (bubble [2,3])} until the corresponding list element will be printed.\footnote{The actual expression appearing in the evaluation steps is a let-binding that references the head element in the comparison. That is, \cyinl{let (x:xs) = bubble [2,3] in if 1 <= x then ... else ...} is closer to the expressions occurring during the evaluation.}
+
+The new observation about the decision tree for an application of \cyinl{bubbleSort} is that some results occur twice.
 The duplicated results are marked with \texttt{<+++} and \texttt{<++++}, respectively.
-Note, that it is by intention that we marked the first occurence in case of \cyinl{[1,3,2]} and the second one in case of the result \cyinl{[1,2,3]}.
+Note that it is by intention that we marked the first occurence in case of \cyinl{[1,3,2]} and the second one in case of the result \cyinl{[1,2,3]}.
+
 Consider the path from the root to the result marked with \texttt{<+++}.
 The crucial parts are the comparisons marked with \texttt{***}: we compare \cyinl{2} and \cyinl{head (bubble [3])} twice.
 In a setting where we use a deterministic comparison function, the first path to \cyinl{[1,3,2]} does not make sense.
 The decision for the first comparison \cyinl{2 <= head (bubble [3])} yields \cyinl{True} --- otherwise we would not take the first branch, that is, doing the same comparison a second time should yield \cyinl{True} again.
-In the path from the root to the first occurence \cyinl{[1,3,2]}, the comparison of \cyinl{2} and \cyinl{head (bubble [3])} yields \cyinl{True} the first and \cyinl{False} the second time.
+In the path from the root to the first occurence of \cyinl{[1,3,2]}, the comparison of \cyinl{2} and \cyinl{head (bubble [3])} yields \cyinl{True} the first and \cyinl{False} the second time.
 Note that there is no deterministic comparison function that yields \cyinl{True} for a comparison first and \cyinl{False} later.
-In the following we reference the following property as \emph{behaving consistently}: a non-deterministic predicate behaves consistently, if it yields the same Boolean value for every application to the same values.
+In the following we reference the following property as \emph{behaving consistently}: a predicate behaves consistently, if it yields the same Boolean value for every application to the same values.
 
 The other result marked with $\text{\texttt{<++++}}$ is the second occurence of \cyinl{[1,2,3]}.
 Here, the relevant comparisons taken on the path are mark with \texttt{****}: \cyinl{2 <= head (bubble [3])} and \cyinl{3 <= head (bubble [2])}.
 Note that the expression \cyinl{head (bubble [x])} evaluates to \cyinl{x} for all \cyinl{x} of appropriate type.
-That is, \cyinl{head (bubble [3]) = 3} and \cyinl{head (bubble [2]) = 2}.
+In our concrete cases, we have \cyinl{head (bubble [3]) = 3} and \cyinl{head (bubble [2]) = 2}.
 Below we only reference the comparisons with the evaluated function calls to simplify the reasoning.
 As the second comparison takes place in the second branch of the decision corresponding to \cyinl{2 <= 3}, we know that the decision was \cyinl{False}.
 That is, \cyinl{2} is not smaller than or equal to \cyinl{3}, \cyinl{2} is greater than \cyinl{3}.
-We then take the second branch for the decision \cyinl{3 <= 2}: \cyinl{2} is greater than \cyinl{3}.
-Note that this decision does not make sense when using \cyinl{bubbleSort} with a reasonable comparison function like \cyinl{(<=)} on integer values.
-The important property missing here is that the relation described by \cyinl{<=} needs the connex property.
-The connex property describes that any two pairs of elements of appropriate type are comparable with respect to \cyinl{<=}.
+For the result marked with $\text{\texttt{<++++}}$ we then, however, take the second branch for the decision \cyinl{3 <= 2}: \cyinl{2} is greater than \cyinl{3}.
+Again, this decision does not make sense when using \cyinl{bubbleSort} with a reasonable comparison function like \cyinl{(<=)} on integer values.
+The important property missing here is that the relation described by \cyinl{<=} needs is \emph{connexity}.
+The connex property describes that any two pairs of elements of appropriate type are comparable with respect to an ordering relation $\leq$.
 
 \[
 \forall xy, x \leq y \vee y \leq x \tag*{(Connexity)}
 \]
 
 Binary relations that are total orders (like for example the less-than-or-equal-to-relation on integers) fulfil the connex property by definition.
-That is, the implementation of \cyinl{bubbleSort} needs to be used with a comparison function corresponding to a binary relation that is a total order, otherwise it cannot sort all lists correctly.
+This observation implies that the implementation of \cyinl{bubbleSort} needs to be used with a comparison function corresponding to a binary relation that is a total order, otherwise it cannot sort all lists correctly.
 
 \subsection{Quicksort}
 \label{subsec:quicksort}
 
-In this section we take a look at an implementation of \emph{quicksort} that is known for its particular declarative realisation.
-The general idea behind the quick sort algorithm is to choose a pivot element and split the remaining list into two parts: one with all elements that are smaller than or equal to the pivot element and one with the all elements that do not fulfil this criterion.
+In this section we take a look at an implementation of \emph{quicksort} that is known for its particular declarative nature.
+The general idea behind the quicksort algorithm is to choose a pivot element and split the remaining list into two parts: one with all elements that are smaller than or equal to the pivot element and one with the all elements that do not fulfil this criterion.
 The algorithm is then recursively applied to these two sublists.
 
 The following function \cyinl{quickSort} uses the head element of the given list as the pivot element and the function \cyinl{filter} to split the input list into the two parts.
@@ -753,13 +759,13 @@ A quick look at the two filter calls alone will get us closer to understand what
 \end{cyrepl}
 
 Both bindings, \cyinl{l1} and \cyinl{l2}, evaluate to the same two values, just in reversed order.
-These two times two sublists yield four overall results, since all lists for \cyinl{l1} are combined with all lists of \cyinl{l2} to yield \cyinl{l1 ++ x : l2}.
+These two results times two sublists yield four overall results, since all lists for \cyinl{l1} are combined with all lists of \cyinl{l2} to yield \cyinl{l1 ++ x : l2}.
 In general, the resulting function enumerates the cross product of all subsequences of the input list.
 
 We can again observe that the definition of \cyinl{quickSort} uses the comparison function \cyinl{coinCmp} inconsistently, thus, yields the same results for both application of filter.
 Using a deterministic comparison function \cyinl{p}, the sublists \cyinl{l1} and \cyinl{l2} are disjoint, since we are using \cyinl{p} for the first and \cyinl{not . p} for the second list.
 
-We can overcome this drawback when using two \cyinl{filter} applications by using \cyinl{split} instead.
+We can overcome this drawback of using two \cyinl{filter} applications by using \cyinl{split} instead.
 The function \cyinl{split :: (a -> Bool) -> [a] -> ([a],[a])} traverses a list only once to split it into two sublists fulfilling exactly the property we use above: the first list contains only elements that fulfil the given predicate and the second list contains the elements that do not.
 We define \cyinl{split} as follows; note, that it is crucial that split traverses its input list only once.
 
@@ -783,7 +789,7 @@ split p x l = split' l ([],[])
                         || otherwise   = split' ys (y:l1,l2)
 \end{curry}
 
-Based on \cyinl{split} we can define a second version of quick sort.
+Based on \cyinl{split} we can define a second version of quicksort.
 We reuse the variable names \cyinl{l1} and \cyinl{l2} for the two sublists to indicate that the underlying idea of the algorithm stays exactly the same.
 
 %if False
@@ -823,7 +829,7 @@ These singleton lists, which are trivially sorted, are merged into new sorted su
 The algorithm repeats the merging step until only one list remains: the resulting sorted list.
 
 First, we define a function \cyinl{divideN} to divide the input lists into two lists of approximately the same length.
-The first list is short by one element n case of an odd number of elements.
+The first list is short by one element in case of an odd number of elements.
 
 %if False
 
@@ -867,7 +873,7 @@ merge p (x:xs) (y:ys) || p x y      = x : merge p xs (y:ys)
                       || otherwise  = y : merge p (x:xs) ys
 \end{curry}
 
-The first two rules cover the cases that it is not necessary to merge if one of lists is empty, we just yield the other one.
+The first two rules cover the case that it is not necessary to merge if one of the lists is empty: we just yield the other one.
 If both lists are non-empty, we decide based on the comparison function \cyinl{p} which element to put at the front of the resulting list and merge recursively with the remaining lists.
 Note that we assume that both list arguments of \cyinl{merge} are already sorted.
 Finally, we define the overall sorting function \cyinl{mergeSort} that uses \cyinl{divideN} to divide the lists into two sublists that are sorted recursively, and \cyinl{merge} to merge the sorted sublists.
@@ -890,12 +896,12 @@ Once again we take a look at an exemplary application of \cyinl{mergeSort} to th
 \end{cyrepl}
 
 We are pleased to observe that the resulting function enumerates exactly all permutations.
-The procedure followed by \cyinl{mergeSort} does not make any redundant comparisons.
+The procedure followed by \cyinl{mergeSort} does not make any redundant, and thus no inconsistent, comparisons.
 The first step of dividing the list into sublists is not based on the predicate but based on the length of the list only.
 The comparison takes place when using \cyinl{merge}.
-As \cyinl{merge} has the precondition that both argument lists are already sorted, it is sufficient to compare the lists head-wise.
+As \cyinl{merge} has the precondition that both argument lists are already sorted, it is sufficient to compare the lists element-by-element.
 That is, if one head element is smaller than the other head element, we put the former in front of the list and do not need to consider it anymore.
-The utilisation of the precondition leads to a efficient sorting algorithm: no two elements are compared more than once.
+The utilisation of the precondition leads to an efficient sorting algorithm: no two elements are compared more than once.
 
 %include Permutations.lhs
 
@@ -928,7 +934,7 @@ For example, enumerating derangements, that is, enumerating all permutations whe
 
 Besides a further investigation of permutation enumeration functions, we are interested if there are other predicate-based functions that do a useful task when applied to a non-deterministic predicate.
 The other example next to sorting we have discussed is filtering a list.
-Namely, we used \cyinl{filter} to implement quick sort in \ref{subsec:quicksort}.
+Namely, we used \cyinl{filter} to implement quicksort in \ref{subsec:quicksort}.
 We have seen that using \cyinl{filter} with a non-deterministic predicate yields all sublists of the input list.
 It might be interesting to search for more predicate-based functions and their non-deterministic counterparts.
 The first other common functions that come to mind are \cyinl{takeWhile, dropWhile :: (a -> Bool) -> [a] -> [a]}, but we are keen to search for other functions that have interesting and useful non-deterministic counterparts.
@@ -937,13 +943,13 @@ The first other common functions that come to mind are \cyinl{takeWhile, dropWhi
 In this chapter we implemented a variety of sorting functions parametrised over a comparison function in Curry as well as in Haskell.
 Instead of ordinary sorting tasks, we applied the sorting functions to a non-deterministic comparison function.
 The resulting function enumerates permutations of the input list.
-For the Curry implementation there are several sorting functions that compute only the permutations of the input list without any duplicates: insertion sort, selection sort, merge sort and a variant of quick sort that uses \cyinl{partition} instead of two \cyinl{filter} calls.
+For the Curry implementation there are several sorting functions that compute only the permutations of the input list without any duplicates: insertion sort, selection sort, merge sort and a variant of quicksort that uses \cyinl{partition} instead of two \cyinl{filter} calls.
 We then compared these Curry implementations to their Haskell counterparts.
 In order to mimic the non-deterministic component that Curry brings along out of the box, we use a monadic lifting to define potentially effectful computations in Haskell.
 In the end, the Haskell implementations use a monadic lifting of the ordinary, pure sorting function in order to use a non-deterministic comparison function and compute non-deterministic results.
 One particularly interesting observation was that whereas the Curry version of selection sort computes only the permutations, the Haskell version does not.
 This difference was the main reason we investigated the difference of both implementations in the first place.
-The other sorting functions compute the same non-deterministic results: insertion sort, merge sort, and quick sort using \cyinl{partition} do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
+The other sorting functions compute the same non-deterministic results: insertion sort, merge sort, and quicksort using \cyinl{partition} do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
 Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementations can exploit non-strictness better than their Haskell counterparts.
 As an example, we demanded the head elements of all permutations and counted the number of non-deterministic choices that were triggered in to compute the result.
 The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
