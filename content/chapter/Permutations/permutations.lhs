@@ -575,12 +575,18 @@ In fact, we get
 \]
 results for an input list of length $n$.
 Note that this function grows much faster than the number of permutations $n!$.
-That is, for $n=10$ there are $n! = 3 628 800$ permutations, whereas an application of \hinl{selectionSort} to the list \hinl{[1..10]} yields
+For example, for $n=10$ there are $n! = 3 628 800$ permutations, whereas an application of \hinl{selectionSort} to the list \hinl{[1..10]} yields
 \[
 2^{\frac{10*9}{2}} = 2^{45} = 35 184 372 088 832
 \]
 results.
 
+More generally, for $n >= 7$ we have that $n \leq 2^{\frac{n-1}{2}}$ such that we can make the following estimation.
+
+\[
+n! \leq n^n \leq {2^{\frac{n-1}{2}}}^n = 2^{\frac{n * (n-1)}{2}}
+\]
+     
 Since the number of results for \hinl{selectionSort} applied to a non-deterministic comparison function differs from the result we got for the Curry implementation, we compare the underlying decision trees.
 The non-determinism produced by \hinl{selectionSort} arises from the usage of \hinl{coinCmpND}, which is only evaluated in the auxiliary function \hinl{pickMinM}.
 That is, it is sufficient to take a look at the decision tree for a sub-call of \hinl{pickMinM} to detect the different behaviour.
