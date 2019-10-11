@@ -3,9 +3,9 @@ Key applications of the probabilistic programming paradim are probabilistic proc
 PFLP makes heavy use of functional logic programming concepts and shows that this paradigm is well-suited for implementing a library for probabilistic programming.
 In fact, there is a close connection between probabilistic programming and functional logic programming.
 For example, non-deterministic choice and probabilistic choice are similar concepts.
-Furthermore, the concept of call-time choice as known from functional logic programming coincides with (stochastic) memoisation (\citet{deraedt2013probabilistic}) in the area of probabilistic programming.
+Furthermore, the concept of call-time choice as known from functional logic programming coincides with (stochastic) memoisation \citep{deraedt2013probabilistic} in the area of probabilistic programming.
 We are not the first to observe this close connection between functional logic programming and probabilistic programming.
-For example,~\citet{fischer2009purely} present a library for modeling functional logic programs in the functional language Haskell.
+For example,~\citet{fischer2009purely} present a library for modelling functional logic programs in the functional language Haskell.
 As they state, by extending their approach to weighted non-determinism we can model a probabilistic programming language.
 
 Besides a lightweight implementation of a library for probabilistic programming in a functional logic programming language, this chapter provides the following contents.
@@ -131,7 +131,7 @@ The chapter at hand is a literate Curry file.
 
 %endif
 
-\subsection{Modeling Distributions}
+\subsection{Modelling Distributions}
 One key ingredient of probabilistic programming is the definition of distributions.
 A distribution consists of pairs of elementary events and their probability.
 We model probabilities as \cyinl{Float} and distributions as a combination of an elementary event and the corresponding probability.
@@ -548,7 +548,7 @@ Dist [False,False] |(frac 1 4)|
 \end{cyrepl}
 
 Instead of relying on call-time choice as default behavior, we could model \cyinl{Dist} as a function and make run-time choice the default.
-In this case, to get call-time choice we would have to use a special construct provided by the library --- as it is the case in many probabilistic programming libraries, e.g., \emph{mem} in WebPPL (\citet{goodman2014design}).
+In this case, to get call-time choice we would have to use a special construct provided by the library --- as it is the case in many probabilistic programming libraries, e.g., \emph{mem} in WebPPL \citep{goodman2014design}.
 
 On the other hand, ProbLog uses a similar concept to call-time choice, namely, stochastic memoisation, which reuses already computed results.
 That is, predicates that are associated with probabilities become part of the memoised result.
@@ -579,10 +579,10 @@ Thus, stochastic memoisation as used in ProbLog is similar to the extension of t
 Similar to our usage of \cyinl{Plural} to mimic run-time choice in Curry, we can use a so-called trial identifier, which is basically an additional argument, to circumvent memoisation for a predicate like coin in ProbLog.
 The difference to \cyinl{Plural} is that the trial identifier needs to be different for each call to the predicate in order to force re-evaluation.
 
-In the end, we have decided to go with the current modeling based on call-time choice, because the alternative would work against the spirit of the Curry programming language.
+In the end, we have decided to go with the current modelling based on call-time choice, because the alternative would work against the spirit of the Curry programming language.
 
 There is a long history of discussions about the pros and cons of call-time choice and run-time choice.
-It is common knowledge in probabilistic programming~(\citet{deraedt2013probabilistic}) that, in order to model stochastic automata or probabilistic grammars, memoisation --- that is, call-time choice --- has to be avoided.
+It is common knowledge in probabilistic programming~\citep{deraedt2013probabilistic} that, in order to model stochastic automata or probabilistic grammars, memoisation --- that is, call-time choice --- has to be avoided.
 Similarly,~\citet{antoy2005evaluation} observes that you need run-time choice to elegantly model regular expressions in the context of functional logic programming languages.
 Then again, probabilistic languages need a concept like memoisation in order to use a single value drawn from a distribution multiple times.
 
@@ -924,6 +924,7 @@ For this reason PFLP does not provide the \cyinl{Dist}-constructor nor the corre
 With this restriction, the library guarantees that no relevant probabilities get lost with respect to non-strictness.
 
 \section{Pitfalls}
+\label{sec:pitfalls}
 
 The preceding section summarised how the library benefits from using functional logic features in its implementation.
 In the following section, we discuss some pitfalls that may arise due to the decision to implement the library using these features.
@@ -934,6 +935,7 @@ Besides introducing non-deterministic computations, we can also have no value at
 Hence, the second part of the section considers the usage of partial functions in combination with operators the library provides.
 
 \subsection{Non-deterministic Events}
+\label{subsec:nondetEvents}
 
 We assume that all events passed to library functions are deterministic, that is, the library does not support non-deterministic events within distributions.
 In order to illustrate why this restriction is crucial, we consider an example that breaks this rule.
@@ -1382,7 +1384,7 @@ the expressiveness of probabilistic logic programming and its cost
 with respect to performance.
 These examples focus on properties of random strings and their probabilities.
 In the third casy study we model the famous secret santa problem in three different versions using our library.
-Furthermore, we show benchmarks of these examples and compare them with the probabilistic languages ProbLog (\citet{kimmig2011implementation}) and WebPPL (\citet{goodman2014design}).
+Furthermore, we show benchmarks of these examples and compare them with the probabilistic languages ProbLog and WebPPL.
 These comparisions confirm the advantages of non-strict non-determinism with respect to performance.
 
 \subsection{Bayesian Network}
@@ -1393,7 +1395,7 @@ In the following we implement the example shown in \autoref{fig:bayes}.
 For each node of the graph we define a function that yields a distribution.
 In the example, each node performs a binary decision: it either rains or not, the sprinkler is activated or deactivated and the grass is either wet or not.
 Thus, the return type of all three functions is \cyinl{Dist Bool}.
-Since all functions yield Boolean distributions, we define a combinator \cyinl{flip :: Probability -> Dist Bool}.
+Since all functions yield Boolean distributions, we use the combinator \cyinl{flip :: Probability -> Dist Bool}, again.
 Recall that the function \cyinl{flip} yields \cyinl{True} with the probability given as the first argument and \cyinl{False} with the complementary probability.
 
 %if False
@@ -1493,7 +1495,7 @@ grassModel = raining       >>>= \r ->
 Let us now perform the first query to check if our model is correct.
 We can ask the model for the probability of wet grass given that it is raining.
 Remember that we perform queries on the model by using the operator \cyinl{(??)}, which expects a predicate as first argument.
-We use a conjunction to check that it is raining and the grass is wet.
+We use a conjunction to check that it is raining and that the grass is wet.
 
 %if False
 
@@ -1520,7 +1522,7 @@ However, we can also ask questions about \cyinl{raining} depending on \cyinl{gra
 For example, what is the probability that it is raining given that the grass is wet?
 In order to answer this question it is not enough to query our model as above.
 The question corresponds to a conditional probability, that is, we need to compute the probability of the conjunction of the events and divide it by the probability of the given condition.
-For the query in question, the conjunction of events corresponds to the probability that it is raining and that the grass is wet --- i.e., the query we performed above.
+For the query in question, the conjunction of events corresponds to the probability that it is raining and that the grass is wet --- that is, the query we performed above.
 The divisor is the probability that the grass is wet, without considering any other side-conditions.
 
 \begin{cyrepl}
@@ -1540,7 +1542,7 @@ The first convenience function checks for a list of predicates, if all predicate
 
 \begin{curry}
 allProb :: [a -> Bool] -> Dist a -> Probability
-allProb ps dx = (\func x -> all (\p -> p x) ps) ?? dx
+allProb ps dx = (\ x -> all (\p -> p x) ps) ?? dx
 \end{curry}
 
 Based on \cyinl{allProb} we then define a function \cyinl{condProb} that implements a conditional probability based on two lists of predicates: the first list of predicates describes the probability we are actually interested in, the second list gives the side-conditions that should apply to the query.
@@ -1573,9 +1575,9 @@ For example, the predicate \cyinl{isRaining} corresponds to |Raining = True|.
 \subsection{Random Strings}
 In order to compare our library with other approaches for
 probabilistic programming we reimplement two examples about random
-strings that have also been implemented in ProbLog, this
-implementation can be found online\footnote{\url{https://dtai.cs.kuleuven.be/problog/tutorial/various/04_nampally.html}}.
-We generate random strings of a fixed length over the alphabet $\{a,b\}$ and calculate the probability that this string a) is a palindrome and b) contains the subsequence $bb$.
+strings that have also been implemented in ProbLog.
+The ProbLog implementation can be found online\footnote{\url{https://dtai.cs.kuleuven.be/problog/tutorial/various/04_nampally.html}}.
+We generate random strings of a fixed length over the alphabet $\{a,b\}$ and calculate the probability that this string is a palindrome and contains the subsequence $bb$, respectively.
 
 First we define a distribution that picks a character uniformly from the alphabet $\{a,b\}$.
 
@@ -1609,6 +1611,7 @@ randomString n = replicateDist n (\ () -> pickChar)
 In order to compute the probability that a random string is a palindrome and contains a subsequence $bb$, respectively, we define predicates that test these properties for a given string.
 A string is a palindrome, if it reads the same forwards and backwards.
 The following predicate, thus, checks if the reverse of a given string is equal to the original string.
+We use a tail-recursive implementation of \cyinl{reverse} to benefit from a run time complexity that is linear in the length of the list instead of quadratic.
 
 %if False
 
@@ -1670,7 +1673,7 @@ What is the probability that a random string of length \cyinl{5} is a palindrome
 \end{cyrepl}
 
 In general the above definitions of \cyinl{palindrome} and \cyinl{consecutiveBs} are quite naive and, thus, inefficient because all strings of the given length have to be enumerated explicitly.
-Due to the inefficiency, the ProbLog homepage introduces a more efficient version for both problems.
+Due to this inefficiency, the ProbLog homepage introduces a more efficient version for both problems.
 In the following, we will discuss the alternative implementation to compute the probability for a palindrome only.
 This more efficient version has arguments for the index of the front and back position, picks characters for both ends and then moves the position towards the middle.
 That is, instead of naively generating the whole string of length $n$, this version checks each pair of front and back position first and fails straightaway, if they do not match.
@@ -1711,13 +1714,12 @@ non-determinism and non-strictness, the evaluation of the first query
 based on \cyinl{palindrome} behaves similar to the efficient variant in ProbLog.
 At first, it seems that the query performs poorly, because the predicate \cyinl{palindrome} needs to evaluate the whole list due to the usage of \cyinl{reverse}.
 The good news is, however, that the non-determinism is only spawned if we evaluate the elements of that list, and the elements still evaluate non-strictly, when explicitly triggered by \cyinl{(==)}.
-More precisely, because of the combination of \cyinl{reverse} and \cyinl{(==)}, the evaluation starts by checking the first and last characters of a string and only continues to check more characters, and spawn more non-determinism, if they match.
+More precisely, because of the combination of \cyinl{reverse} and \cyinl{(==)}, the evaluation starts by checking the first and last characters of a string and only continues to check more characters --- and spawn more non-determinism --- if they match.
 If these characters do not match, the evaluation fails directly and does not need to check any more characters.
-In a nutshell, when using PFLP, we get a version competitive with efficient implementations although
-we used a naive generate and test approach.
+In a nutshell, we get a version competitive with the efficient implementation although we used a naive generate and test approach.
 
 Last but not least, we want to emphasise that the restrictions with respect to using non-determinism discussed in \autoref{sec:details} did not affect the reimplementation of these examples.
-As the examples shown here are not the only examples that we implemented with our library, we are confident that the restrictions do not have consequences for the programmability regarding common applications of probabilistic programming.
+As the examples shown here are taken from the probabilistic programming literature, we are confident that the restrictions do not have consequences for the programmability regarding common applications of probabilistic programming.
 
 \subsection{Secret Santa}
 
@@ -1725,8 +1727,9 @@ Most tutorials on probabilistic programming include an example that models the c
 In this section we will take a look at another problem that probably most people have already heard of.
 We will model the preparation for a game of secret santa\footnote{This example was motivated by an episode of \emph{Numberphile} hosted by Dr. Hannah Fry. See online via \url{https://youtu.be/5kC5k5QBqcc}}.
 Secret santa is a famous western christmas tradition in which a group of people organise to exchange gifts.
-The main idea is that each person is randomly assigned to another person, these assignments declare who has to give a gift to whom.
-It should not be possible for a person to pick himself as gift receiver.
+The main idea is that each person is randomly assigned to another person and that these assignments declare who has to give a gift to whom.
+More precisely, this assignments are not symmetric by default; they can, however, be symmetric by chance.
+Furthermore, a person cannot pick himself as gift receiver.
 As the assignments are usually drawn from a hat with names of all the participants on a piece of paper inside, these draws do not all end up in a valid game constellation.
 In this section we will take a look at the probability that the name picking phase yields an invalide game constellation.
 
@@ -1744,7 +1747,7 @@ type Person = Int
 type Hat = [Person]
 \end{curry}
 
-As already noted, the assignment of each person to another person might yield a invalid game constellation, where one person draws herself.
+As already noted, an assignment results in an invalid game constellation, if one person draws herself.
 We incorporate these possible outcomes in a data type \cyinl{SecretSanta} that represents an invalid game using \cyinl{Failed} and a valid constellation using \cyinl{Success}.
 Since we are interested in the assignments of each person the \cyinl{Success}-constructor contains the list of \cyinl{SantaAssignment}s as argument.
 
@@ -1779,7 +1782,7 @@ santaGame n || n > 1 = [1..n]
 \end{curry}
 
 It will hopefully come with no surprise that each person in the hat can be drawn with the same probability.
-Thus, we define \cyinl{pickFromHat} to yield a uniform distribution for a given \cyinl{Hat}.
+Thus, we define \cyinl{pickFromHat} to yield a uniform distribution for a given hat..
 
 %if False
 
@@ -1810,7 +1813,7 @@ As the hat might be empty, we wrap the result as an optional value, yielding \cy
 
 \begin{curry}
 pPicks :: Person -> Hat -> Dist (Maybe (SantaAssignment, [Person]))
-pPicks _ [] = certainly Nothing
+pPicks _ []        = certainly Nothing
 pPicks p ps@@(_:_) =
   pickFromHat ps >>>= \p' ->
   certainly (Just (Assignment p p', delete p' ps))
@@ -1833,13 +1836,13 @@ Now, for a naive round of draws from the hat, we let each person draw from the h
 
 \begin{curry}
 pickRound :: Hat -> Dist SecretSanta
-pickRound [] = certainly FailedGame
-pickRound xs@@(_:_) = pickRound' xs xs [] >>>= \ arrs -> certainly (Success arrs)
+pickRound []        = certainly FailedGame
+pickRound xs@@(_:_) = pickRound' xs xs [] >>>= \ arrs ->
+                      certainly (Success arrs)
  where
   pickRound' []     _   arrs = certainly arrs
-  pickRound' (p:ps) hat arrs =
-    pPicks p hat >>>= \ (Just (arr,hat')) ->
-    pickRound' ps hat' (arr:arrs)
+  pickRound' (p:ps) hat arrs = pPicks p hat >>>= \ (Just (arr,hat')) ->
+                               pickRound' ps hat' (arr:arrs)
 \end{curry}
 
 We can try out our implementation for a small game with three people.
@@ -1883,13 +1886,13 @@ isFailedAssign :: SantaAssignment -> Bool
 isFailedAssign secret = santa secret == person secret
 \end{curry}
 
-Using the predicate \cyinl{isFailedAssign} we can normalise the result from \cyinl{pickRound} in order to mark invalid games as such.
+Using the predicate \cyinl{isFailedAssign} we can normalise the result from \cyinl{pickRound} in order to find and mark invalid games.
 That is, if any assignment of a \cyinl{SecretSanta} game is invalid, the whole game failed.
 
 %if False
 
 > normFailedGame :: SecretSanta -> SecretSanta
-> normFailedGame FailedGame = FailedGame
+> normFailedGame FailedGame          = FailedGame
 > normFailedGame game@(Success arrs) | any isFailedAssign arrs = FailedGame
 >                                    | otherwise               = game
 
@@ -1897,9 +1900,10 @@ That is, if any assignment of a \cyinl{SecretSanta} game is invalid, the whole g
 
 \begin{curry}
 normFailedGame :: SecretSanta -> SecretSanta
-normFailedGame FailedGame = FailedGame
-normFailedGame game@@(Success arrs) || any isFailedAssign arrs = FailedGame
-                                    || otherwise               = game
+normFailedGame FailedGame          = FailedGame
+normFailedGame game@@(Success arrs)
+  || any isFailedAssign arrs = FailedGame
+  || otherwise               = game
 \end{curry}
 
 We check our implementation once again using \cyinl{normFailedGame} to mark invalid games.
@@ -1907,7 +1911,8 @@ We check our implementation once again using \cyinl{normFailedGame} to mark inva
 %if False
 
 > santa1' :: Dist SecretSanta
-> santa1' = pickRound (santaGame 3) >>>= \game -> certainly (normFailedGame game)
+> santa1' = pickRound (santaGame 3) >>>= \game ->
+>           certainly (normFailedGame game)
 
 %endif
 
@@ -1949,6 +1954,7 @@ isFailedGame (Success _) = False
 
 Only a third of all game constellations are valid.
 That is, if every person picks from the hat before we check for invalid game constellations, every three games we need to do it all again from the beginning.
+
 There are usually two possible alternative procedures to avoid invalid game constellations.
 For the first alternative we check after each pick if this pick invalidates the game, i.e., if a person picked herself.
 There is, however, a problem with this alternative: there is no definite ending, a person could end up picking herself every time she tries again.
@@ -1974,15 +1980,15 @@ We do this for every person that picks from the hat.
 
 \begin{curry}
 pickRoundWOFailed :: Hat -> Dist SecretSanta
-pickRoundWOFailed [] = certainly FailedGame
+pickRoundWOFailed []       = certainly FailedGame
 pickRoundWOFailed xs@@(_:_) = pickRound' xs xs []
  where
-  pickRound' []     _   assigns = certainly (Success assigns)
-  pickRound' (p:ps) hat assigns =
+  pickRound' []     _   as = certainly (Success as)
+  pickRound' (p:ps) hat as =
     pPicks p (delete p hat) >>>= \ mAssign ->
     maybe (certainly FailedGame)
-      (\(assign,_) -> pickRound' ps (delete (person assign) hat) (assign:assigns))
-      mAssign
+          (\(a,_) -> pickRound' ps (delete (person a) hat) (a:as))
+          mAssign
 \end{curry}
 
 Note that for this solution to work it is crucial that \cyinl{pPicks} can handle an empty hat as well.
@@ -2110,46 +2116,27 @@ Note that both approaches are equivalent because no picker is allowed to retry w
 
 \subsection{Performance Comparisons}
 
-Up to now, the only performance comparisons we discussed were for
-different implementations of our library in Curry and Haskell.
-These comparisons showed the advantage of using non-strict
-non-determinism concepts in combination with the right amount of
-laziness for the implementation of the library.
-Next we want to take a look at the comparison with the full-blown
-probabilistic programming languages ProbLog and WebPPL.
-ProbLog is a probabilistic extension of Prolog that is implemented in
-Python.
-WebPPL is the successor of Church; in contrast to Church it is not
-implemented in Scheme but in JavaScript.
+Up to now, the only performance comparisons we discussed were for different implementations of our library in Curry and Haskell.
+These comparisons showed the advantage of using non-strict non-determinism concepts in combination with the right amount of laziness for the implementation of the library.
+Next we want to take a look at the comparison with the full-blown probabilistic programming languages ProbLog and WebPPL.
+ProbLog is a probabilistic extension of Prolog that is implemented in Python.
+WebPPL is the successor of Church; in contrast to Church it is not implemented in Scheme but in JavaScript.
 
-In order to try to measure the execution of the programs only, we
-precompiled the executable for the Curry programs.
-As Python is an interpreted language, a similar preparation was not
-available for ProbLog.
-However, we used ProbLog as library in order to call the Python
-interpreter directly.
-ProbLog is mainly implemented in Python, which allows users to
-import ProbLog as a Python package.\footnote{\url{https://dtai.cs.kuleuven.be/problog/tutorial/advanced/01_python_interface.html}}
-For WebPPL, we used \textit{node.js} to run the JavaScript program as a
-terminal application.
-All of the following running times are the mean of $1000$ runs
-as calculated by the Haskell tool
-bench\footnote{\url{https://hackage.haskell.org/package/bench}} that
-we use to run the benchmarks.
+In order to try to measure the execution of the programs only, we precompiled the executable for the Curry programs.
+As Python is an interpreted language, a similar preparation was not available for ProbLog.
+However, we used ProbLog as library in order to call the Python interpreter directly.
+ProbLog is mainly implemented in Python, which allows users to import ProbLog as a Python package.\footnote{\url{https://dtai.cs.kuleuven.be/problog/tutorial/advanced/01_python_interface.html}}
+For WebPPL, we used \textit{node.js} to run the JavaScript program as a terminal application.
+All of the following running times are the mean of $1000$ runs as calculated by the Haskell tool
+bench\footnote{\url{https://hackage.haskell.org/package/bench}} that we use to run the benchmarks.
 
-We compare the running times based on the two examples we already
-discussed: the dice rolling example presented in
-\autoref{ssec:nonstrict} and all examples from the previous section.
+We compare the running times based on the dice rolling example presented in \autoref{ssec:nonstrict} and all examples from the previous section.
 
 \paragraph{Dice Rolling}
-As discussed before, non-strict non-determinism performs pretty
-well for the dice rolling example, as a great deal of the search space
-is pruned early.
-That is, \autoref{fig:dice} shows an impressive
-advantage of our Curry library in comparison with ProbLog and
+As discussed before, non-strict non-determinism performs pretty well for the dice rolling example, as a great deal of the search space is pruned early.
+That is, \autoref{fig:dice} shows an impressive advantage of our Curry library in comparison with ProbLog and
 WebPPL.
-The x-axis represents the number of rolled dice and we present
-the time in milliseconds in logarithmic scale on the y-axis.
+The x-axis represents the number of rolled dice and we present the time in milliseconds in logarithmic scale on the y-axis.
 
 \begin{figure}
 \input{content/figures/diceBarAll}
@@ -2157,27 +2144,16 @@ the time in milliseconds in logarithmic scale on the y-axis.
 \label{fig:dice}
  \end{figure}
 
-In order to demonstrate that our library outperforms ProbLog and WebPPL
-by several orders of magnitude for this example, we also run the Curry
-implementation for bigger values of $n$ that eventually had the same
-running time as the last tested value for the other languages.
+In order to demonstrate that our library outperforms ProbLog and WebPPL by several orders of magnitude for this example, we also run the Curry implementation for bigger values of $n$ that eventually had the same running time as the last tested value for the other languages.
 The right part of \autoref{fig:dice} shows the running times for $25$ to $5000$ dice.
-We can see that our library can compute the probability for
-getting only sixes for $2500$ dice in roughly the same time as ProbLog
-for $5$ dice.
-The running times for WebPPL seem very bad in the beginning, but
-after a few throws it becomes obvious that there is a constant overhead.
-Nevertheless, whereas WebPPL computes the probability for $8$ dice,
-our library can compute the probability for $2500$ dice in roughly the same
-time.
+We can see that our library can compute the probability for getting only sixes for $2500$ dice in roughly the same time as ProbLog for $5$ dice.
+The running times for WebPPL seem very bad in the beginning, but after a few throws it becomes obvious that there is a constant overhead.
+Nevertheless, whereas WebPPL computes the probability for $8$ dice, our library can compute the probability for $2500$ dice in roughly the same time.
 
 \paragraph{Palindrome}
 
-In order to back up the results of the previous example, \autoref{fig:palindromeBar} shows
-benchmarks for implementations of the naive and the efficient versions of the palindrome generation
-in Curry, ProbLog and WebPPL.
-The x-axis represents the length of the generated palindrome and, once again,
-we present the time in milliseconds in logarithmic scale on the y-axis.
+In order to back up the results of the previous example, \autoref{fig:palindromeBar} shows benchmarks for implementations of the naive and the efficient versions of the palindrome generation in Curry, ProbLog and WebPPL.
+The x-axis represents the length of the generated palindrome and, once again, we present the time in milliseconds in logarithmic scale on the y-axis.
 
 \begin{figure}
 \input{content/figures/palindromeBar}
@@ -2187,22 +2163,19 @@ we present the time in milliseconds in logarithmic scale on the y-axis.
 
 The figure uses dashed bars for the efficient version of the algorithm and a solid filling for the naive algorithm.
 The naive algorithm scales pretty bad in ProbLog and WebPPL.
-The Curry version is still applicable up to a string length of $30$ as its running time is similar
-to all three efficient versions.
-Overall, the efficient versions all perform in a similar time range, but
-WebPPL shows a slight performance advantage for an increasing
-length of the string.
+The Curry version is still applicable up to a string length of $30$ as its running time is similar to all three efficient versions.
+Overall, the efficient versions all perform in a similar time range, but WebPPL shows a slight performance advantage for an increasing length of the string.
 
 \paragraph{Secret Santa}
 
-The modeling of the secret santa problem is the first example, where it becomes apparent that our library in Curry has no chance to compete against other probabilistic languages, if the problem to solve cannot benefit from early pruning.
+The modelling of the secret santa problem is the first example, where it becomes apparent that our library in Curry has no chance to compete against other probabilistic languages, if the problem to solve cannot benefit from early pruning.
 In case of the secret santa problem, most of the computed assignments become invalid in the last pick.
 That is, all versions of our implementation need to traverse nearly the whole search space in order to compute the probability for an invalid game.
 More precisely, the predicate \cyinl{isFailedGame} that we use in the query to compute the probability behaves similar in all implementations; in all implementations the whole list of assignments needs to be traversed in most of the cases.
-\autoref{fig:santaBar} shows a comparison of the running times for the simplest secret santa model that does not check the picks early, but only checks the validity at the end.
-The tests are parametrised over the number of players that participate in the hat picking process; the x-axis is labeled by the number of players.
+\autoref{fig:santaBar1} shows a comparison of the running times for the simplest secret santa model that does not check the picks early, but only checks the validity at the end.
+The tests are parametrised over the number of players that participate in the hat picking process, which is the value labeled by the x-axis.
 
-\begin{figure}[h]
+\begin{figure}
 \input{content/figures/santaBar}
 \caption{Comparisons of running times for the secret santa model for an increasing number of players}
 \label{fig:santaBar1}
@@ -2211,72 +2184,73 @@ The tests are parametrised over the number of players that participate in the ha
 At first it seems as our library can outperform the other languages again, but the exponential growth of the search space becomes already visible for a small number of players.
 The second visual comparison, \autoref{fig:santaBar2}, shows the running times for the optimised implementation that does not allow a player to pick himself by construction.
 
-\begin{figure}[h]
+\begin{figure}
 \input{content/figures/santaBar2}
 \caption{Comparisons of running times for the secret santa model for an increasing number of players using an optimised strategy}
 \label{fig:santaBar2}
 \end{figure}
 
 The search space grows a bit slower, such that we can perform the query for a greater number of players as before.
-However, the our library still performs bad in comparison to the ProbLog and WebPPL.
+However, the our library still performs bad in comparison to ProbLog and WebPPL.
 In order to show that the bad performance is not specific to our library, but to KiCS2's performance when a non-trivial amount of non-determinism is involved, we present the performance of PAKCS for the santa problems in comparision to ProbLog and WebPPL in \autoref{fig:santaBarP}.
 We observe that PAKCS (orange with patterns) has a performance overhead in comparison to KiCS2 when we run our examples for a small number of players.
 That is, the less non-determinism is used within the program, the better the performance of KiCS2 in comparison to PAKCS and vice versa.
-Nevertheless, PAKCS shows a better performance for a greater number of players: whereas KiCS2 take more than 
+Nevertheless, PAKCS shows a better performance for a greater number of players.
 
-\begin{figure}[h]
+\begin{figure}
 \input{content/figures/santaBarP}
 \caption{Comparisons of running times for the secret santa model for an increasing number of players using PAKCS instead of KiCS2}
 \label{fig:santaBarP}
 \end{figure}
 
 This case study shows that optimising KiCS2's performance with respect to non-determinism is an important topic for future research.
-However, we emphasise the suitability of a functional logic language like Curry for well-chosen examples and queries that explicitly use non-determinism in such a way that we can prune lot of the search space early.
+However, we emphasise the suitability of a functional logic language like Curry for well-chosen examples and queries that explicitly use non-determinism in such a way that we can prune a great deal of the search space early.
 
 \paragraph{Bayesian Network}
-In order to complete the performance comparisons, we include the running times for three queries of the Bayesian network example.
+In order to complete the performance comparisons, we include the running times for three queries of the Bayesian network examplein \autoref{fig:bayesBar}.
 However, as the model is quite simpel, the computational complexity to compute the queried probabilities is negligible.
-All we can deduce from these performance comparisons is overhead of the individual language.
+All we can deduce from these performance comparisons is the overhead of the individual language.
 In this case, Curry and our library performs best followed by ProbLog, WebPPL has a more noticeable overhead that we already discussed before.
 
-\begin{figure}
+\begin{figure}[t]
 \input{content/figures/BayesBar}
 \caption{Comparisons of running times for Bayesian reasoning examples}
 \label{fig:bayesBar}
 \end{figure}
+
 \section{Related Work}
 
-The approach of the presented library PFLP for probabilistic programming in Curry is based on the work by \citet{erwig2006functional}, who introduce a Haskell library that represents distributions as lists of event-probability pairs. %
+The approach of the presented library for probabilistic programming in Curry is based on the work by \citet{erwig2006functional}, who introduce a Haskell library that represents distributions as lists of event-probability pairs. %
 Their library also provides a simple sampling mechanism to perform inference on distributions.
 Inference algorithms come into play because common examples in probabilistic programming have an exponential growth and it is not feasible to compute the whole distribution.
 Similarly, \citet{scibior2015practical} present a more efficient implementation using a DSL in Haskell.
 They represent distributions as a free monad and inference algorithms as an interpretation of the monadic structure.
 Thanks to this interpretation, the approach is competitive to full-blown probabilistic programming languages with respect to performance.
-PFLP provides functions to sample from distributions as well.
-However, in this work we focus on modeling distributions and do not discuss any sampling mechanism.
+In this work we focus on modelling distributions and have not implemented any sampling mechanism.
 
-The benefit with respect to the combination of non-strictness and non-de\-ter\-min\-ism is similar to the benefit of property-based testing using Curry-like non-determinism in Haskell (\citet{runciman2008smallcheck}) and Curry (\citet{christiansen2008easycheck}).
+The benefit with respect to the combination of non-strictness and non-de\-ter\-min\-ism is similar to the benefit of property-based testing in Curry \citep{christiansen2008easycheck} and in Haskell using Curry-like non-determinism \citep{runciman2008smallcheck}.
 In property-based testing, sometimes we want to generate only test cases that satisfy a precondition.
 With Curry-like non-determinism the precondition can prune the search space early, while a list-based implementation has to generate all test cases and filter them afterwards.
 Both applications, probabilistic programming and property-based testing, are examples, where built-in non-determinism outperforms list-based approaches as introduced by \citet{wadler1985replace}.
 In comparison to property-based testing, here, we observe that we can even add a kind of monadic layer on top of the non-determinism that computes additional information and still preserve the demand-driven behavior.
-However, the additional information has to be evaluated strictly --- as it is the case for probabilities, otherwise we might lose non-deterministic results.
+However, the additional information has to be evaluated strictly --- as it is the case for probabilities --- otherwise we might lose non-deterministic results.
 
 There are other more elaborated approaches to implement a library for probabilistic programming.
 For example, \citet{kiselyov2009embedded} extend their library for probabilistic programming in OCaml with a construct for lazy evaluation to achieve similar positive effects.
-However, they use lazy evaluation for a concrete application based on importance sampling.
-Due to the combination of non-strictness and non-determinism, we can efficiently calculate the total probability of the resulting distribution without utilising sampling.
+They use lazy evaluation for a concrete application based on importance sampling as well as for exact inference (calculating the total probability of a given distribution).
+Their implementation is a shallow embedding in OCaml that reimplements some features that our library already exploits from its functional logic host language.
+That is, due to the combination of non-strictness and non-determinism, we can efficiently calculate the total probability of the resulting distribution without utilising sampling.
 
 
 \section{Future Work}
 As future work, we see a high potential for performance improvements for the Curry compiler KiCS2.
-PFLP serves as a starting point for further studies of functional logic features in practical applications.
+The presented library for probabilistic programming serves as a starting point for further studies of functional logic features in practical applications.
 For example, we would expect the running times of the strict implementation based on non-determinism to be approximately as efficient as a list-based implementation.
 As the numbers in \autoref{sec:details} show, the list approach is, however, considerably faster.
 Furthermore, a more detailed investigation of the performance of non-determinism in comparison to a list model is an interesting topic for itself.
 
-The library's design does not support the use of non-determinism in events or probabilities of a distribution.
-In case of deeper non-determinism, we have to be careful to trigger all non-determinism when querying a distribution as shown in \autoref{sec:details}.
+The library's design does not support the use of non-determinism in events of a distribution.
+In case of deep non-determinism, we have to be careful to trigger all non-determinism when querying a distribution as shown in \autoref{subsec:nondetEvents}.
 Hence, the extension of the library with an interface using non-determinism on the user's side is an idea worth studying.
 
 Since we did not discuss any sampling mechanisms for the library here, we plan to investigate whether we can also benefit from the improved performance in the case of sampling.
@@ -2288,7 +2262,7 @@ As another example,~\citet{brassel2009technique} presents a debugger for Curry t
 Hence, it should be possible to reuse these ideas in the setting of probabilistic programming as well.
 
 \section{Conclusion}
-We have implemented a simple library for probabilistic programming in a functional logic programming language, namely Curry.
+We have implemented a small library for probabilistic programming for the functional logic programming language Curry.
 Such a library proves to be a good fit for a functional logic language, because both paradigms share similar features.
 While other libraries need to reimplement features specific to probabilistic programming, we solely rely on core features of functional logic languages.
 
@@ -2300,16 +2274,16 @@ Using combinators that are too strict leads to a loss of these performance benef
 Fortunately, the user does not have to worry about using the right amount of strictness as long as she only uses the provided combinators.
 There are, however, two restrictions, the user has to follow when using the library.
 If the user does not follow these restrictions, a program may behave unexpectedly, in particular, the usual monad laws do not hold.
-Events may not be non-deterministic and the second argument of \cyinl{(>>>=)}-operator may not be partial.
-Considering these restrictions, we showed that the library obeys the expected monad laws.
+Events may not be non-deterministic and the function passed as second argument of \cyinl{(>>>=)}-operator may not be partial.
+Considering these restrictions, we showed that the library obeys the expected monad laws with respect to querying a distribution.
 
 \section{Final Remarks}
 
 The basis of this chapter has been published previously.
-The general introduction of the library PFLP and its implementation ideas have been published in the Proceedings of the twentieth International Symposium on Practical Aspects of Declarative Languages \citep{dylus2018probabilistic}.
-An extended version then included reasoning about the monad laws, the small case study containing the random string examples as well as performance results for these examples with comparisions to WebPPL and ProbLog.
-This extended version was published in TPLP~\citep{dylus2019implementing}.
+The general introduction of the library and its implementation ideas have been published in the Proceedings of the twentieth International Symposium on Practical Aspects of Declarative Languages \citep{dylus2018probabilistic}.
+An extended version includes reasoning about the monad laws, a small case study containing the random string examples as well as performance results for these examples with comparisions to WebPPL and ProbLog.
+This extended version was published in Theory and Practice of Logic Programming~\citep{dylus2019implementing}.
 The chapter at hand contains additional material.
-First, the case study contains three part: the aforementioned random string examples, a classical Bayesian network known as grass model, and the development of several ways to model the secret santa problem.
-Second, with the new examples come also new performance comparisons: we reimplemented all case studies in ProbLog as well as WebPPL and compared there performance.
+First, the case study contains three part: the aforementioned random string examples, a Bayesian network example, and the development of several ways to model the secret santa problem.
+Second, with the new examples come also new performance comparisons: we reimplemented all case studies in ProbLog as well as WebPPL and compared their performance.
 Last but not least, we also show the proof for the third monad law that was not included in either versions before.
