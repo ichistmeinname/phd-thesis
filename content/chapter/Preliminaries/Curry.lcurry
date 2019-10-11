@@ -145,7 +145,7 @@ We evaluate the expression using breadth-first search again.
 That is, the order of results is not stable with respect to associativity in case of breadth-first search.
 When we consider only the set of results instead of considering the order of the results, then we observe that the \cinl{?}-operator is associative.
 
-We can now take a look at the implementation of a non-deterministic version of \cyinl{insert} that we modeled in Haskell using lists in \autoref{subsec:monadicAbstractions}.
+We can now take a look at the implementation of a non-deterministic version of \cyinl{insert} that we modelled in Haskell using lists in \autoref{subsec:monadicAbstractions}.
 
 %if False
 

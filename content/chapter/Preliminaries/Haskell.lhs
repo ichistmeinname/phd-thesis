@@ -133,7 +133,7 @@ test4 n = doubleMult (trace "msg" n)
 \subsection{Monadic Abstractions}
 \label{subsec:monadicAbstractions}
 
-As a pure language, Haskell does not allow any side effects unless they are explicitly modeled.
+As a pure language, Haskell does not allow any side effects unless they are explicitly modelled.
 Such an explicit model becomes visibile at the type-level.
 For example, Haskell models the interaction with the user through reading input and printing output explicitly with the type \hinl{IO} \citep{wadler1997declare}.
 Haskell's notion of purity, however, allows side effects like tracing and partiality --- in the form of \hinl{trace} and \hinl{undefined}, respectively --- that we discussed above.
@@ -255,7 +255,7 @@ The left expression of the \hinl{(?)}-operator inserts the element in front of t
 For right expression, we produce all non-deterministic lists for the recursive call \hinl{insertND x ys} and insert the first element \hinl{y} to the front of all these resulting lists.
 
 As an example, we non-deterministically insert \hinl{1} into the list \hinl{[2..5]}.
-Note that we manipulate the output for the REPL to use set-like parentheses for the lists that correspond to the modeled non-determinism of type \hinl{ND}.
+Note that we manipulate the output for the REPL to use set-like parentheses for the lists that correspond to the modelled non-determinism of type \hinl{ND}.
 
 \begin{hrepl}
 \haskellrepl insertND 1 []
@@ -276,7 +276,7 @@ class Monad m where
 
 A type constructor class allows to define overloaded functions for type constructors like \hinl{IO}, \hinl{Partial}, and \hinl{[]}.
 Note that we define an instance for \hinl{[]} instead of \hinl{ND}, because we can define type class instances for data types only, not for type synonyms\footnote{Note that we can define such instances using \hinl{TypeSynonymInstances} if these instances do not overlap with predefined ones}.
-That is, we can define type class instances for our modeled effects \hinl{Partial} and \hinl{[]} as follows\footnote{Strictly speaking, the instance for lists is already predefined.}.
+That is, we can define type class instances for our modelled effects \hinl{Partial} and \hinl{[]} as follows\footnote{Strictly speaking, the instance for lists is already predefined.}.
 
 %if False
 
@@ -417,7 +417,7 @@ We represent all impure operations we need to model using the functor \hinl{f}.
 In case of \hinl{Partial}, we have one operation, namely \hinl{Undefined} that corresponds to the Haskell's \hinl{undefined} value associated with partiality.
 The other constructor \hinl{Defined} is already taken care of by \hinl{Pure}.
 Moreover, we observe that \hinl{Undefined} does not contain any further values but is a possible value of its own: it is a nullary operation.
-In contrast, we modeled the binary operation \hinl{(?) :: ND a -> ND a -> ND a} for non-determinism that combines two non-deterministic computations.
+In contrast, we modelled the binary operation \hinl{(?) :: ND a -> ND a -> ND a} for non-determinism that combines two non-deterministic computations.
 The corresponding functor, thus, needs to make use of the recursive type argument \hinl{Free f a}.
 More concretely, since \hinl{Free} already models the constructor for defined and deterministic values using \hinl{Pure}, the functor takes care of the values constructed using \hinl{Undefined} for \hinl{Partial} and \hinl{(?)} for \hinl{ND}, respectively.
 The functors corresponding to the nullary operation \hinl{Undefined} and to the binary operation \hinl{(?)} look as follows\footnote{In the former case we follow the same naming conventions as \citet{swierstra2008data}.}.
