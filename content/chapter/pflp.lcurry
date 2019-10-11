@@ -3,7 +3,7 @@ Key applications of the probabilistic programming paradim are probabilistic proc
 PFLP makes heavy use of functional logic programming concepts and shows that this paradigm is well-suited for implementing a library for probabilistic programming.
 In fact, there is a close connection between probabilistic programming and functional logic programming.
 For example, non-deterministic choice and probabilistic choice are similar concepts.
-Furthermore, the concept of call-time choice as known from functional logic programming coincides with (stochastic) memoization (\citet{deraedt2013probabilistic}) in the area of probabilistic programming.
+Furthermore, the concept of call-time choice as known from functional logic programming coincides with (stochastic) memoisation (\citet{deraedt2013probabilistic}) in the area of probabilistic programming.
 We are not the first to observe this close connection between functional logic programming and probabilistic programming.
 For example,~\citet{fischer2009purely} present a library for modeling functional logic programs in the functional language Haskell.
 As they state, by extending their approach to weighted non-determinism we can model a probabilistic programming language.
@@ -12,8 +12,8 @@ Besides a lightweight implementation of a library for probabilistic programming 
 \begin{itemize}
 \item We investigate the interplay of probabilistic programming with features of a functional logic programming language.
 For example, we show how call-time choice and non-determinism interact with probabilistic choice.
-\item We discuss how we utilize functional logic features to improve the implementation of probabilistic combinators.
-\item We present an implementation of probability distributions using non-determinism in combination with non-strict probabilistic combinators can be more efficient than an implementation using lists.
+\item We discuss how we utilise functional logic features to improve the implementation of probabilistic combinators.
+\item We present an implementation of probability distributions using non-determinism in combination with non-strict probabilistic combinators that can be more efficient than an implementation using lists.
 \item We illustrate that the combination of non-determinism and non-strict\-ness with respect to distributions has to be handled with care.
 More precisely, it is important to enforce a certain degree of
 strictness in order to guarantee correct results.
@@ -23,32 +23,26 @@ strictness in order to guarantee correct results.
 
 Note that the current state of the library cannot compete against full-blown probabilistic languages or mature libraries for probabilistic programming as it is missing features like sampling from distributions.
 Nevertheless, the library is a good showcase for languages with built-in non-determinism, because the functional logic approach can be superior to the functional approach using lists.
-Furthermore, we want to emphasize that we use non-determinism as an implementation technique to develop a library for probabilistic programming.
+Furthermore, we want to emphasise that we use non-determinism as an implementation technique to develop a library for probabilistic programming.
 That is, we are not mainly concerned with the interaction of non-determinism and probabilism as, for example, discussed in the work of \citet{varacca2006distributing} and multiple others.
 The library we developed does not combine both effects, but provides combinators for probabilistic programming by leveraging Curry's built-in non-strict non-determinism.
 
 \section{What is Probabilistic Programming}
 
 The probabilistic programming paradigm allows the succinct definition of probabilistic processes and other applications based on probability distributions, for example, Bayesian networks as used in machine learning.
-A Bayesian network \todo{Reference} is a visual, graph-based representation for a set of random variables and their dependencies.
-One of the \emph{hello world}-examples of Bayesian networks is the influence of rain and a sprinkler on wet grass.
+A Bayesian network \citep{pearl2014probabilistic} is a visual, graph-based representation for a set of random variables and their dependencies.
+One of the \emph{hello world} examples of Bayesian networks is the influence of rain and a sprinkler on wet grass.
 \autoref{fig:bayes} shows an instance of this example, the concrete probabilities differ between publications.
 A node in the graph represents a random variable, a directed edge between two nodes represents a conditional dependency.
 Each node is annotated with a probability function represented as a table.
 The input values are on the left-hand side of the table and the right-hand side of the table describes the possible output and the corresponding probability.
 The input values of the function correspond to the incoming edges of that node.
 For example, the node for sprinkler depends on rain, thus, the sprinkler node has an incoming edge that originates from the rain node.
-The input parameter rain appears directly in the table that describes the probability function for sprinkler.
+The input parameter rain appears directly in the table that describes the probability function for the sprinkler.
 For the example in \autoref{fig:bayes} the interpretation of the graph reads as follows: it rains with a probability of \SI{20}{\percent}; depending on the rain, the probability for an activated sprinkler is \SI{40}{\percent} and \SI{1}{\percent}, respectively; depending on both of these factors, the grass can be observed as wet with a probability of \SI{0}{\percent}, \SI{80}{\percent}, \SI{90}{\percent} or \SI{99}{\percent}.
 The network can answer the following exemplary questions.
 
-\begin{itemize}
-\item What is the probability that it is raining?
-\item What is the probability that the grass is wet, given that it is raining?
-\item What is the probability that the sprinkler is on, given that the grass is wet?
-\end{itemize}
-
-\begin{figure}
+\begin{figure}[t]
 \begin{tikzpicture}[
   node distance=1cm and 0cm,
   mynode/.style={draw,rectangle,thick,text width=2cm,align=center}
@@ -95,6 +89,12 @@ T & T & 0.99 & 0.01
 \label{fig:bayes}
 \end{figure}
 
+\begin{itemize}
+\item What is the probability that it is raining?
+\item What is the probability that the grass is wet, given that it is raining?
+\item What is the probability that the sprinkler is on, given that the grass is wet?
+\end{itemize}
+
 The general idea of probabilistic programming has been quite successful.
 There are a variety of probabilistic programming languages supporting all kinds of programming paradigms.
 For example, the programming languages Church~\citep{goodman2008church}
@@ -114,7 +114,6 @@ In this section we discuss the core of the PFLP library\footnote{We provide the 
 The implementation is based on a Haskell library for probabilistic
 programming presented by \citet{erwig2006functional}.
 The chapter at hand is a literate Curry file.
-We use the Curry compiler KiCS2\footnote{We use version \verb+2.0.0-b14+ of KiCS2 and the source is found at \url{https://www-ps.informatik.uni-kiel.de/kics2/}.} by \citet{brassel2011kics2} for all code examples.
 
 %if False
 
@@ -165,7 +164,7 @@ coin :: Dist Bool
 coin = Dist True <$|(frac 1 2)|$> ? Dist False <$|(frac 1 2)|$>
 \end{curry}
 
-Remember that printing an expression in the REPL\footnote{We visualize the interactions with the REPL using \curryrepl as prompt.} evaluates the non-deterministic computations, thus, yields one result for each branch.
+Remember that printing an expression in the REPL evaluates the non-deterministic computations, thus, yields one result for each branch.
 
 \begin{minipage}{0.48\textwidth}
 \begin{cyrepl}
@@ -184,7 +183,7 @@ Dist False |(frac 1 2)|
 
 It is cumbersome to define distributions explicitly as in the case of \cyinl{coin}.
 Hence, we define helper functions for constructing distributions.
-Given a list of events and probabilities, \cyinl{enum} creates a distribution by folding these pairs non-de\-ter\-min\-istically with a helper function \cyinl{anyOf}.\footnote{We shorten the implementation of \cyinl{enum} for presentation purposes; actually, \cyinl{enum} only allows valid distributions, e.g., that the given probabilities sum up to \cyinl{1.0}.}
+Given a list of events and probabilities, \cyinl{enum} creates a distribution by folding these pairs non-de\-ter\-min\-istically with a helper function \cyinl{anyOf}.\footnote{We shorten the implementation of \cyinl{enum} for presentation purposes; actually, \cyinl{enum} only allows valid distributions, e.g., that the given probabilities sum up to \cyinl{1.0} using an error margin because of the usage of floating numbers.}
 
 %if False
 
@@ -206,8 +205,7 @@ enum vs ps = anyOf (zipWith Dist vs ps)
 
 The function \cyinl{anyOf} takes a list and yields a non-deterministic choice of all elements of the list.
 
-As a short-cut, we define a function that yields a \cyinl{uniform} distribution given a list of events as well as a function \cyinl{certainly}, which yields a distribution with a single event
-of probability one.
+As a short-cut, we define a function that yields a \cyinl{uniform} distribution given a list of events as well as a function \cyinl{certainly}, which yields a distribution with a single event with a \SI{100}{\percent} probability.
 
 %if False
 
@@ -228,7 +226,7 @@ certainly x = Dist x 1.0
 \end{curry}
 
 The function \cyinl{repeat} yields a list that contains the given value infinitely often.
-Because of Curry's laziness, it is sufficient if one of the arguments of \cyinl{enum} is a finite list because \cyinl{zipWith} stops when one of its arguments is empty.
+Because of Curry's non-strictness, it is sufficient if one of the arguments of \cyinl{enum} is a finite list because \cyinl{zipWith} stops when one of its arguments is empty.
 We can then refactor the definition of \cyinl{coin} using \cyinl{uniform} as follows.
 
 \begin{curry}
@@ -261,7 +259,7 @@ Intuitively, we have to apply the function \cyinl{f} to each event of the distri
 In a Haskell implementation, we would use a list comprehension to define this function.
 In the Curry implementation, we model distributions as non-deterministic computations, thus, the above rule describes the behavior of the function for an arbitrary pair of the first distribution and an arbitrary pair of the second distribution, that is, the result of \cyinl{f}.
 
-Using the operator \cyinl{(>>>=)} we can, for example, define a distribution that models flipping two coins.
+Using the \cyinl{(>>>=)}-operator we can, for example, define a distribution that models flipping two coins.
 The events of this distribution are pairs whose first component is the result of the first coin flip and whose second component is the result of the second coin flip.
 
 %if False
@@ -386,15 +384,16 @@ filterDistPattern :: (a -> Bool) -> Dist a -> Dist a
 filterDistPattern p d@@(Dist evnt prb) = if p evnt then d else failed
 \end{curry}
 
-Querying a distribution, i.e., summing up all probabilities that satisfy a predicate, is a more advanced task in the functional logic approach.
+Querying a distribution is a more advanced task in the functional logic approach.
+In essence, we need to sum up all probabilities that satisfy a given predicate.
 Remember that we represent a distribution by chaining all event-probability pairs with \cyinl{(?)}, thus, constructing non-deterministic computations.
-These non-deterministic computations introduce individual branches of computations that cannot interact with each other. %
-In order to compute the total probability of a distribution, we have to merge these distinct branches. %
-Such a merge is possible by encapsulating the non-deterministic computations. %
-Similar to the \emph{findall} construct of the logic language Prolog, in Curry we encapsulate a non-deterministic computation by using the function \cyinl{allValues} introduced in \autoref{subsec:encapsulation}.
+These non-deterministic computations introduce individual branches of computations that cannot interact with each other.
+In order to compute the total probability of a distribution, we have to merge these distinct branches.
+Such a merge is possible by encapsulating the non-deterministic computations.
+Similar to the \emph{findall} construct of the logic language Prolog, in Curry we encapsulate a non-deterministic computation by using the function \cyinl{allValues} that we introduced in \autoref{subsec:encapsulation}.
 As a library developer, we can employ this function to encapsulate non-deterministic values and use these values in further computations.
 However, due to non-transparent behavior in combination with sharing as discussed by \citet{brassel2004encapsulating}, a user of the library should not use \cyinl{allValues} at all.
-In a nutshell, inner-most and outer-most evaluation strategies may cause different results when combining sharing and encapsulation.
+The reason for this restriction is, in a nutshell, that inner-most and outer-most evaluation strategies may cause different results when combining sharing and encapsulation.
 
 %if False
 
@@ -433,7 +432,7 @@ prob (Dist _ p) = p
 
 First we filter the elementary events by some predicate and project to the probabilities only.
 Afterwards we encapsulate the remaining probabilities and sum them up.
-As an example for the use of \cyinl{(??)}, we may flip four coins and calculate the probability of at least two heads --- that is, the list contains at least two \cyinl{True} values.
+As an example for the use of \cyinl{(??)}, we may flip four coins and calculate the probability of at least two heads, that is, we check if the list contains at least two \cyinl{True} values.
 
 \begin{cyrepl}
 \curryrepl (\func coins -> length (filter id coins) >= 2) ?? (flipCoin 4)
@@ -442,7 +441,7 @@ As an example for the use of \cyinl{(??)}, we may flip four coins and calculate 
 
 In order to check the result, we calculate the probability by hand.
 Since there are more events that satisfy the predicate than events that do not, we sum up the probabilities of the events that do not satisfy the predicate and calculate the complementary probability.
-There is one event where all coins show tails and four events where one of the coins shows heads and all other show tails.
+There is one event where all coins show tails, and four events where one of the coins shows heads and all other show tails.
 
 \begin{align*}
   & 1 - (~P(Tails) \cdot P(Tails) \cdot P(Tails) \cdot P(Tails) \\
@@ -457,7 +456,7 @@ There is one event where all coins show tails and four events where one of the c
 \label{sec:details}
 
 Up to now, we have discussed a simple library for probabilistic programming that uses non-determinism to represent distributions.
-In this chapter we will see that we can highly benefit from Curry-like non-determinism with respect to performance when we compare PFLP's implementation with a list-based implementation.
+In this section we see that we can highly benefit from Curry-like non-determinism with respect to performance when we compare the library's implementation with a list-based implementation.
 More precisely, when we query a distribution with a predicate that does not evaluate its argument completely, we can possibly prune large parts of the search space.
 Before we discuss the details of the combination of non-strictness and non-determinism, we discuss aspects of sharing non-deterministic choices.
 Finally, we discuss details about the implementation of \cyinl{(>>>=)}-operator.
@@ -479,7 +478,7 @@ The variable \cyinl{d} on the right-hand side corresponds to a single determinis
 
 Sometimes run-time choice is what you are looking for and call-time choice gets in your way; probabilistic programming is no exception.
 For example, let us reconsider flipping a coin $n$ times.
-We parametrize the function \cyinl{flipCoin} over the given distribution and define the following generalized function.
+We parametrise the function \cyinl{flipCoin} over the given distribution and define the following generalised function.
 
 \begin{curry}
 replicateDist :: Int -> Dist a -> Dist [a]
@@ -499,7 +498,7 @@ Because \cyinl{replicateDist} shares the variable \cyinl{d}, we only perform a c
 In contrast, top-level nullary functions like \cyinl{coin} are evaluated every time, thus, exhibit run-time choice, which is the reason why the previously shown \cyinl{flipCoin} behaves properly.
 
 In order to implement \cyinl{replicateDist} correctly, we have to enforce run-time choice.
-We introduce the following type synonym and function to model and work with values with run-time choice behavior.\footnote{The adopt the names for the corresponding wrapper type and projection function of the Curry module \texttt{Plural} (\url{https://www.informatik.uni-kiel.de/~curry/cpm/DOC/plural-arguments-2.0.0/Plural.html})}.
+We introduce the following type synonym and function to model and work with values with run-time choice behavior.\footnote{We adopt the names for the corresponding wrapper type and projection function of the Curry module \texttt{Plural} (\url{https://www.informatik.uni-kiel.de/~curry/cpm/DOC/plural-arguments-2.0.0/Plural.html})}.
 
 %if False
 
@@ -535,10 +534,10 @@ replicateDist n plDist
   || otherwise = joinWith (:) (plural plDist) (replicateDist (n-1) plDist)
 \end{curry}
 
-In order to use \cyinl{replicateDist} with \cyinl{coin}, we have to construct a value of type \cyinl{Plural (Dist Bool)}.
+Now, we have to construct a value of type \cyinl{Plural (Dist Bool)} in order to use \cyinl{replicateDist}.
 However, we cannot provide a function to construct a value of type \cyinl{Plural} that behaves as intended.
 Such a function would share a deterministic choice and non-de\-ter\-min\-istically yield two functions, instead of one function that yields a non-deterministic computation.
-The only way to construct a value of type \cyinl{Plural} is to explicitly use a lambda abstraction.
+The only way to construct a value of type \cyinl{Plural} is to explicitly use a lambda abstraction as shown in the following example.
 
 \begin{cyrepl}
 \curryrepl replicateDist 2 (\func () -> coin)
@@ -548,11 +547,11 @@ Dist [False,True] |(frac 1 4)|
 Dist [False,False] |(frac 1 4)|
 \end{cyrepl}
 
-Instead of relying on call-time choice as default behavior, we could model \cyinl{Dist} as a function and make run-time choice the default in PFLP.
+Instead of relying on call-time choice as default behavior, we could model \cyinl{Dist} as a function and make run-time choice the default.
 In this case, to get call-time choice we would have to use a special construct provided by the library --- as it is the case in many probabilistic programming libraries, e.g., \emph{mem} in WebPPL (\citet{goodman2014design}).
 
-On the other hand, ProbLog uses a similar concept to call-time choice, namely, stochastic memoization, which reuses already computed results.
-That is, predicates that are associated with probabilities become part of the memoized result.
+On the other hand, ProbLog uses a similar concept to call-time choice, namely, stochastic memoisation, which reuses already computed results.
+That is, predicates that are associated with probabilities become part of the memoised result.
 A ProbLog version of \cyinl{replicateDist} looks as follows.
 
 \begin{verbatim}
@@ -573,24 +572,24 @@ replicateCoin(2,coin,[tt, ff]): 0.25
 replicateCoin(2,coin,[tt, tt]): 0.5
 \end{verbatim}
 
-We observe that if we flip the same side two times, the resulting probability is not as expected. ProbLog memoizes the results of a predicate call --- in this case \texttt{coin(tt)} and \texttt{coin(ff)}, respectively.
-If a coin was already flipped with \texttt{tt} and a probability of $\frac{1}{2}$, then all further coin flips that result in \texttt{tt} have probability $1$.
-Due to stochastic memoization the coin is not flipped a second time, but is identified as the same coin as before.
-Thus, stochastic memoization as used in ProbLog is similar to the extension of tabling in Prolog systems, but adapted to the setting of probabilistic programming that extends predicates with probabilities.
-Similar to our usage of \cyinl{RT} to mimic run-time choice in Curry, we can use a so-called trial identifier, which is basically an additional argument, to circumvent memoization for a predicate like coin in ProbLog.
-The difference to \cyinl{RT} is that the trial identifier needs to be different for each call to the predicate in order to force re-evaluation.
+We observe that if we flip the same side two times, the resulting probability is not as expected. ProbLog memoises the results of a predicate call --- in this case \texttt{coin(tt)} and \texttt{coin(ff)}, respectively.
+If a coin was already flipped with \texttt{tt} and a probability of \SI{5}{\percent}, then all further coin flips that result in \texttt{tt} have probability of \SI{100}{\percent}.
+Due to stochastic memoisation the coin is not flipped a second time, but is identified as the same coin as before.
+Thus, stochastic memoisation as used in ProbLog is similar to the extension of tabling in Prolog systems, but adapted to the setting of probabilistic programming that extends predicates with probabilities.
+Similar to our usage of \cyinl{Plural} to mimic run-time choice in Curry, we can use a so-called trial identifier, which is basically an additional argument, to circumvent memoisation for a predicate like coin in ProbLog.
+The difference to \cyinl{Plural} is that the trial identifier needs to be different for each call to the predicate in order to force re-evaluation.
 
 In the end, we have decided to go with the current modeling based on call-time choice, because the alternative would work against the spirit of the Curry programming language.
 
 There is a long history of discussions about the pros and cons of call-time choice and run-time choice.
-It is common knowledge in probabilistic programming~(\citet{deraedt2013probabilistic}) that, in order to model stochastic automata or probabilistic grammars, memoization --- that is, call-time choice --- has to be avoided.
+It is common knowledge in probabilistic programming~(\citet{deraedt2013probabilistic}) that, in order to model stochastic automata or probabilistic grammars, memoisation --- that is, call-time choice --- has to be avoided.
 Similarly,~\citet{antoy2005evaluation} observes that you need run-time choice to elegantly model regular expressions in the context of functional logic programming languages.
-Then again, probabilistic languages need a concept like memoization in order to use a single value drawn from a distribution multiple times.
+Then again, probabilistic languages need a concept like memoisation in order to use a single value drawn from a distribution multiple times.
 
 \subsection{Non-strict Non-determinism}
 \label{ssec:nonstrict}
 
-This section illustrates the benefits from the combination of non-strictness and non-determinism with respect to performance.
+This section illustrates the benefits of the combination of non-strictness and non-determinism with respect to performance.
 More precisely, in a setting that uses Curry-like non-determinism, non-strictness can prevent non-determinism from being \enquote{spawned}.
 Let us consider calculating the probability for throwing only sixes when throwing \cyinl{n} dice.
 First we define a uniform distribution for throwing a die as follows.
@@ -598,7 +597,7 @@ First we define a uniform distribution for throwing a die as follows.
 %if False
 
 > data Side = One | Two | Three | Four | Five | Six
->  deriving Eq
+>
 > die :: Dist Side
 > die = uniform [One,Two,Three,Four,Five,Six]
 
@@ -606,7 +605,7 @@ First we define a uniform distribution for throwing a die as follows.
 
 \begin{curry}
 data Side = One || Two || Three || Four || Five || Six
- deriving Eq
+
 die :: Dist Side
 die = uniform [One,Two,Three,Four,Five,Six]
 \end{curry}
@@ -616,24 +615,34 @@ The function \cyinl{all} simply checks that all elements of a list satisfy a giv
 
 %if False
 
+> isSix :: Side -> Bool
+> isSix s = case s of
+>             Six -> True
+>             _   -> False
+
 > allSix :: Int -> Probability
-> allSix n = (all (== Six)) ?? (replicateDist n (\() -> die))
+> allSix n = (all isSix) ?? (replicateDist n (\() -> die))
 
 %endif
 
 \begin{curry}
+isSix :: Side -> Bool
+isSix s = case s of
+            Six -> True
+            _   -> False
+
 allSix :: Int -> Probability
-allSix n = (all (==Six)) ?? (replicateDist n (\func () -> die))
+allSix n = (all isSix) ?? (replicateDist n (\func () -> die))
 \end{curry}
 
-\autoref{tab:allSix} compares running times\footnote{All benchmarks were executed on a Linux machine with an Intel Core i7-6500U (2.50 GHz) and 8 GiB RAM running Fedora 25. We used the Glasgow Haskell Compiler (version \verb+8.0.2+, option \verb+-O2+) and set the search strategy in KiCS2 to depth-first.} of this query for different numbers of dice.
+\autoref{tab:allSix} compares running times\footnote{These benchmarks were executed on a Linux machine with an Intel Core i7-6500U (2.50 GHz) and 8 GiB RAM running Fedora 25. We used the Glasgow Haskell Compiler (version \verb+8.0.2+, option \verb+-O2+) and set the search strategy in KiCS2 to depth-first.} of this query for different numbers of dice.
 The row labeled \enquote{Curry ND} lists the running times for an implementation that uses the operator \cyinl{(>>>=)}.
 The row \enquote{Curry List} shows the numbers for a list-based implementation in Curry, which is a literal translation of the library by \citeauthor{erwig2006functional}.
-The row labeled \enquote{Curry ND!} uses an operator \cyinl{(>>>=!)} instead, which we will discuss shortly.
+The row labeled \enquote{Curry ND!} uses an operator \cyinl{(>>>=!)} instead --- a strict version of \cyinl{(>>>=)}, which we will discuss shortly.
 Finally, we compare our implementation to the original list-based implementation, which the row labeled \enquote{Haskell List} refers to.
 The table states the running times in milliseconds of a compiled executable for each benchmark as a mean of three runs. Cells marked with \enquote{--} take more than one minute.
 
-\begin{table*}[h]\centering
+\begin{table*}[t]\centering
 \begin{tabular}{@@{}lrrrrrrrrr}
 \toprule
 \# of dice & 5 & 6 & 7 & 8 & 9 & 10 & 100 & 200 & 300\\
@@ -649,28 +658,28 @@ Haskell List   & \num{1} & \num{5} & \num{30} & \num{210} & \num{1415} & \num{65
 \end{table*}
 
 Obviously, the example above is a little contrived.
-While the query is exponential in both list versions, it is linear in the non-deterministic setting\footnote{Non-determinism causes significant overhead for KiCS2, thus, \enquote{Curry ND} does not show linear development, but we measured a linear running time using PAKCS~\cite{hanus2017pakcs}.}.
+While the query is exponential in both list versions, it is linear in the non-deterministic setting\footnote{Non-determinism causes significant overhead for KiCS2, thus, \enquote{Curry ND} does not show linear development, but we measured a linear running time using PAKCS.}.
 In order to illustrate the behavior of the example above, we consider the following application for an arbitrary distribution \cyinl{dist} of type \cyinl{Dist [Side]}.
 
 \begin{cyrepl}
-filterDist (all (==Six)) (joinWith (:) (Dist One |(frac 1 6)|) dist)
+filterDist (all isSix) (joinWith (:) (Dist One |(frac 1 6)|) dist)
 \end{cyrepl}
 
 This application yields an empty distribution without evaluating the distribution \cyinl{dist}.
 The trick here is that \cyinl{joinWith} yields a \cyinl{Dist}-constructor without inspecting its arguments.
-When we demand the event of the resulting \cyinl{Dist}, \cyinl{joinWith} has to evaluate only its first argument to see that the predicate \cyinl{all (==Six)} yields \cyinl{False}.
+When we demand the event of the resulting \cyinl{Dist}, \cyinl{joinWith} has to evaluate only its first argument to see that the predicate \cyinl{all isSix} yields \cyinl{False}.
 The evaluation of the expression fails without inspecting the second argument of \cyinl{joinWith}.
 \autoref{fig:eval} illustrates the evaluation in more detail.
 
 \begin{figure}[t]
 \centering
 \begin{spec}
-filterDist (all (== Six)) (joinWith (:) (Dist One (frac 1 6)) dist)
+filterDist (all isSix) (joinWith (:) (Dist One (frac 1 6)) dist)
 == {- Definition of |joinWith| -}
-filterDist  (all (==Six))
+filterDist  (all isSix)
             (Dist One (frac 1 6) >>>= (\ x -> dist >>>= (\ xs -> certainly (x:xs))))
 == {- Definition of |(>>>=)| (twice) -}
-filterDist  (all (==Six))
+filterDist  (all isSix)
             (  let  Dist x p = Dist One (frac 1 6)
                     Dist xs q = dist
                     Dist ys r = certainly (x:xs)
@@ -679,16 +688,16 @@ filterDist  (all (==Six))
 let  Dist x p = Dist One (frac 1 6)
      Dist xs q = dist
      Dist ys r = certainly (x:xs)
-in if all (==Six) ys then Dist ys (p * (q * r)) else failed
+in if all isSix ys then Dist ys (p * (q * r)) else failed
 == {- Definition of |certainly| -}
 let  Dist x p = Dist One (frac 1 6)
      Dist xs q = dist
-in if all (==Six) (x:xs) then Dist (x:xs) (p * (q * 1.0)) else failed
-== {- Definition of |all| -}
+in if all isSix (x:xs) then Dist (x:xs) (p * (q * 1.0)) else failed
+== {- Definition of |all| and |isSix| -}
 let  Dist x p = Dist One (frac 1 6)
      Dist xs q = dist
-in if x==Six && all (==Six) xs then Dist (x:xs) (p * (q * 1.0)) else failed
-== {- Definition of |(==)| and |(&&)| -}
+in if False && all (==Six) xs then Dist (x:xs) (p * (q * 1.0)) else failed
+== {- Definition of |(&&)| -}
 let  Dist x p = Dist One (frac 1 6)
      Dist xs q = d
 in if False then Dist (x:xs) (p * (q * 1.0)) else failed
@@ -702,7 +711,7 @@ failed
 In case of the example \cyinl{allSix}, all non-deterministic branches that contain a value different from \cyinl{Six} fail fast due to the non-strictness.
 Thus, the number of evaluation steps is linear in the number of rolled dice.
 
-We can only benefit from the combination of non-strictness and non-deter\-mi\-nism if we define \cyinl{(>>>=)} with care.
+We can only benefit from the combination of non-strictness and non-deter\-mi\-nism, because we defined \cyinl{(>>>=)} with care.
 Let us take a look at a strict variant of \cyinl{(>>>=)} and discuss its consequences.
 
 %if False
@@ -723,22 +732,22 @@ This implementation is strict in its first argument as well as in the result of 
 When we use \cyinl{(>>>=!)} to implement the \cyinl{allSix} example, we lose the benefit of Curry-like non-determinism.
 The row in \autoref{fig:eval} labeled \enquote{Curry ND!} shows the running times when using \cyinl{(>>>=!)} instead of \cyinl{(>>>=)}.
 As \cyinl{(>>>=!)} is strict, the function \cyinl{joinWith} has to evaluate both its arguments to yield a result.
-\autoref{fig:evalstrict} shows how the formerly unneeded distribution \cyinl{dist} now has to be evaluated in order to yield a value.
+\autoref{fig:evalstrict} demonstrates how the formerly unneeded distribution \cyinl{dist} now has to be evaluated in order to yield a value.
 More precisely, using \cyinl{(>>>=!)} causes a complete evaluation of \cyinl{dist}.
 
 \begin{figure}[t]
 \centering
 \begin{spec}
-filterDist (all (==Six)) (joinWith (:) (Dist One (frac 1 6)) dist)
+filterDist (all isSix) (joinWith (:) (Dist One (frac 1 6)) dist)
 == {- Definition of |joinWith| -}
-filterDist  (all (==Six))
+filterDist  (all isSix)
             (Dist One (frac 1 6) >>>=! (\ x -> dist >>>=! (\ xs -> certainly (x:xs))))
 == {- Definition of |(>>>=!)| -}
-filterDist  (all (==Six))
+filterDist  (all isSix)
             (case  (\ x -> dist >>>=! (\ xs -> certainly (x:xs))) One of
                    Dist y q -> Dist y ((frac 1 6) * q))
 == {- Evaluation of the scrutinee -}
-filterDist  (all (==Six))
+filterDist  (all isSix)
             (case  dist >>>=! (\ xs -> certainly (One:xs)) of
                    Dist y q -> Dist y ((frac 1 6) * q))
 == {- Evaluation of |dist| as demanded by the definition of |(>>>=!)| -}
@@ -749,7 +758,7 @@ filterDist  (all (==Six))
 \end{figure}
 
 Note that an implementation that is similar to \cyinl{(>>>=)} is \emph{not} possible in a list-based implementation.
-The following definition of \cyinl{concatMap} is usually used to define the bind operator for lists.
+The bind operator for lists is usually defined by means of a combination of \cyinl{concat} and \cyinl{map}, usually named \cyinl{concatMap}.
 
 %if False
 
@@ -768,8 +777,8 @@ concatMap f  (x:xs)  = f x ++ concatMap f xs
 The strict behaviour follows from the definition via pattern matching on the list argument.
 In contrast to \cyinl{(>>>=!)} there is, however, no other implementation that is less strict.
 The pattern matching is inevitable due to the two possible constructors, \cyinl{[]} and \cyinl{(:)}, for lists.
-As a consequence, a list-based implementation has to traverse the entire distribution before we can evaluate the predicate \cyinl{all (== Six)}.
-The consequence is that the running times of \enquote{Haskell List} in \autoref{fig:eval} cannot compete with \enquote{Curry ND} when the number of dice increases.
+As a consequence, a list-based implementation has to traverse the entire distribution before we can evaluate the predicate \cyinl{all isSix}.
+All in all, that the running times of \enquote{Haskell List} in \autoref{fig:eval} cannot compete with \enquote{Curry ND} when the number of dice increases.
 
 Intuitively, we expect similar running times for \enquote{Curry ND!} and \enquote{Curry List} as the bind operator for lists has to evaluate its second argument as well -- similar to \cyinl{(>>>=!)}.
 However, the observed running times do not have the expected resemblance.
@@ -782,15 +791,24 @@ For example, consider the following query for throwing \cyinl{n} dice that are e
 
 %if False
 
+> isFiveOrSix :: Side -> Bool
+> isFiveOrSix s = case s of
+>                   Five -> True
+>                   _    -> isSix s
+
 > allFiveOrSix :: Int -> Probability
-> allFiveOrSix n = (all (\s -> s==Five || s==Six)) ?? (replicateDist n (\() -> die))
+> allFiveOrSix n = (all isFiveOrSix) ?? (replicateDist n (\() -> die))
 
 %endif
 
 \begin{curry}
+isFiveOrSix :: Side -> Bool
+isFiveOrSix s = case s of
+                  Five -> True
+                  _    -> isSix s
+
 allFiveOrSix :: Int -> Probability
-allFiveOrSix n =
-  (all (\ s -> s == Five || s == Six)) ?? (replicateDist n (\ () -> die))
+allFiveOrSix n = (all isFiveOrSix) ?? (replicateDist n (\ () -> die))
 \end{curry}
 
 \autoref{tab:allFiveOrSix} lists the running times of this query for different numbers of dice with respect to the four different implementations.
@@ -823,9 +841,9 @@ First, we revisit the definition of \cyinl{(>>>=)} introduced in~\autoref{sec:id
 
 \begin{curry}
 (>>>=) :: Dist a -> (a -> Dist b) -> Dist b
-d >>>= f =  let  Dist x p = d
-                 Dist y q = f x
-            in Dist y (p * q)
+d >>>= f = let Dist x p = d
+               Dist y q = f x
+           in Dist y (p * q)
 \end{curry}
 
 We can observe two facts about this definition.
@@ -907,6 +925,14 @@ With this restriction, the library guarantees that no relevant probabilities get
 
 \section{Pitfalls}
 
+The preceding section summarised how the library benefits from using functional logic features in its implementation.
+In the following section, we discuss some pitfalls that may arise due to the decision to implement the library using these features.
+First, we discuss the usage of non-deterministic computations in events of distributions.
+As Curry is a functional logic language, it seems quite natural to use non-deterministic functions when working with the probabilistic programming library.
+Such non-deterministic functions result in non-deterministic computations that we might use as events in modelled distributions.
+Besides introducing non-deterministic computations, we can also have no value at all due to the usage of \cyinl{failed}.
+Hence, the second part of the section considers the usage of partial functions in combination with operators the library provides.
+
 \subsection{Non-deterministic Events}
 
 We assume that all events passed to library functions are deterministic, that is, the library does not support non-deterministic events within distributions.
@@ -920,15 +946,13 @@ We can define a free variable of type \cyinl{Side} as follows.
 %if False
 
 > side :: Side
-> side = x
->  where x free
+> side = x where x free
 
 %endif
 
 \begin{curry}
 side :: Side
-side = unknown
- where x free
+side = x where x free
 \end{curry}
 
 This free variable evaluates as follows.
@@ -968,8 +992,8 @@ Now, let us consider the following query.
 The result of this query is |(frac 1 6)| and not \cyinl{1.0} as expected.
 Consider \autoref{fig:unknown} for a step-by-step evaluation of this expression in order to understand better what is going on.
 This example illustrates that probabilities can get lost if the predicate is not strict enough to pull all non-deterministic values to the outside.
-Here, the predicate \cyinl{const True} does not touch the event at all, thus, does not trigger \cyinl{side} to evaluate to all the constructors of \cyinl{Side}.
-Instead the definition of \cyinl{(??)} directly projects to the probability of \cyinl{die2} and throws away all non-determinism left in the event of the distribution.
+Here, the predicate \cyinl{const True} does not consider the event-component at all, thus, does not trigger \cyinl{side} to evaluate to all the constructors of \cyinl{Side}.
+The definition of \cyinl{(??)} directly projects to the probability of \cyinl{die2} instead and throws away all non-determinism left hidden in the event-component of the distribution.
 Therefore, we lose probabilities we would like to sum up.
 
 \begin{figure}
@@ -1003,8 +1027,8 @@ If users of the library stick to this rule, it is not possible to misuse the ope
 
 One possible approach to overcome this problem is to evaluate the events of a distribution to normal form in order to trigger all the non-determinism that may occur.
 Changing the library definition accordingly, however, leads to a loss of the advantage with respect to non-strictness.
-The query \cyinl{allSix}, for example, heavy relies on the fact that the event is only evaluated as far as needed by the predicate \cyinl{all (== Six)}. 
-A strict evaluation of the event forces the evaluation of the whole list of dices before applying the predicate.
+The query \cyinl{allSix}, for example, heavy relies on the fact that the event is only evaluated as far as needed.
+A strict evaluation of the event forces the evaluation of the whole list of dice before applying the predicate.
 In case of our exemplary evaluation with a distribution that only consists of the value \cyinl{One} in its events, we currently can stop after evaluating the head of the list as the predicate already yields \cyinl{False}.
 Using a strict evaluation for the events of a distribution, the whole lists needs to be evaluated and the non-strictness of the predicate does not play a role anymore.
 
@@ -1024,7 +1048,7 @@ enum2 xs ps = anyOf (zipWith mkDist xs ps)
  where mkDist x p = (\func y -> Dist y p) $## x
 \end{curry}
 
-The operator \cyinl{($##)} evaluates its second to normal form and instantiates free variables and applies its first argument, a function, to the resulting value. If we adapt our example above to use \cyinl{enum2}, querying with a non-strict predicate does not result in an unexpected probability anymore.
+The operator \cyinl{($##)} evaluates its second argument to normal form, instantiates free variables, and applies its first argument, a function, to the resulting value. If we adapt our example above to use \cyinl{enum2}, querying with a non-strict predicate does not result in an unexpected probability anymore.
 
 \begin{cyrepl}
 \curryrepl const True ?? enum2 [side] [|frac 1 6|]
@@ -1045,7 +1069,7 @@ uniformGibbons (x : xs) = choice (1 / length (x:xs))
                                  (uniformGibbons xs')
 \end{minted}
 
-In order to translate this definition for usage in our library, we need to define a primitive like \cyinl{choice}.
+In order to translate this definition to our library, we need to define a primitive like \cyinl{choice}.
 The basic idea behind \cyinl{choice} is, given a probability $p$ as first argument, it associates the second argument with probability $p$ and the third argument with probability $1-p$.
 In other probabilistic languages this primitive is usually called \cyinl{flip} or \cyinl{bernoulli}.
 We can define this function using \cyinl{enum2}.
@@ -1053,13 +1077,13 @@ We can define this function using \cyinl{enum2}.
 %if False
 
 > flip :: Probability -> a -> a -> Dist a
-> flip p x y = enum2 [x,y] [p, 1.0 -. p]
+> flip p x y = enum2 [x,y] [p, 1 - p]
 
 %endif
 
 \begin{curry}
 flip :: Probability -> a -> a -> Dist a
-flip p x y = enum2 [x,y] [p, 1.0 -. p]
+flip p x y = enum2 [x,y] [p, 1 - p]
 \end{curry}
 
 We can then translate the above definition of \mintinline{haskell}{uniformGibbons} into our library using \cyinl{flip} as follows.
@@ -1103,7 +1127,7 @@ uniformND evnts = uniform xs
  where xs = allValues evnts
 \end{curry}
 
-The function encapsulates the non-deterministic events and uses this list of events to build a uniform distribution using the function \cyinl{uniform} that is then only used internally.
+The function encapsulates the non-deterministic events and uses this list of events to build a uniform distribution using the function \cyinl{uniform}, which is then only used internally.
 
 \subsection{Partial Functions}
 Besides not using non-determinism for events, users have to follow another restriction.
@@ -1147,7 +1171,7 @@ When we comply with the restrictions we have discussed above, the operators \cyi
 However, there is one obvious question that we did not answer yet.
 We did not check whether the operator \cyinl{(>>>=)} together with \cyinl{certainly} actually forms a monad as the name of the operator suggests.
 The monad typeclass and its operations usually obey three laws.
-That is, we have to check whether the following three laws hold for all distributions \cyinl{d} and all values \cyinl{x}, \cyinl{f}, and \cyinl{g} of appropriate types.
+That is, we have to check whether the following three laws hold for all distributions |d| and all values |x|, |f|, and |g| of appropriate types.
 
 \begin{itemize}
 \item |d >>>= certainly == d|
@@ -1210,9 +1234,9 @@ failed
 \end{spec}
 That is, the left-hand side is more defined then the right-hand side if |d = failed|.
 
-Because the user cannot access the \cyinl{Dist} constructor she cannot observe this difference.
+Because the user cannot access the \cyinl{Dist} constructor he cannot observe this difference.
 The user can only compare two distributions by using the querying operator \cyinl{(??)}.
-Therefore, in the following we will show that the monad laws hold if we consider a context of the form \cyinl{pred ?? d} where \cyinl{pred} is an arbitrary predicate.
+Therefore, in the following we show that the monad laws hold if we consider a context of the form \cyinl{pred ?? d} where \cyinl{pred} is an arbitrary predicate.
 Recall that we defined the operator \cyinl{(??)} as follows.
 
 \begin{curry}
@@ -1221,7 +1245,7 @@ Recall that we defined the operator \cyinl{(??)} as follows.
 \end{curry}
 
 Fortunately, the monad laws already hold if we consider the context |filterDist pred| for an arbitrary predicate |pred :: a -> Bool|.
-Therefore we will show that the following equalities hold for all distributions |d|, and all values |x|, |pred|, |f|, and |g| of appropriate types.
+Therefore we show that the following equalities hold for all distributions |d|, and all values |x|, |pred|, |f|, and |g| of appropriate types.
 
 \begin{enumerate}[ref=(\arabic*),label=(\arabic*)]
 \item \label{item:law1} |filterDist pred (d >>>= certainly) == filterDist pred d|
@@ -1229,8 +1253,8 @@ Therefore we will show that the following equalities hold for all distributions 
 \item \label{item:law3} |filterDist pred ((d >>>= f) >>>= g)) == filterDist pred (d >>>= (\y -> f y >>>= g))|
 \end{enumerate}
 
-In the following we will first show that equation \ref{item:law1} holds.
-We reason as follows for all distributions \cyinl{d :: Dist a} and predicates \cyinl{pred :: a -> Bool}.
+First we show that equation \ref{item:law1} holds.
+We reason as follows for all distributions |d :: Dist tau| and predicates |pred :: tau -> Bool|.
 
 \begin{spec}
 filterDist pred (d >>>= certainly)
@@ -1348,12 +1372,10 @@ All in all, |certainly| and |(>>>=)| form a valid monad from the user's point of
 \section{Case Study}
 \label{sec:applications}
 
-After presenting the basic combinators of the library and motivating
-the advantages of modelling distributions using non-determinism, we
-will implement some exemplary applications.
-First, we start with an example already motivated in the introduction of this chapter: Bayesian networks.
+After presenting the basic combinators of the library and motivating the advantages of modelling distributions using non-determinism, we implement some exemplary applications.
+First, we start with an example already motivated in the introduction of this section: Bayesian networks.
 We define a simple Bayesian network and corresponding queries using our library.
-The second case study concerns examples that have been characterized as challenging
+The second case study concerns examples that have been characterised as challenging
 for probabilistic logic programming by
 \citet{nampally2015constraintbased}, who use the example to discuss
 the expressiveness of probabilistic logic programming and its cost
@@ -1367,38 +1389,39 @@ These comparisions confirm the advantages of non-strict non-determinism with res
 
 As mentioned in the beginning, Bayesian networks are a popular example for probabilistic programming.
 Since each node in a Bayesian network corresponds to a function that yields a probability, the implementation of a Bayesian network fits perfectly in the setting of a functional language.
-In the following we will implement the example shown in \autoref{fig:bayes}.
-For each node of the graph we will define a function that yields a distribution.
-In the example each node performs a binary decision: it either rains or not, the sprinkler is activated or deactivated and the grass is either wet or not.
+In the following we implement the example shown in \autoref{fig:bayes}.
+For each node of the graph we define a function that yields a distribution.
+In the example, each node performs a binary decision: it either rains or not, the sprinkler is activated or deactivated and the grass is either wet or not.
 Thus, the return type of all three functions is \cyinl{Dist Bool}.
-Since all functions yield boolean distributions we define a combinator \cyinl{bernoulli :: Probability -> Dist Bool}\footnote{In some languages and libraries this combinator is named \cyinl{flip}.}.
-Recall that the function \cyinl{bernoulli} yields \cyinl{True} with the probability given as the first argument and \cyinl{False} with the complementary probability.
+Since all functions yield Boolean distributions, we define a combinator \cyinl{flip :: Probability -> Dist Bool}.
+Recall that the function \cyinl{flip} yields \cyinl{True} with the probability given as the first argument and \cyinl{False} with the complementary probability.
 
 %if False
 
-> bernoulli :: Probability -> Dist Bool
-> bernoulli p = enum [True,False] [p, 1 -. p]
+> flip :: Probability -> Dist Bool
+> flip p = enum [True,False] [p, 1 - p]
 
 %endif
 
 \begin{curry}
-bernoulli :: Probability -> Dist Bool
-bernoulli p = enum [True,False] [p, 1 -. p]
+flip :: Probability -> Dist Bool
+flip p = enum [True,False] [p, 1 - p]
 \end{curry}
 
 
-Now we can start with the simplest function: the node representing rain depends on no other variable in the graph, that is, has no input arguments, and yields \cyinl{True} with a probability of \SI{20}{\percent} and \cyinl{False} with a probability of \SI{80}{\percent}, respectively, according to the graph.
+Now we can start with the simplest function: the node representing rain depends on no other variable in the graph, that is, has no input arguments.
+Furthermore, the function yields \cyinl{True} with a probability of \SI{20}{\percent} and \cyinl{False} with a probability of \SI{80}{\percent}, respectively, according to the graph.
 
 %if False
 
 > raining :: Dist Bool
-> raining = bernoulli 0.2
+> raining = flip 0.2
 
 %endif
 
 \begin{curry}
 raining :: Dist Bool
-raining = bernoulli 0.2
+raining = flip 0.2
 \end{curry}
 
 The nodes representing the sprinkler and the grass depend on other variables; the sprinkler depends on the rain, and the grass on the sprinkler as well as the rain.
@@ -1407,27 +1430,27 @@ That is, the function \cyinl{sprinklerOn} takes one, and the function \cyinl{gra
 %if False
 
 > sprinklerOn :: Bool -> Dist Bool
-> sprinklerOn  False =  bernoulli 0.4
-> sprinklerOn  True  =  bernoulli 0.01
+> sprinklerOn  False =  flip 0.4
+> sprinklerOn  True  =  flip 0.01
 
 > grassWet :: Bool -> Bool -> Dist Bool
-> grassWet  False  False  =  bernoulli 0.0
-> grassWet  False  True   =  bernoulli 0.8
-> grassWet  True   False  =  bernoulli 0.9
-> grassWet  True   True   =  bernoulli 0.99
+> grassWet  False  False  =  flip 0.0
+> grassWet  False  True   =  flip 0.8
+> grassWet  True   False  =  flip 0.9
+> grassWet  True   True   =  flip 0.99
 
 %endif
 
 \begin{curry}
 sprinklerOn :: Bool -> Dist Bool
-sprinklerOn False = bernoulli 0.4
-sprinklerOn True  = bernoulli 0.01
+sprinklerOn False = flip 0.4
+sprinklerOn True  = flip 0.01
 
 grassWet :: Bool -> Bool -> Dist Bool
-grassWet False False = bernoulli 0.0
-grassWet False True  = bernoulli 0.8
-grassWet True  False = bernoulli 0.9
-grassWet True  True  = bernoulli 0.99
+grassWet False False = flip 0.0
+grassWet False True  = flip 0.8
+grassWet True  False = flip 0.9
+grassWet True  True  = flip 0.99
 \end{curry}
 
 Notice that the implementation is merely a copy of the table presented in \autoref{fig:bayes}.
@@ -1442,7 +1465,9 @@ In order to query on this model more easily, we define a record data type where 
 %endif
 
 \begin{curry}
-data GrassModel = Model { isRaining :: Bool, isSprinklerOn :: Bool, isGrassWet :: Bool}
+data GrassModel = Model { isRaining :: Bool
+                        , isSprinklerOn :: Bool
+                        , isGrassWet :: Bool }
 \end{curry}
 
 Now we define a distribution that yields a \cyinl{GrassModel} using the functions \cyinl{raining}, \cyinl{sprinklerOn}, and \cyinl{grassWet} accordingly.
@@ -1691,7 +1716,7 @@ If these characters do not match, the evaluation fails directly and does not nee
 In a nutshell, when using PFLP, we get a version competitive with efficient implementations although
 we used a naive generate and test approach.
 
-Last but not least, we want to emphasize that the restrictions with respect to using non-determinism discussed in \autoref{sec:details} did not affect the reimplementation of these examples.
+Last but not least, we want to emphasise that the restrictions with respect to using non-determinism discussed in \autoref{sec:details} did not affect the reimplementation of these examples.
 As the examples shown here are not the only examples that we implemented with our library, we are confident that the restrictions do not have consequences for the programmability regarding common applications of probabilistic programming.
 
 \subsection{Secret Santa}
@@ -2240,7 +2265,7 @@ However, the additional information has to be evaluated strictly --- as it is th
 There are other more elaborated approaches to implement a library for probabilistic programming.
 For example, \citet{kiselyov2009embedded} extend their library for probabilistic programming in OCaml with a construct for lazy evaluation to achieve similar positive effects.
 However, they use lazy evaluation for a concrete application based on importance sampling.
-Due to the combination of non-strictness and non-determinism, we can efficiently calculate the total probability of the resulting distribution without utilizing sampling.
+Due to the combination of non-strictness and non-determinism, we can efficiently calculate the total probability of the resulting distribution without utilising sampling.
 
 
 \section{Future Work}
