@@ -11,7 +11,7 @@ A familiarity with Haskell is especially helpful for using Curry, since the synt
 Hence, Curry has most of the features users know from Haskell: algebraic data types, higher-order functions, type classes and lazy evaluation.
 On top of these functional features, Curry adds non-determinism as a built-in effect.
 There are two maintained implementations of Curry: KiCS2 \citep{hanus2014kics2} and PAKCS \citep{hanus2017pakcs}.
-In the remainder of this thesis, we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.
+In the remainder of this thesis, we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.\footnote{More precisely, all source code was tested with version \verb+2.0.0-b14+ of KiCS2.}
 All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile --- ~\curryrepl~ --- prompt.
 
 \subsection{Non-determinism}
@@ -185,6 +185,88 @@ In case of Curry's built-in non-determinism, the effect is not visible in the ty
 The interesting part about the composition in case of Curry's built-in non-determinism is its non-strict behaviour.
 Instead of five results --- one head element for each produced list like in the Haskell version, the computation yields only two results.
 Once again, we leave it here to build up the tension for the forthcoming chapters, when we discuss the difference between Curry's built-in non-determinism and the representation using lists in Haskell in more details.
+
+\subsection{Non-strictness}
+\label{subsec:non-strictness}
+
+For Haskell we discussed some use-cases for non-strictness.
+A common programming pattern to exploit non-strictness that we have not introduced so far, is especially interesting for Curry due to its combination with non-determinism.
+We can use \cyinl{let}-bindings instead of pattern matching to define a less-strict version of a function.
+In order to understand this difference, let us consider the following implementation of \cyinl{fromJustToList} and an alternative implementation \cyinl{fromJustToListLet}.
+
+%if False
+
+> fromJustToList :: Maybe a -> [a]
+> fromJustToList (Just x) = x : []
+
+> fromJustToListLet :: Maybe a -> [a]
+> fromJustToListLet mx = let Just x = mx in x : []
+
+%endif
+
+\begin{curry}
+fromJustToList :: Maybe a -> [a]
+fromJustToList (Just x) = x : []
+
+fromJustToListLet :: Maybe a -> [a]
+fromJustToListLet mx = let Just x = mx in x : []
+\end{curry}
+
+The second implementation, \cyinl{fromJustToListLet}, is less strict, because it yields a list constructor, \cyinl{(:)}, without evaluating its argument first.
+That is, we can observe the difference when passing \cyinl{failed} and checking if the resulting list is empty or not.
+
+First, we define \cyinl{null} to check if a list is empty and observe that the function does not demand the evaluation of the head element or the remaining list, because it only checks the surrounding list constructor.
+
+%if False
+
+> null :: [a] -> Bool
+> null []       = True
+> null (_ : _)  = False
+
+%endif
+
+\begin{curry}
+null :: [a] -> Bool
+null []       = True
+null (_ : _)  = False
+\end{curry}
+
+Next, we evaluate the two functions above passing \cyinl{failed} as argument in the context of \cyinl{null}.
+
+\begin{cyrepl}
+\curryrepl null (fromJustToList failed)
+failed
+
+\curryrepl null (fromJustToListLet failed)
+False
+\end{cyrepl}
+
+Due to the pattern matching in the definition of \cyinl{fromJustToList} the argument \cyinl{failed} needs to be evaluated and, thus, the function \cyinl{null} propagates \cyinl{failed} as return value.
+The definition of \cyinl{fromJustToListLet} postpones the evaluation of its argument to the right-hand side: the argument needs to be evaluated only if the computation demands the value \cyinl{x} explicitly.
+
+The strictness property for \cyinl{fromJustToList} holds for a definition via explicitly pattern matching using \cyinl{case ... of} as well.
+In particular, pattern matching of the left hand-side of a rule desugars to case expressions on the right-hand side.
+
+%if False
+
+> fromJustToListCase :: Maybe a -> [a]
+> fromJustToListCase mx = case mx of
+>                             Just x -> [x]
+
+%endif
+
+\begin{curry}
+fromJustToListCase :: Maybe a -> [a]
+fromJustToListCase mx = case mx of
+                            Just x -> [x]
+\end{curry}
+
+\begin{cyrepl}
+\curryrepl null (fromJustToListCase failed)
+!
+\end{cyrepl}
+
+Note that we can observe the same non-strictness and strictness property, respectively, when using a non-deterministic value instead of using Curry's \cyinl{failed}-value in all examples.
 
 \subsection{Call-time Choice}
 

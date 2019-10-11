@@ -301,82 +301,8 @@ Dist x p >>>= f =  let Dist y q = f x
 \end{curry}
 
 That is, it is strict in the first argument but non-strict in the application of \cyinl{f}, the second argument.
-There is indeed a difference between pattern matching and using \cyinl{let}-bindings.
-In order to understand this difference, let us consider the following implementation of \cyinl{fromJustToList} and an alternative implementation \cyinl{fromJustToListLet}.
-
-%if False
-
-> fromJustToList :: Maybe a -> [a]
-> fromJustToList (Just x) = x : []
-
-> fromJustToListLet :: Maybe a -> [a]
-> fromJustToListLet mx = let Just x = mx in x : []
-
-%endif
-
-\begin{curry}
-fromJustToList :: Maybe a -> [a]
-fromJustToList (Just x) = x : []
-
-fromJustToListLet :: Maybe a -> [a]
-fromJustToListLet mx = let Just x = mx in x : []
-\end{curry}
-
-The second implementation, \cyinl{fromJustToListLet}, is less strict, because it yields a list constructor, \cyinl{(:)}, without evaluating its argument first.
-That is, we can observe the difference when passing \cyinl{failed} and checking if the resulting list is empty or not.
-
-First, we define \cyinl{null} to check of a list is empty and observe that the function does not demand the evaluation of \cyinl{x}, because it only checks the surrounding list constructor.
-
-%if False
-
-> null :: [a] -> Bool
-> null []       = True
-> null (_ : _)  = False
-
-%endif
-
-\begin{curry}
-null :: [a] -> Bool
-null []       = True
-null (_ : _)  = False
-\end{curry}
-
-Next, we evaluate the two functions passing \cyinl{failed} as argument in the context of \cyinl{null}.
-
-\begin{cyrepl}
-\curryrepl null (fromJustToList failed)
-failed
-
-\curryrepl null (fromJustToListLet failed)
-False
-\end{cyrepl}
-
-Due to the pattern matching in the definition of \cyinl{fromJustToList} the argument \cyinl{failed} needs to be evaluated and, thus, the function \cyinl{null} propagates \cyinl{failed} as return value.
-The definition of \cyinl{fromJustToListLet} postpones the evaluation of its argument to the right-hand side, i.e., the argument needs to be evaluated only if the computation demands the value \cyinl{x} explicitly.
-
-The same strictness property as for \cyinl{fromJustToList} holds for a definition via explicitly pattern matching using \cyinl{case ... of}.
-In particular, pattern matching of the left hand-side of a rule desugars to case expressions on the right-hand side.
-
-%if False
-
-> fromJustToListCase :: Maybe a -> [a]
-> fromJustToListCase mx = case mx of
->                             Just x -> [x]
-
-%endif
-
-\begin{curry}
-fromJustToListCase :: Maybe a -> [a]
-fromJustToListCase mx = case mx of
-                            Just x -> [x]
-\end{curry}
-
-\begin{cyrepl}
-\curryrepl null (fromJustToListCase failed)
-!
-\end{cyrepl}
-
-We discuss the implementation of \cyinl{(>>>=)} in more detail later.
+Recall that we discussed the difference between pattern matching and using \cyinl{let}-bindings in \autoref{subsec:non-strictness}.
+We take a more detailed at the implementation of \cyinl{(>>>=)} later.
 For now, it is sufficient to keep in mind that \cyinl{(>>>=)} yields a \cyinl{Dist}-constructor without evaluating any of its arguments.
 In contrast, a definition using pattern matching or a case expression needs to evaluate its argument first, thus, is more strict.
 
@@ -414,7 +340,7 @@ flipCoin n  || n == 0     = certainly []
             || otherwise  = joinWith (:) coin (flipCoin (n-1))
 \end{curry}
 
-When we run the example of flipping two coins in the REPL of KiCS2, we get four events.
+When we run the example of flipping two coins, we get four events.
 
 \begin{cyrepl}
 \curryrepl flipCoin 2
