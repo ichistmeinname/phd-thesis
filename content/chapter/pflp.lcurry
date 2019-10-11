@@ -204,7 +204,7 @@ enum :: [a] -> [Probability] -> Dist a
 enum vs ps = anyOf (zipWith Dist vs ps)
 \end{curry}
 
-As before, the function \cyinl{anyOf} takes a list and yields a non-deterministic choice of all elements of the list.
+The function \cyinl{anyOf} takes a list and yields a non-deterministic choice of all elements of the list.
 
 As a short-cut, we define a function that yields a \cyinl{uniform} distribution given a list of events as well as a function \cyinl{certainly}, which yields a distribution with a single event
 of probability one.
