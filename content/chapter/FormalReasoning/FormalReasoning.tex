@@ -5,20 +5,20 @@
 This chapter moves the focus from applications using effects like non-determinism to an approach to model effectful programs in order to apply equational reasoning.
 Equational reasoning is a popular and common tool to prove properties about functional programs and, thus, prominently used by Haskell enthusiasts. \citep{jeuring2012testing, gibbons2011just, hutton2008reasoning}
 In particular, \citet{danielsson2006fast} argue that reasoning about total programs only and expecting the result to carry over to partial programs is \textit{morally correct}.
-Nevertheless, since we are interested in proving properties about partial or other effectful programs more explicitly, we cannot apply equational reasoning as it is and need a model for effectful programs.
-In this chapter we present an approach to model effectful non-strict functional programs in the proof assistant Coq and prove exemplary properties about common functions used in functional languages.
+Nevertheless, since we are interested in proving properties about partial or other effectful programs more explicitly, we cannot apply equational reasoning as it is and need a model to represent such  effects.
+In this chapter we present an approach to model effectful non-strict functional programs in the proof assistant Coq and prove exemplary properties about functions used in functional languages.
 Most of these properties are common as finger exercises for proofs in a total setting.
 The main insight of our approach is that a lot of these properties carry over to partial languages: these properties still hold if partial values or non-deterministic computations are at play.
-Our approach allows to reason not only about a concrete effect like partiality or non-determinism, but for a whole class of effects.
+Our approach allows to reason a whole class of effects, and not only about a concrete effect like partiality or non-determinism.
 The interesting outcome of this approach is that one proof is enough to prove a proposition for a whole class of effects.
 In the following we refer to this insight as proving effect-generic properties.
 
 After discussing the general idea for a framework to model effectful non-strict functional programs, we emphasise on one effect occurring in Haskell: partiality.
-We present our approach using the example of the associativity of Haskell function to append two lists.
+We present our approach using the example of the associativity of Haskell's function \hinl{append} to concatenate to lists.
 
 Last but not least we give an outlook on first ideas to model Curry programs.
-The underlying effect of Curry is non-determinism with the addition of special treatment for sharing.
-As we have seen in previous chapters, the combination of non-determinism and non-strictness behaves with respect to Curry's call-time choice semantics, that is, variables declare values and not computations.
+The underlying effect of Curry is non-determinism in combination with laziness, that is, non-strictness and sharing.
+As we have seen in previous chapters, the combination of non-determinism and non-strictness behaves with respect to Curry's call-time choice semantics, that is, variables denote values and not computations.
 We show how to model non-determinism and discuss the problem of modelling a language with sharing.
 That is, we make more clear that our frameworks currently models non-strict program semantics, but does not handle lazy semantics.
 More precisely, we can model call-by-name but not call-by-need.
@@ -27,9 +27,9 @@ In summary, this chapter makes the following contributions.
 
 \begin{itemize}
 \item We present a generic model of effectful non-strict functional programs in the proof assistant Coq.
-\item We implement a model of effectful data structures that pleases Coq's termination checker.
 \item In order to define a valid representation of effectful programs, we take the reader on an introductory tour of Coq's intricacies.
-\item We argue that our approach is especially interesting when proving properties for a variety of effects once-and-for-all instead of individually for each new effect of interest.
+\item We implement a model of effectful data structures that pleases Coq's termination checker.
+\item We argue that our approach is especially beneficial when it comes to effect-generic properties: instead of individually proving a property for each new effect of interest, we can prove such a property for a variety of effects once and for all.
 \item We present first ideas on modelling Curry's non-determinism and discuss arising obstacles when trying to model call-time-choice.
 \item In the light of these obstacles, we discuss that our current framework works well for call-by-name semantics, but does not work for call-by-need semantics out-of-the box.
 \item Moreover, we show some examples that illustrate why this distinction comes up when modelling Curry's non-determinism but not for partiality.
@@ -38,7 +38,7 @@ In summary, this chapter makes the following contributions.
 \section{A Generic Model For Effectful Non-Strict Programs}
 
 In this section we will present our general approach to model effectful non-strict programs in a dependently-typed language like Coq.
-We illustrate why previous work is insufficient for our goals or does not tackle the same problem as we do.
+We illustrate why previous work is insufficient for our goals and does not tackle the same problem as we do, respectively.
 Since the reasons for the insufficiency of the previous work is due to rather technical details of dependently-typed languages and the general idea of propositions as types \citep{wadler2015propositions}, we give a detailed explanation to illustrate which steps are necessary to model our approach in Coq.
 That is, this section tries to explain the obstacles and their solutions in Coq in a beginner-friendly way.
 
@@ -48,16 +48,8 @@ The first obstacle that arises when we model Haskell programs in Coq is the fact
 That is, we cannot translate partial Haskell programs into Coq as they are, we need to represent the partial parts of the programs more explicitly.
 
 Let us take a look at an example.
-One of the first partial function that comes to mind is the \hinl{head} function on lists.
+One of the first partial function that comes to mind is the \hinl{head} function on lists that we defined in \autoref{code:haskell_head}.
 In case of the empty list the function is not defined as there is no element to return.
-
-\begin{minted}{haskell}
-head :: [a] -> a
-head (x:_) = x
-\end{minted}
-
-\noindent 
-Due to the missing case for the empty list, the above code is equivalent to the following implementation that uses a pattern for the empty list to explicitly yield \hinl{undefined}.
 
 \begin{minted}{haskell}
 head :: [a] -> a
@@ -107,13 +99,13 @@ We cannot use the result as an element of the newly constructed list, we get a t
 \emph{The term "cons (head nil) nil" has type "list (option ?A)" while it is expected to have type "list A".}
 \end{quote}
 
-The list constructor \cinl{cons} expects the head element of the list to match its type with all the elements of the remaining list.
+The list constructor \cinl{cons} expects the head element of the list to match its type with all the remaining elements of the list.
 Since we want to construct a list of type \cinl{list A}, the head element needs to be of type \cinl{A}; the function \cinl{head}, however, yields a value of type \cinl{option A}.
 
-As Haskell is a non-strict language, it is crucial that we allow partial values at top-level as well as within the components of data structures, that is, within arguments of constructors in order to model Haskell's partiality correctly.
+As Haskell is a non-strict language, it is crucial that we allow partial values at top-level as well as within the components of data structures, that is, within arguments of constructors, in order to model Haskell's partiality correctly.
 Due to non-strictness, it is possible that an undefined value is never demanded during evaluation.
 The Haskell expression \hinl{head (1 : undefined)}, for example, does not trigger the \hinl{undefined} value in the tail of the list, because \hinl{head} only demands the first list constructor and ignores the second argument.
-In order to have a aptronym for the representation of partial values, we define a new data type \cinl{partial} that captures the notion that a value can be undefined or defined more clearly than the predefined type \cinl{option}.
+In order to have a aptronym for the representation of partial values, we define a new data type \cinl{partial} that captures the notion that a value can be undefined or defined more clearly than the predefined type \cinl{option} like we have already seen for Haskell in \autoref{code:partial_haskell}.
 
 \begin{minted}{coq}
 Inductive partial (A : Type) :=
@@ -121,13 +113,19 @@ Inductive partial (A : Type) :=
 | defined   : A -> partial A.
 \end{minted}
 
-In case of the lists we need to adapt the definition of the data type itself by lifting all arguments to allow partial values a well.
+When using a data type like lists we need to adapt the definition of the data type itself by lifting all arguments to allow partial values a well.
 
 \begin{minted}{coq}
 Inductive List (A : Type) :=
 | nil : List A
 | cons : partial A -> partial (List A) -> List A.
+\end{minted}
 
+The data type \cinl{List} represents a Haskell list in Coq as all constructor arguments may be partial.
+When defining functions on lists, we need to consider that the top-level list constructor may already be undefined.
+Hence, we define smart constructors \cinl{Nil} and \cinl{Cons} that wrap the list in the additional \cinl{defined}-constructor to indicate that the top-level expression is defined.
+
+\begin{minted}{coq}
 Definition Nil (A : Type) : partial (List A) :=
   defined nil.
 Definition Cons (A : Type) (px : partial A) (pxs : partial (List A)) 
@@ -135,9 +133,6 @@ Definition Cons (A : Type) (px : partial A) (pxs : partial (List A))
   defined (cons px pxs).
 \end{minted}
 
-The data type \cinl{List} represents a Haskell list in Coq as all constructor arguments may be partial.
-When defining functions on lists, we need to consider that the top-level list constructor may already be undefined.
-Hence, we define smart constructors \cinl{Nil} and \cinl{Cons} that wrap the list in the additional \cinl{defined}-constructor to indicate that the top-level expression is defined.
 The definition of  functions like \cinl{head} adapt to the settings as follows: all arguments as well as result types need to be lifted and the implementation needs to handle the partial values accordingly.
 
 \begin{minted}{coq}
@@ -191,16 +186,15 @@ Recursive call to append has principal argument equal to "pzs" instead of a subt
 
 What is going on here?
 Coq cannot retrace that the value \cinl{pzs} is actually a subterm of \cinl{pxs}; without that connection the recursive call on \cinl{pzs} is not allowed.
-
 The problem is our lifted data type definition of
 \cinl{List}.
 Due to the lifting, the \cinl{List} becomes a so-called \emph{nested inductive} type, because the type we want to define
 appears nested in another inductive type.
 In this case the other inductive type is \cinl{partial}.
 
-We can fix the problem by splitting the function into a non-recursive and a recursive part.
+We fix the problem by splitting the function into a non-recursive and a recursive part.
 The recursive part is working only on \cinl{List A} and produces an \cinl{partial (List A)}, while the non-recursive
-function expects and yields a value of type \cinl{partial (List A)} and mainly calls the recursive function after unwrapping the
+function expects and yields a value of type \cinl{partial (List A)}, and mainly calls the recursive function after unwrapping the
 \cinl{partial}-layer.
 
 \begin{minted}{coq}
@@ -252,7 +246,7 @@ Definition append (A : Type) (pxs pys : partial (List A)) : partial (List A) :=
 
 Up to now, we have seen an encoding of Haskell programs in Coq that lifts all Haskell values to \cinl{partial} values.
 The overall goal is to not only reason about Haskell's partiality effect but a whole class of effects.
-For example the effects we enumerated and discussed in \autoref{subsec:monadicAbstractions}.
+For example the effects we enumerated and discussed in \autoref{subsec:monadicAbstractions}: I/O, tracing, error, or non-determinism.
 That is, we do not want to restrict our model in Coq to one effect only, but generalise it to arbitrary effects.
 
 The first idea that comes to mind to generalise the above encoding is to change the concrete type \cinl{partial} by adding a type parameter.
@@ -289,7 +283,8 @@ Fail Inductive NonStrictlyPos :=
 The data type \cinl{NonStrictlyPos} has no type parameters and only one unary constructor \cinl{con}.
 The argument of the constructor \cinl{con} is a function from \cinl{NonStrictlyPos} to \cinl{nat}.
 The domain of this function is the crucial part of the definition and the origin of the error message.
-As so often when using Coq, \citet{chlipala2011certified} is a great resource for typical obstacles beginners may face when using Coq for the first time; he has the following description for the strict positivity requirement.
+As so often when using Coq, \citet{chlipala2011certified} is a great resource introducing typical obstacles beginners may face when using Coq for the first time.
+\citeauthor{chlipala2011certified} makes the following comment concerning Coq's strict positivity requirement.
 
 \begin{quote}
 \emph{We have run afoul of the strict positivity requirement for inductive definitions, which says that the type being defined may not occur to the left of an arrow in the type of a constructor argument.}
@@ -302,23 +297,17 @@ The only argument of \cinl{con} is the function type \cinl{NonStrictlyPos -> nat
 \begin{excursus}{Positive and Negative Occurrences}
 According to the error message Coq produces when we try to compile the data type \cinl{List}, the type definition violates a strict positivity restriction; but what is a positive occurence?
 Taking the quote of Chlipala to a more formal ground, the strictly positive occurrence of a type is described as follows: a type $\tau$ occurs strictly positively in a type $\tau_1\rightarrow \dots \rightarrow \tau_n \rightarrow \tau$, if and only if $\tau$ does not occur in any of the types $\tau_i$ with $i$ ranging from $1$ to $n$.
-Although this description might answer the question we raised to some extent, but it raises new ones: how do we distinguish between \emph{positive} and \emph{strictly positive} occurrences; can an occurrence be \emph{negative} as well?
+Although this description might answer the question we raised to some extent, it raises new ones as well: how do we distinguish between \emph{positive} and \emph{strictly positive} occurrences, and can an occurrence be \emph{negative} as well?
 
 For that matter, let us consider an arbitrary type $\tau = t_1 \rightarrow \dots \rightarrow t_n$, where all $t_i$ are types as well.
 The type arguments $t_1$ to $t_n$ appear in positive or negative positions.
 A type argument $t_i$ has a negative position if it appears to the left of an odd number of type arrows.
 That is, starting from an inner position, each type arrow flips a negative position to a positive and vice versa.
 In particular, a type argument $t_i$ has a positive position if it appears to the left of an even number of type arrows or no type arrows at all.
-\citet{blanqui2002inductivedatatype} gives an inductive definition of the set of negative and positive positions, $Pos^{+}$ and $Pos^{-}$, respectively, of a type $\tau$.
-Based on this definition, we can specify that a type $t$ occurs positively in $\tau$ if the set $Pos^{+} (\tau)$ contains every occurrence of $\tau$ in $t$.
-Moreover, a type $t$ occurs strictly positively in
+Moreover, a type $t$ occurs strictly positively in $t_1 \rightarrow \dots \rightarrow t_n \rightarrow t$ if $t$ occurs in no $t_i$.
+For more information, \citet{blanqui2002inductivedatatype}  given an inductive definition of the set of negative and positive positions.
 
-\[
-\tau = t_1 \rightarrow \dots \rightarrow t_n \rightarrow t
-\]
-
-if $t$ occurs in no $t_i$.
-
+Here, we consider some examples to clarify the definition of negative, positive and strictly positive positions.
 Consider the following examples of possible types in Coq, where \cinl{A} is a type variable.
 
 \begin{enumerate}
@@ -361,13 +350,13 @@ Inductive StrictlyPos :=
 | con : StrictlyPos -> (nat -> StrictlyPos) -> StrictlyPos.
 \end{minted}
 
-Here, both argument of the constructor \cinl{con} are strictly positive: the first argument is of type \cinl{StrictlyPos}, thus, trivially strictly positive; and in the second argument's type \cinl{StrictlyPos} does not occur to the left, but to the right of an arrow, fulfilling the positivity requirement as well.
+Here, both arguments of the constructor \cinl{con} are strictly positive: the first argument is of type \cinl{StrictlyPos}, thus, trivially strictly positive; and in the second argument's type \cinl{StrictlyPos} does not occur to the left, but to the right of an arrow, fulfilling the positivity requirement as well.
 
-This little excursus explains the origin of the error message Coq presents us when we try to define data types like \cinl{NonStrictlyPos} and \cinl{List}, but two question still remain open.
+The above excursus explains the origin of the error message Coq presents us when we try to define data types like \cinl{NonStrictlyPos} and \cinl{List}, but two question still remain open.
 
 \begin{enumerate}
 \item Why is the strict positivity of data type definition required in Coq?
-\item Why is our definition \cinl{List} non strictly positive as well, although there is no function arrow in the type of \cinl{cons} arguments?
+\item Why is our definition \cinl{List} non strictly positive as well, although there is no function arrow in the argument types of \cinl{cons}?
 \end{enumerate}
 
 \subsubsection{Why does Coq require the strict positivity of data type definitions?}
@@ -387,9 +376,8 @@ argument of the \cinl{con}-constructor to the value \cinl{t} itself.
 A problematic example usage of this function is the expression \cinl{applyFun (con applyFun)}.
 Reducing the expression by using the definition of \cinl{applyFun} yields \cinl{applyFun (con applyFun)} again.
 We can apply this reduction infinitely often, thus, we have constructed an infinite expression that does not terminate.
-
 Taking a step back, we observe that the data type \cinl{NonStrictlyPos} has some resemblance with a specialised instance
-of the fix-point combinator \cinl{Mu}.
+of the fixpoint combinator \cinl{Mu}.
 
 \begin{minted}{coq}
 Fail Inductive Mu A :=
@@ -417,7 +405,6 @@ Fail Inductive List (M : Type -> Type) (A : Type) :=
 The type \cinl{List} does not appear to the left of an arrow in the argument types of its constructor \cinl{cons}, but Coq still rejects the definition because of the type \cinl{M (List M A)}.
 However, Coq is of course on the right track rejecting such a definition.
 While a concrete instantiation using \cinl{partial} instead of the type parameter \cinl{M} is accepted, since \cinl{List} does not appear to the left of an arrow, we cannot guarantee that all usages of \cinl{List} obey this requirement.
-
 For example, consider the following definition that we might use to instantiate the type parameter with.
 
 \begin{minted}{coq}
@@ -444,33 +431,33 @@ Since we cannot guarantee by definition that the data type definition \cinl{List
 \subsection{Free Monad and Containers}
 \label{subsec:freeAndContainers}
 
-In order to summarise the situation so far: we want to model effectful data types and functions, for example representing non-strict partial programs, in a generic way, but cannot use a type constructor variable to represent this generic effect in Coq due to the strict positivity requirement.
+Let us summarise the situation so far.
+We want to model effectful data types and functions, for example representing non-strict partial programs, in a generic way, but cannot use a type constructor variable to represent this generic effect in Coq due to the strict positivity requirement.
 If we use, however, a concrete effect, like \cinl{partial}, the strict positivity is guaranteed again.
 That is, we want to represent effects using a concrete data type representation in order to satisfy Coq's requirement.
-Recall that the effects we want to represent are all a superset of a pure value; partiality, for example, adds \cinl{undefined} to the set of \cinl{defined} values.
+Recall that the effects we want to represent are all a superset of a pure value.
+Partiality, for example, adds \cinl{undefined} to the set of \cinl{defined} values.
 The other mechanism the representation of effects need to offer is a way to apply functions to the pure value; in case of \cinl{partial} we have used pattern matching to unwrap the pure values in order the define \cinl{head} and \cinl{append}.
-Fortunately, a monadic abstraction gives us exactly these capabilities.
-A monad describes a type constructor \cinl{M} that allows to define functions \cinl{return : A -> M A} and \cinl{bind : M A -> (A -> M B) -> M B}, where former lifts a pure value into the monadic structure --- in case of \cinl{partial} we implement the function using \cinl{defined} --- and the latter allows us to apply a function to a pure value within the monadic structure.
-Note that the function that we apply yields a monadic structure as well, that is, we cannot unwrap the monadic layer for good, but only to apply the function.
+Fortunately, monadic abstractions as discussed in \autoref{subsec:monadicAbstractions} give us exactly these capabilities.
+As in Haskell, we define a monad as type constructor class parametrised over \cinl{M} that allows to define functions \cinl{return : A -> M A} and \cinl{bind : M A -> (A -> M B) -> M B}.
 
 The main goal is to retain the generality to model arbitrary monads, but to use a concrete data type in order to fulfil the strict positivity requirement.
 We can achieve this goal by using a data type that represents all strictly positive types in a constructive manner.
 Fortunately, \citet{abbott2003categories} introduced the notion of containers to represent strictly positive types; their main insight is that all strictly positive types can be expressed using containers.
 A container is described as a product of shapes and a position function.
-The shape is a type \cinl{Shape} and the position type \cinl{Pos} is a type function that maps shapes to types.
-Using these two components we can define a container extension that gives rise to a functor.
+The shape is a type \cinl{Sh} and the position type \cinl{Pos} is a type function that maps shapes to types.
+Recall that we defined a container extension that gives rise to a functor in \autoref{sub:container} as follows.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-Inductive Ext (Shape : Type) (Pos : Shape -> Type) A :=
-| ext : !$\forall$! s, (Pos s -> A) -> Ext Pos A.
+Inductive Ext (Sh : Type) (Pos : Sh -> Type) A :=
+| ext : !$\forall$! (s : Sh), (Pos s -> A) -> Ext Pos A.
 \end{minted}
 
 A container extension \cinl{Ext S P} is then isomorphic to a functor \cinl{F}.
-We will shortly take a look at concrete instances in order to illustrate the isomorphism.
+In \autoref{code:one_container} we defined an exemplary concrete instance of a container for the data type \cinl{One} and proved both structures are isomorphic, which we will recap shortly.
 Since we are mainly interested in monads, we can go even further and use monadic containers as proposed by \citet{altenkirch2017monadic} and \citet{uustalu2017partiality}.
 However, we decided against using monadic containers directly, as they, as far as we know, cannot be implemented in a constructive way, but are an extension of \cinl{Ext} that are modelled using a type class.
 
-Taking one step back, let us recap what we observed so far.
 Since we know that all monads have a constructor that represent \emph{pure} values, the effect we want to model is everything that we gain on top of these defined values.
 We define this property more explicitly using a free monad~\citep{swierstra2008data} as introduced in \autoref{subsec:freeMonad}: we either have a pure or an effectful value.
 
@@ -487,79 +474,47 @@ Now we can apply the insight about representing strictly positive types as conta
 We can change the definition of \cinl{Free} as follows to fulfil Coq's strict positivity requirement.
 
 \begin{minted}{coq}
-Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
-| pure   : A -> Free Shape Pos A
-| impure : Ext Shape Pos (Free Shape Pos A) -> Free Shape Pos A.
+Inductive Free (Sh : Type) (Pos : Sh -> Type) A :=
+| pure   : A -> Free Sh Pos A
+| impure : Ext Sh Pos (Free Sh Pos A) -> Free Sh Pos A.
 \end{minted}
 
 The definition uses the container extension instead of a generic functor \cinl{F}, that is, we are still generic: not over all possible type constructors but over all strictly positive types.
 Note, however, that we do not need the indirection using \cinl{Ext} explicitly, we instead define \cinl{Free} by inlining the definition of \cinl{Ext} in the constructor \cinl{impure} to make its usage more convenient.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
-| pure   : A -> Free Shape Pos A
-| impure : !$\forall$! s, Pos s -> Free Shape Pos A -> Free Shape Pos A.
+Inductive Free (Sh : Type) (Pos : Sh -> Type) A :=
+| pure   : A -> Free Sh Pos A
+| impure : !$\forall$! s, Pos s -> Free Sh Pos A -> Free Sh Pos A.
 \end{minted}
 
 With this definition of \cinl{Free} at hand we are well-suited to define a lifted version of \cinl{List} as we wished to do at the beginning of this section.
 
 \begin{minted}{coq}
-Inductive List (Shape : Type) (Pos : Shape -> Type) A :=
-| nil : List Shape Pos A
-| cons : Free Shape Pos A -> Free Shape Pos (List Pos A) -> List Shape Pos A.
+Inductive List (Sh : Type) (Pos : Sh -> Type) A :=
+| nil : List Sh Pos A
+| cons : Free Sh Pos A -> Free Sh Pos (List Pos A) -> List Sh Pos A.
 \end{minted}
 
 \subsubsection{Representing Partiality using Free Monads and Containers}
 \label{subsub:partiality_container}
 
-In order to understand better how we can work with our lifted data types based on \cinl{Free}, we will start with a representation of partiality.
-Let us take a look at how we can represent \cinl{partial} using \cinl{Free}.
-As already mentioned, we use free monads by applying a functor \cinl{F} that describes the effect we want to model, i.e., the additional constructs on top of pure values.
-In case of \cinl{partial} the additional effect is the undefinedness of values; hence, we need a type with one nullary constructor.
-Recall that we defined the data type \cinl{One} and its corresponding container representation in \autoref{sub:container}.
-
-\begin{minted}{coq}
-Inductive One (A : Type) :=
-| one : One A.
-\end{minted}
-
-In case of our definition of \cinl{Free}, the functor was exchanged by a container representation.
-That is, we use the following container representation of \cinl{One} described as a type of shapes and a position type function.
+In \autoref{code:one_container} we already defined the container extension for \cinl{One} as \cinl{Ext One!$_\text{S}$! One_!$_\text{P}$!} and proved that both these structures from an isomorphism using the function \cinl{from_One} and \cinl{to_One}.
+The definitions looked as follows.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition One!$_\text{S}$! := unit.
 Definition One!$_\text{P}$! (s : One!$_\text{S}$!) := Empty.
-\end{minted}
 
-In \autoref{sub:container} we used Coq's ability to prove properties about programs and showed that the container representation is isomorphic to the original data type.
-More precisely, we defined two functions \cinl{from_One} and \cinl{to_One}, and show that both compositions yield the identity.
-
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition from_One A (o : One A) : Ext One!$_\text{S}$! One!$_\text{P}$! A :=
   ext tt (fun (p : One!$_\text{P}$! tt) => match p with end).
 
 Definition to_One A (e : Ext One!$_\text{S}$! One!$_\text{P}$! A) : One A :=
   one.
-
-Lemma from_to_One : !$\forall$! (A : Type) (e : Ext One!$_\text{S}$! One!$_\text{P}$! A),
-    from_One (to_One e) = e.
-Proof.
-  intros A e.
-  destruct e as [[] pf]; simpl.
-  f_equal. extensionality p. destruct p.
-Qed.
-
-Lemma to_from_One : !$\forall$! (A : Type) (o : One A),
-    to_One (from_One o) = o.
-Proof.
-  intros A o.
-  destruct o; reflexivity.
-Qed.
 \end{minted}
 
-The container definition corresponding to \cinl{One} is now ready to used as argument to \cinl{Free}.
-Next up, we can also show that the resulting \cinl{Free One!$_\text{S}$!}  is isomorphic to the monadic structure \cinl{partial}.
-First, we define the conversion functions \cinl{to_partial} and \cinl{from_partial} analogues to the setup for \cinl{One} above.
+Next up, we can also show that the resulting construction \cinl{Free One!$_\text{S}$!}  is isomorphic to the monadic structure \cinl{partial}.
+First, we define the conversion functions \cinl{to_partial} and \cinl{from_partial} analogue to the setup for \cinl{One} above.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition to_partial A (fx : Free One!$_\text{S}$! One!$_\text{P}$! A) : partial A :=
@@ -581,8 +536,7 @@ Based on these conversion functions, we prove two lemmas that state that both po
 Lemma from_to_partial : !$\forall$! (A : Type) (fx : Free One!$_\text{S}$! One!$_\text{P}$! A),
     from_partial (to_partial fx) = fx.
 Proof.
-  intros A fx.
-  destruct fx as [x | [] pf]; simpl.
+  intros A fx. destruct fx as [x | [] pf]; simpl.
   - reflexivity.
   - do 2 f_equal. extensionality p. destruct p.
 Qed.
@@ -590,8 +544,7 @@ Qed.
 Lemma to_from_partial : !$\forall$! (A : Type) (p : partial    A),
     to_partial (from_partial p) = p.
 Proof.
-  intros A p.
-  destruct p; reflexivity.
+  intros A p. destruct p; reflexivity.
 Qed.
 \end{minted}
 
@@ -608,8 +561,8 @@ Inductive total (A : Type) :=
 \end{minted}
 
 When using a free monad to represent \cinl{total}, we only need to give a functor for the additional effect on top of pure values.
-Since totality does not add any effects and describes pure values only, we need to model this absence of effects with the functor.
-In terms of defining values using \cinl{Free F} that represent total values only, we only want to be able to use the \cinl{pure}-constructor.
+Since totality does not add any effects and describes pure values only, we need to model this absence of effects.
+In terms of defining values using \cinl{Free F} that represent total values, we only want to be able to use the \cinl{pure}-constructor.
 The \cinl{impure}-constructor, on the other hand, should not be available, it should be impossible to construct a value using \cinl{impure}.
 That is, we need a functor without any constructors.
 When an inductive type has no constructors, there is no way to construct a value of that type.
@@ -621,7 +574,6 @@ Inductive Zero (A : Type) := .
 
 Note that, in contrast to the \cinl{Empty} type, \cinl{Zero} is a type constructor as it has an additional type parameter \cinl{A}.
 Similar to the definition of \cinl{One}, we do not use this type parameter.
-A type variable that appears on the left-hand site of a definition but is not used on the right-hand side is called a phantom type.\todo{cite}
 
 In order to represent \cinl{Zero} as container, we once again need to define the corresponding shape and position type function.
 Since \cinl{Zero} has no constructors, it has no shapes and no polymorphic values that we might want to access.
@@ -639,9 +591,7 @@ Definition from_Zero A (u : Zero A) : Ext Zero!$_\text{S}$! Zero!$_\text{P}$! A 
   match u with end.
 
 Definition to_Zero A (e : Ext Zero!$_\text{S}$! Zero!$_\text{P}$! A) : Zero A :=
-  match e with
-  | ext s pf => match s with end
-  end.
+  let '(ext s pf) := e in match s with end.
 \end{minted}
 
 It is quite trivial to prove that the conversion functions form an isomorphism as the following reasoning shows.
@@ -650,15 +600,13 @@ It is quite trivial to prove that the conversion functions form an isomorphism a
 Lemma from_to_Zero : !$\forall$! (A : Type) (e : Ext Zero!$_\text{S}$! Zero!$_\text{P}$! A),
     from_Zero (to_Zero e) = e.
 Proof.
-  intros A e.
-  destruct e as [[] pf].
+  intros A e. destruct e as [[] pf].
 Qed.
 
 Lemma to_from_Zero : !$\forall$! (A : Type) (z : Zero A),
     to_Zero (from_Zero z) = z.
 Proof.
-  intros A z.
-  destruct z.
+  intros A z. destruct z.
 Qed.
 \end{minted}
 
@@ -684,29 +632,26 @@ In fact, similar as for the case of the partiality monad, we can even show that 
 Lemma from_to_total : !$\forall$! (A : Type) (fx : Free Zero!$_\text{S}$! Zero!$_\text{P}$! A),
     from_total (to_total fx) = fx.
 Proof.
-  intros A fx.
-  destruct fx as [x | [] pf]; reflexivity.
+  intros A fx. destruct fx as [x | [] pf]; reflexivity.
 Qed.
 
 Lemma to_from_total : !$\forall$! (A : Type) (t : total A),
     to_total (from_total t) = t.
 Proof.
-  intros A t.
-  destruct t; reflexivity.
+  intros A t. destruct t; reflexivity.
 Qed.
 \end{minted}
 
 \subsubsection{Other Containers and Limitations}
 
-We will later see that monads like tree and list, which are usually used when modelling non-determinism, can be represented using our approach as well.
+We will later see that monads like tree and list, which are commonly used when modelling non-determinism, can be represented using our approach as well.
 There are also common monads from Haskell that have corresponding effects that are interesting to reason about.
-For example, the writer or state monad that used to model tracing or I/O-interactions with the user.
+For example, the writer and state monad that are used to model tracing and I/O-interactions with the user, respectively.
 We can model these effects using \cinl{Free} and a suitable container representation of the underlying effect.
 
 Since we use container to ensure Coq that we do not define a potentially non-strictly positive type, the class of strictly positive types is the natural limitation when using our approach.
 An example for a monad that we cannot represent with our approach is the continuation monad.
-If we recall the concrete instantiation that we used to understand the problem when defining a monadically lifted version of \cinl{List}, this limitation should not come with a surprise.
-The continuation monad \cinl{Cont} was an exemplary instantiation of the type constructor variable \cinl{M}, such that \cinl{List} became non-strictly positive.
+The continuation monad \cinl{Cont} was an exemplary instantiation of the type constructor variable \cinl{M}, such that our initial try to define \cinl{List} became non-strictly positive.
 The goal was to convince Coq that we won't use an instantiation like \cinl{Cont}, so it makes sense that we indeed cannot define a data type that is isomorphic to \cinl{Cont}.
 
 In the end, we have to keep in mind that our approach using \cinl{Free} as representative for a generic monadic parameterisation can only represent monads that correspond to strictly positive types.
@@ -733,14 +678,15 @@ Fixpoint appendP' (A : Type) (xs : List A) (pys : partial (List A))
                             end)
   end.
 
-Definition appendP (A : Type) (pxs pys : partial (List A)) : partial (List A) :=
+Definition appendP (A : Type) (pxs pys : partial (List A))
+  : partial (List A) :=
   match pxs with
   | undefined  => undefined
   | defined xs => appendP' xs pys
   end.
 \end{minted}
 
-For a better readability, we added the suffix \cinl{P} for this version of \cinl{append} that uses \cinl{partial}.
+For better readability, we added the suffix \cinl{P} for this version of \cinl{append} that uses \cinl{partial}.
 Let us now try to transfer the general idea of \cinl{appendP'} to define a version using \cinl{Free}.
 
 \begin{minted}{coq}
@@ -773,16 +719,16 @@ The definition of \cinl{free_bind} distinguishes between the two possible constr
 In the latter case we have variable bindings \cinl{s} and \cinl{pf} for the shape and position function to work with.
 Note that the position function applied to a position yields a \cinl{Free}-value again, that is, \cinl{pf} has type
 \cinl{Pos s -> Free A}.
-The is that we just need to reconstruct the effect that we have seen, characterised by its shape \cinl{s}, and apply the function \cinl{f} recursively for all recursive occurrences of the effect that we can access using the position function \cinl{pf}.
+The clue is that we just need to reconstruct the effect that we have seen, characterised by its shape \cinl{s}, and apply the function \cinl{f} recursively for all recursive occurrences of the effect that we can access using the position function \cinl{pf}.
 
 With the definition of \cinl{free_bind} at hand, we can go ahead and start the second try to define \cinl{append'}: now we know that we need to use \cinl{free_bind} instead of an explicit case distinction.
-More precisely, the usage of \cinl{free_bind} mimics the evaluation to head-normal-form, which is exactly the behaviour Haskell performs when using pattern matching in a case distinction.
+More precisely, the usage of \cinl{free_bind} mimics the evaluation to head-normal-form, which is exactly how pattern matching in Haskell behaves when using a case distinction.
 
 \begin{minted}{coq}
 Fail Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
   match xs with
   | nil         => fys
-  | cons fz fzs => pure (cons fz (free_bind fzs (fun zs => append' zs fys)))
+  | cons fz fzs => Cons fz (free_bind fzs (fun zs => append' zs fys))
   end.
 \end{minted}
 
@@ -802,7 +748,8 @@ In this case, the fault is not with \cinl{append}, but with the definition of \c
 As a recursive, higher-order function that uses the same function as its functional argument for each recursive call, we need to convince Coq that the function indeed stays the same.
 That way, Coq comprehends that the overall function terminates, if it does not depend on the function we pass as higher-order argument.
 That is, the problem is not specific to \cinl{free_bind} and our usage of \cinl{Free}, but a general problem for recursive, higher-order functions.
-Consider, for example, the definition of \cinl{map} for ordinary lists as well as a definition for rose trees.
+Consider, for example, the definition of \cinl{map} for ordinary lists.
+Note that the constructors \cinl{nil} and \cinl{cons} used in this excursus are exclusively used as names for the constructors of the predefined \cinl{list} type.
 
 \begin{minted}{coq}
 Fixpoint map A B (f : A -> B) (xs : list A) : list B :=
@@ -810,13 +757,18 @@ Fixpoint map A B (f : A -> B) (xs : list A) : list B :=
  | nil       => nil
  | cons x xs => cons (f x) (map f xs)
  end.
+\end{minted}
 
+Next, we give a definition for rose trees, consisting of a \cinl{leaf}- and \cinl{branches}-constructor.
+The \cinl{branches}-constructor uses a list to allow for arbitrary branching of the tree.
+
+\begin{minted}{coq}
 Inductive rose A :=
 | leaf     : A -> rose A
 | branches : list (rose A) -> rose A.
 \end{minted}
 
-In order to now define a map-like function for \cinl{rose} as well, we might be tempted to just reuse the \cinl{map} functions for lists to handle the \cinl{branches}-constructor.
+When we then try to define a map-like function for \cinl{rose} as well, we might be tempted to just reuse the \cinl{map} function for lists to handle the \cinl{branches}-constructor.
 
 \begin{minted}{coq}
 Fail Fixpoint mapRose A B (f : A -> B) (r : rose A) : rose B :=
@@ -833,7 +785,7 @@ It raises the following error message.
 \emph{Recursive call to mapRose has principal argument equal to "x" instead of "rs".}
 \end{quote}
 
-Due to the usage of \cinl{map}, it is not clear for Coq's termination checker that the recursive call of \cinl{mapRose} will eventually terminate.
+Due to the usage of \cinl{map}, Coq's termination checker fails to recognise that the recursive call of \cinl{mapRose} will eventually terminate.
 Fortunately, there is a simple scheme to convince Coq that the function \cinl{map} is inductively recursive over its list argument and, more importantly, the supplied function does not determine the termination.
 That is, \cinl{map} terminates independent of its functional argument.
 Consider the following alternative definition of \cinl{map}.
@@ -869,7 +821,9 @@ Section map.
 End map.
 \end{minted}
 
-In fact, the code that Coq generates for the second version with section variables is exactly the first implementation given above.
+We can declare variables with their associated types for usage within a section.
+Outside of the section, the function \cinl{map} gets all arguments used in its definition as further arguments.
+Moreover, the code that Coq generates for the second version with section variables is exactly the first implementation given above.
 
 Independent of which of the two implementations we chose, we can now use \cinl{map} to define \cinl{mapRose} and Coq accepts the definition as terminating.
 
@@ -916,17 +870,17 @@ Definition append A (fxs fys : Free (List A)) : Free (List A) :=
   fxs >>= fun xs => append' xs fys.
 \end{minted}
 
-\section{Partiality as Effect to Model Haskell Programs}
+\section{Proving Properties About Haskell Programs}
 
 While we discussed the overall infrastructure and necessary preliminaries for a general framework to model non-strict effectful
 programs, we will focus on two effects occurring in Haskel: totality and partiality.
 Both instantiations are of interest to motivate our effect-generic reasoning.
-That is, we follow the idea of \citet{abel2005verifying} and prove general propositions about Haskell functions in three steps: first, we show that the proposition holds in the total setting and then show that it also holds in the partial setting.
-On top of these both proofs, the last step is to make the case for our generic approach and show our framework allows to prove properties once and for all for a whole class of effects.
+That is, we follow the idea of \citet{abel2005verifying} and prove general propositions about Haskell's concatenation functions in three steps: first, we show that the proposition holds in the total setting and then show that it also holds in the partial setting.
+On top of these both proofs, the last step makes the case for our generic approach: we prove the property once and for all for a whole class of effects.
 
 \subsection{Three Proofs for the Associativity of Append}
 
-Since it took us a whole section to define the function \cinl{append} for an effect-generic \cinl{List} data types, it seems reasonable to first prove a property for that function.
+Since it took us a whole section to define the function \cinl{append} for an effect-generic \cinl{List} data types, it seems reasonable to prove a property for that function.
 Thus, in this subsection we will focus on the associativity of append and prove this proposition in the total, partial and generic setting.
 Since we encounter proofs for lifted data types and functions for the first time, we will present the proofs step-by-step.
 We will, however, postpone technical details to the end of this subsection.
@@ -951,7 +905,6 @@ Lemma append_assoc_total :
 Proof.
  intros A fxs fys fzs.
  destruct fxs as [ xs | [ s pf ] ]; simpl.
- (* fxs = pure xs *)
 \end{minted}
 
 In order to evaluate \cinl{append}, we make a case distinction on the first list argument \cinl{fxs}.
@@ -965,9 +918,10 @@ In case of a pure value, we have the following goal and assumptions.
   append' xs (append fys fzs) = append (append' xs fys) fzs
 \end{minted}
 
-Now we can proceed as if we were working with ordinary lists: we need to do induction on the \cinl{List} argument \cinl{xs}.
+Now we can proceed as if we were working with ordinary lists: we proceed by induction on the \cinl{List} argument \cinl{xs}.
 
 \begin{minted}{coq}
+ (* fxs = pure xs *)
  - induction xs as [ | fx fxs IH ]; simpl.
    (* xs = nil *)
    + reflexivity.
@@ -978,17 +932,16 @@ The former is trivial as both sides of the terms are already equal.
 For the latter case, the goal looks as follows.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-  A : Type
-  fx : Free Zero!$_\text{S}$! Zero!$_\text{P}$! A
-  fxs, fys, fzs : Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)
+  ...
   IH : ForFree (fun xs => append' xs (append fys fzs)
                         = append (append' xs fys) fzs) fxs
   ============================
-  Cons fx (fxs >>= (fun zs => append' zs (append fys fzs)))) =
-  Cons fx (fxs >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)))
+  Cons fx (fxs >>= (fun zs => append' zs (append fys fzs))) =
+  Cons fx (fxs >>= (fun zs => append' zs fys) >>=
+                   (fun zs => append' zs fzs))
 \end{minted}
 
-We proceed by stripping away the \cinl{Cons}-constructor and take another look at \cinl{fxs} by destructing the induction hypothesis \cinl{IH}, which produces to cases: one for \cinl{pure} and one for \cinl{impure}.
+We proceed by stripping away the \cinl{Cons}-constructor and take another look at \cinl{fxs} by destructing the induction hypothesis \cinl{IH}, which produces two cases: one for \cinl{pure} and one for \cinl{impure}.
 Note that we will discuss the induction hypotheses \cinl{IH} that makes use of a custom proposition \cinl{ForFree} in detail later.
 
 \begin{minted}{coq}
@@ -1005,7 +958,6 @@ For the latter case we only need to focus on one of the assumptions, namely, \ci
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
   ...
   s : Zero!$_\text{S}$!
-  ...
   ============================
   ...
 \end{minted}
@@ -1018,10 +970,8 @@ The same reasoning applies for the last remaining goal.
 We started with a case distinction on the original first list arguments \cinl{fxs} and are now in the \cinl{impure}-case.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-  A : Type
+  ...
   s : Zero!$_\text{S}$!
-  pf : Zero!$_\text{P}$! s -> Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)
-  fys, fzs : Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)
   ============================
   impure s (fun p : Zero!$_\text{P}$! s => append (pf p) (append fys fzs)) =
   impure s (fun p : Zero!$_\text{P}$! s => append (append (pf p) fys) fzs)
@@ -1054,7 +1004,7 @@ Proof.
 Qed.
 \end{minted}
 
-The main difference between the above proof and a proof for associativity of the append function for ordinary lists is the unboxing of the additional \cinl{Free}-layer of the list argument.
+The main difference between the above proof and a proof for associativity of the append function for ordinary lists is the unboxing of the additional \cinl{Free}-layer of the list argument and tweaking the induction hypothesis to fit our needs.
 
 \subsubsection{Partiality}
 As next step, we consider an actual effect: partiality.
@@ -1068,7 +1018,7 @@ Definition One!$_\text{P}$! (s : One!$_\text{S}$!) := Empty.
 This time, the corresponding container has one possible shape, but no positions.
 The additional effect of representing undefined values does not contain any recursive occurence of the \cinl{Free} values, thus, the effect does not have any polymorphic components in its constructors.
 
-Let us take look at the proof for the associativity of append; we focus on the differences, as most of the proof is actually the same.
+Let us take a look at the proof for the associativity of append; we focus on the differences, as most of the proof is actually the same.
 Hence, this time we show the entire proof script first and take a closer look at some subgoals afterwards.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
@@ -1093,7 +1043,7 @@ Qed.
 We observe that for both cases of \cinl{impure}-values, we do not have a contradiction in place as we had in the total setting.
 The contradiction in the total setting was introduced by the shape of the container that did not have any constructors.
 Now, we are working with \cinl{One!$_\text{S}$!}, which is a type synonym for the \cinl{unit} type and has exactly one constructor, namely \cinl{tt}.
-We can, however, finish the \cinl{impure}-cases using \cinl{contradiction} again, but we need to have a position as an
+We can, however, prove the \cinl{impure}-cases using \cinl{contradiction} again, but we need to have a position as an
 assumption.
 The position is introduced as assumption when we strip away the prefix of \cinl{impure s pf} on both sides of the equation, such that only the position functions \cinl{pf} remain to be proven equivalent.
 
@@ -1119,24 +1069,21 @@ We introduce the function argument \cinl{p} using \cinl{extensionality p} and en
 \end{minted}
 
 Since \cinl{One!$_\text{P}$! s} is a type synonym for \cinl{Empty}, the position \cinl{p} has no constructors and we can finish the proof using \cinl{contradiction}, again.
-
-We follow the same approach to finish the second \cinl{impure}-case.
+We follow the same approach to prove the second \cinl{impure}-case.
 
 \subsubsection{Generic Effect}
-Last but not least, we take a look at a generic proof for the associativity of append.
+Last but not least, we take a look at a generic proof for the associativity of append. Instead of introducing components of a concrete container, the shape \cinl{Sh} and position function \cinl{Pos} are universally quantified.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Lemma append_assoc_generic :
- !$\forall$! (Sh : Type) (Ps : Sh -> Type) (A : Type)
-   (fxs fys fzs : Free Sh Ps (List Sh Ps A)),
-   append fxs (append fys fzs) = append (append fxs fys) fzs.
+  !$\forall$! (Sh : Type) (Pos : Sh -> Type) (A : Type)
+    (fxs fys fzs : Free Sh Pos (List Sh Pos A)),
+    append fxs (append fys fzs) = append (append fxs fys) fzs.
 Proof.
-intros Sh Ps A fxs fys fzs.
+intros Sh Pos A fxs fys fzs.
 \end{minted}
 
-Instead of introducing components of a concrete container, the shape \cinl{Sh} and position function \cinl{Ps} are all-quantified.
-
-The main difference to the concrete proofs above is that in case of a generic effect, we cannot hope to have a false assumption, like  value of type \cinl{Empty}, in place to finish the \cinl{impure}-cases.
+The main difference to the concrete proofs above is that in case of a generic effect, we cannot hope to have a false assumption, like a value of type \cinl{Empty}, in place to easily prove the \cinl{impure}-cases.
 Considering a generic effect has the consequence that we need to consider all possible instantiations.
 In particular, using the effect in combination with \cinl{Free} might lead to a recursive occurrence, that is, the effect might have a polymorphic argument.
 
@@ -1158,10 +1105,10 @@ The \cinl{pure}-case stays basically the same, the difference, once again, lies 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
   ...
   s : Sh
-  IH' : !$\forall$! p : Ps s,
+  IH' : !$\forall$! p : Pos s,
         pf p >>= (fun zs => append' zs (append fys fzs)) =
         pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
-  p : Ps s
+  p : Pos s
   ============================
   pf p >>= (fun zs => append' zs (append fys fzs)) =
   pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
@@ -1171,11 +1118,11 @@ Here, we cannot prove the subgoal by contradiction but need to actually use the 
 
 A similar situation appears for the second \cinl{impure}-case that originated from the initial induction on \cinl{fxs}.
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-  IH : !$\forall$! p : Ps s,
+  IH : !$\forall$! p : Pos s,
        append (pf p) (append fys fzs) = append (append (pf p) fys) fzs
   ============================
-  impure s (fun p : Ps s => append (pf p) (append fys fzs)) =
-  impure s (fun p : Ps s => append (append (pf p) fys) fzs)
+  impure s (fun p : Pos s => append (pf p) (append fys fzs)) =
+  impure s (fun p : Pos s => append (append (pf p) fys) fzs)
 \end{minted}
 
 In this case, the induction hypothesis is directly applicable when proving the functions equal.
@@ -1344,7 +1291,7 @@ Applying the tactic \cinl{induction fys as [ ys | s pf IH ]} yields two new subg
   ForFree P (pure ys)
 
   ...
-  IH : !$\forall$! (p : Ps s), ForFree P (pf p)
+  IH : !$\forall$! (p : Pos s), ForFree P (pf p)
   ============================
   ForFree P (impure s pf)
 \end{minted}
@@ -1358,9 +1305,9 @@ In both cases we apply the corresponding constructor of the proposition \cinl{Fo
   P ys
 
   ...
-  IH : !$\forall$! (p : Ps s), ForFree P (pf p)
+  IH : !$\forall$! (p : Pos s), ForFree P (pf p)
   ============================
-  !$\forall$! p : Ps s, ForFree P (pf p)
+  !$\forall$! p : Pos s, ForFree P (pf p)
 \end{minted}
 
 We finish both subgoals by simply applying the appropriate assumption.
@@ -1369,7 +1316,7 @@ In the \cinl{impure} case we use the induction hypothesis generated for \cinl{Fr
 The complete proof script is finalised by using \cinl{Defined} and looks as follows.
 
 \begin{minted}{coq}
-Fixpoint List_ind (xs : List Sh Ps A) : P xs.
+Fixpoint List_ind (xs : List Sh Pos A) : P xs.
  destruct xs as [ | fy fys ].
  - apply nilP.
  - apply consP.
@@ -2256,7 +2203,7 @@ More interesting, however, is the objective to generalise the relation to arbitr
 For example, an attempt to generalise the definition for the partiality and error setting passes an additional function to compare the shape of the effects involved.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-Inductive le_Free_Hoare (A : Type) (leS : Shape -> Shape -> Prop)
+Inductive le_Free_Hoare (A : Type) (leS : Sh -> Sh -> Prop)
     (leA : A -> A -> Prop) : Free C A -> Free C A -> Prop :=
 | le_pure_Hoare : !$\forall$! x y,
     leA x y -> le_Free_Hoare leS leA (pure x) (pure y)

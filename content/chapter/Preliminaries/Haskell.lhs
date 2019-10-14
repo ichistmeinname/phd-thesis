@@ -49,6 +49,7 @@ head :: [a] -> a
 head []      = undefined
 head (x : _) = x
 \end{minted}
+\label{code:haskell_head}
 
 Let us compute the head of a partial list: the head element is defined but the remaining list is not.
 In Haskell the value \hinl{undefined} represents a partial value that produces a run-time error, when evaluation demands the value.
@@ -156,6 +157,7 @@ data Partial a = Undefined
 data Partial a = Undefined
                || Defined a
 \end{minted}
+\label{code:partial_haskell}
 
 These constructors represent undefined and defined values, respectively.
 As noted above, Haskell also has an implicit model of partiality: the polymorphic value \hinl{undefined} can be used without any indication on the type-level.
