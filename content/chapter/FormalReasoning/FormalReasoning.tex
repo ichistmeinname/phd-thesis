@@ -3,7 +3,7 @@
   Professor of Computer Science)}
 
 This chapter moves the focus from applications using effects like non-determinism to an approach to model effectful programs in order to apply equational reasoning.
-Equational reasoning is a popular and common tool to prove properties about functional programs and, thus, prominently used by Haskell entusiasts. \citep{jeuring2012testing, gibbons2011just, hutton2008reasoning}
+Equational reasoning is a popular and common tool to prove properties about functional programs and, thus, prominently used by Haskell enthusiasts. \citep{jeuring2012testing, gibbons2011just, hutton2008reasoning}
 In particular, \citet{danielsson2006fast} argue that reasoning about total programs only and expecting the result to carry over to partial programs is \textit{morally correct}.
 Nevertheless, since we are interested in proving properties about partial or other effectful programs more explicitly, we cannot apply equational reasoning as it is and need a model for effectful programs.
 In this chapter we present an approach to model effectful non-strict functional programs in the proof assistant Coq and prove exemplary properties about common functions used in functional languages.
@@ -32,14 +32,14 @@ In summary, this chapter makes the following contributions.
 \item We argue that our approach is especially interesting when proving properties for a variety of effects once-and-for-all instead of individually for each new effect of interest.
 \item We present first ideas on modelling Curry's non-determinism and discuss arising obstacles when trying to model call-time-choice.
 \item In the light of these obstacles, we discuss that our current framework works well for call-by-name semantics, but does not work for call-by-need semantics out-of-the box.
-\item Moreover, we show some examples that illustrate why this distincition comes up when modelling Curry's non-determinism but not for partiality.
+\item Moreover, we show some examples that illustrate why this distinction comes up when modelling Curry's non-determinism but not for partiality.
 \end{itemize}
  
 \section{A Generic Model For Effectful Non-Strict Programs}
 
 In this section we will present our general approach to model effectful non-strict programs in a dependently-typed language like Coq.
-We illustrate why previous work is insufficiant for our goals or does not tackle the same problem as we do.
-Since the reasons for the insufficiance of the previous work is due to rather technical details of dependently-typed languages and the general idea of propositions as types \citep{wadler2015propositions}, we give a detailed explanation to illustrate which steps are necessary to model our approach in Coq.
+We illustrate why previous work is insufficient for our goals or does not tackle the same problem as we do.
+Since the reasons for the insufficiency of the previous work is due to rather technical details of dependently-typed languages and the general idea of propositions as types \citep{wadler2015propositions}, we give a detailed explanation to illustrate which steps are necessary to model our approach in Coq.
 That is, this section tries to explain the obstacles and their solutions in Coq in a beginner-friendly way.
 
 \subsection{Representation of Partial Programs}
@@ -110,7 +110,7 @@ We cannot use the result as an element of the newly constructed list, we get a t
 The list constructor \cinl{cons} expects the head element of the list to match its type with all the elements of the remaining list.
 Since we want to construct a list of type \cinl{list A}, the head element needs to be of type \cinl{A}; the function \cinl{head}, however, yields a value of type \cinl{option A}.
 
-As Haskell is a non-strict language, it is crucial that we allowa partial values at top-level as well as within the components of data structures, that is, within arguments of constructors in order to model Haskell's partiality correctly.
+As Haskell is a non-strict language, it is crucial that we allow partial values at top-level as well as within the components of data structures, that is, within arguments of constructors in order to model Haskell's partiality correctly.
 Due to non-strictness, it is possible that an undefined value is never demanded during evaluation.
 The Haskell expression \hinl{head (1 : undefined)}, for example, does not trigger the \hinl{undefined} value in the tail of the list, because \hinl{head} only demands the first list constructor and ignores the second argument.
 In order to have a aptronym for the representation of partial values, we define a new data type \cinl{partial} that captures the notion that a value can be undefined or defined more clearly than the predefined type \cinl{option}.
@@ -136,7 +136,7 @@ Definition Cons (A : Type) (px : partial A) (pxs : partial (List A))
 \end{minted}
 
 The data type \cinl{List} represents a Haskell list in Coq as all constructor arguments may be partial.
-When defining functions on lists, we need to consider that the top-level list constrcutor may already be undefined.
+When defining functions on lists, we need to consider that the top-level list constructor may already be undefined.
 Hence, we define smart constructors \cinl{Nil} and \cinl{Cons} that wrap the list in the additional \cinl{defined}-constructor to indicate that the top-level expression is defined.
 The definition of  functions like \cinl{head} adapt to the settings as follows: all arguments as well as result types need to be lifted and the implementation needs to handle the partial values accordingly.
 
@@ -289,7 +289,7 @@ Fail Inductive NonStrictlyPos :=
 The data type \cinl{NonStrictlyPos} has no type parameters and only one unary constructor \cinl{con}.
 The argument of the constructor \cinl{con} is a function from \cinl{NonStrictlyPos} to \cinl{nat}.
 The domain of this function is the crucial part of the definition and the origin of the error message.
-As so often when using Coq, \citet{chlipala2011certified} is a great resource for typical obstacles beginners may face when using Coq for the first time; he has the following escription for the strict positivity requirement.
+As so often when using Coq, \citet{chlipala2011certified} is a great resource for typical obstacles beginners may face when using Coq for the first time; he has the following description for the strict positivity requirement.
 
 \begin{quote}
 \emph{We have run afoul of the strict positivity requirement for inductive definitions, which says that the type being defined may not occur to the left of an arrow in the type of a constructor argument.}
@@ -740,7 +740,7 @@ Definition appendP (A : Type) (pxs pys : partial (List A)) : partial (List A) :=
   end.
 \end{minted}
 
-For a better readiblity, we added the suffix \cinl{P} for this version of \cinl{append} that uses \cinl{partial}.
+For a better readability, we added the suffix \cinl{P} for this version of \cinl{append} that uses \cinl{partial}.
 Let us now try to transfer the general idea of \cinl{appendP'} to define a version using \cinl{Free}.
 
 \begin{minted}{coq}
@@ -754,7 +754,7 @@ Fail Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
  end.
 \end{minted}
 
-A case distinction on the concrete constuctors of \cinl{partial} was quite simple, in the case of \cinl{Free} and its representation using \cinl{Ext}, however, the second constructor \cinl{impure} has recursive occurrences of values of type \cinl{Free}.
+A case distinction on the concrete constructors of \cinl{partial} was quite simple, in the case of \cinl{Free} and its representation using \cinl{Ext}, however, the second constructor \cinl{impure} has recursive occurrences of values of type \cinl{Free}.
 That is, a case distinction like in the definition of \cinl{appendP'} needs to be defined as a recursive function when using \cinl{Free}.
 
 Recall that the basic idea is to model monadically lifted data types, that is, \cinl{Free} is a representative for a monad.
@@ -773,7 +773,7 @@ The definition of \cinl{free_bind} distinguishes between the two possible constr
 In the latter case we have variable bindings \cinl{s} and \cinl{pf} for the shape and position function to work with.
 Note that the position function applied to a position yields a \cinl{Free}-value again, that is, \cinl{pf} has type
 \cinl{Pos s -> Free A}.
-The is that we just need to reconstruct the effect that we have seen, characterised by its shape \cinl{s}, and apply the function \cinl{f} recursively for all recursive occurences of the effect that we can access using the position function \cinl{pf}.
+The is that we just need to reconstruct the effect that we have seen, characterised by its shape \cinl{s}, and apply the function \cinl{f} recursively for all recursive occurrences of the effect that we can access using the position function \cinl{pf}.
 
 With the definition of \cinl{free_bind} at hand, we can go ahead and start the second try to define \cinl{append'}: now we know that we need to use \cinl{free_bind} instead of an explicit case distinction.
 More precisely, the usage of \cinl{free_bind} mimics the evaluation to head-normal-form, which is exactly the behaviour Haskell performs when using pattern matching in a case distinction.
@@ -871,7 +871,7 @@ End map.
 
 In fact, the code that Coq generates for the second version with section variables is exactly the first implementation given above.
 
-Indepedent of which of the two implementations we chose, we can now use \cinl{map} to define \cinl{mapRose} and Coq accepts the definition as terminating.
+Independent of which of the two implementations we chose, we can now use \cinl{map} to define \cinl{mapRose} and Coq accepts the definition as terminating.
 
 \begin{minted}{coq}
 Fixpoint mapRose A B (f : A -> B) (r : rose A) : rose B :=
@@ -989,7 +989,7 @@ For the latter case, the goal looks as follows.
 \end{minted}
 
 We proceed by stripping away the \cinl{Cons}-constructor and take another look at \cinl{fxs} by destructing the induction hypothesis \cinl{IH}, which produces to cases: one for \cinl{pure} and one for \cinl{impure}.
-Note that we will discuss the induction hypotheses \cinl{IH} that makes use of a custom propostion \cinl{ForFree} in detail later.
+Note that we will discuss the induction hypotheses \cinl{IH} that makes use of a custom proposition \cinl{ForFree} in detail later.
 
 \begin{minted}{coq}
    (* xs = cons fx fxs; induction hypothesis IH *)
@@ -1108,7 +1108,7 @@ The initial situation for the first \cinl{impure}-case looks as follows.
 \end{minted}
 
 As mentioned above, after stripping away the prefix both expressions have in common, we end up with two functions that we need to prove equal.
-We introduce the function argument \cinl{p} using \cinl{extensionality p} and end up with \cinl{p : One__P s} added to the assu ptions and a changed goal as follows.
+We introduce the function argument \cinl{p} using \cinl{extensionality p} and end up with \cinl{p : One__P s} added to the assumptions and a changed goal as follows.
 
 \begin{minted}{coq}
   s : One__S
@@ -1451,7 +1451,7 @@ Inductive ND (A : Type) :=
 
 In order to transfer this functor to its isomorphic container representation, we need to define the shapes and positions functions involved.
 As we have two constructors to represent, we could simply use \cinl{bool} as the type for shapes.
-In order to increase the readibility of the resulting code, we use a custom data type with two constructors instead.
+In order to increase the readability of the resulting code, we use a custom data type with two constructors instead.
 
 \begin{minted}{coq}
 Inductive ND__S :=
@@ -2304,7 +2304,7 @@ We hope to apply the ideas on scoped operations to reason about Haskell's tracin
 The framework presented in this chapter as well as additional content has been previously published.
 We published the general approach to represent Haskell programs as monadic Coq programs using free monads and container representations for functors in The Art, Science, and Engineering of Programming, Volume 3 \citep{dylus2019one}.
 In the publication we additionally present a case study on queues that we did not include here.
-Furthermore, the publication has a pearlish style with fairy tale theme that allowed us to present the obstacles and their solution in a more beginner-friendly atmosphere.
+Furthermore, the publication has a fairy tale theme that allowed us to present the obstacles and their solution in a more beginner-friendly atmosphere.
 Note that we decided here to define \cinl{Free} with an inlined version of \cinl{Ext} instead of using the data type to represent the container extension explicitly.
 The additional content about Haskell's tracing effect and the observations concerning modelling call-by-name and call-by-need were published recently in the Proceedings of the 12th International Symposium on Haskell \citep{christiansen2019verifying}.
 The publication also covers the translation of function types using an additional layer of monadic liftings as we discuss properties about Haskell's primitive function \hinl{seq}.
