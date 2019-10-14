@@ -940,7 +940,7 @@ Definition Zero!$_\text{S}$! := Empty.
 Definition Zero!$_\text{P}$! (s : Zero!$_\text{S}$!) := Empty.
 \end{minted}
 
-That is, the container representing totality has neither a position nor a shape, thus, programs modeled as \cinl{Free Zero!$_\text{S}$! Zero!$_\text{P}$!} do not have any \cinl{impure} values by construction.
+That is, the container representing totality has neither a position nor a shape, thus, programs modelled as \cinl{Free Zero!$_\text{S}$! Zero!$_\text{P}$!} do not have any \cinl{impure} values by construction.
 Whenever we encounter an \cinl{impure}-constructor, we know that the accompanying shape \cinl{s : Zero!$_\text{S}$!} cannot exist.
 Let us now take a look at the associativity of append in the total setting and see how we use this observation about the corresponding container when proving a proposition.
 
@@ -1945,7 +1945,7 @@ The last part of this section then collects all other directions for future work
 
 \subsection{Modelling Algebraic Effects}
 
-In his attempt to combine several functional programming idioms to describe a technique that established reusable components, \citet{swierstra2008data} manifests free monads and their usage for modeling effects in the functional programming community.
+In his attempt to combine several functional programming idioms to describe a technique that established reusable components, \citet{swierstra2008data} manifests free monads and their usage for modelling effects in the functional programming community.
 
 \citet{plotkin2009handlers} give a more theoretical overview of algebraic effects and the corresponding handlers.
 They were motivated by finding models for exception handlers, but also present algebraic theories for effects like non-determinism, IO and state.
@@ -1953,7 +1953,7 @@ For all these effects the underlying computation monad is the free-model monad o
 That is, they derive the representation of free monads to model effects from an algebraic theory.
 Starting with their work on algebraic effects, by now there are implementations in Idris~\citep{brady2013programming}, Scala~\citep{brachthauser2017effekt}, OCaml~\citep{kiselyov2018eff}, and Haskell~\citep{kiselyov2015freer,kammar2013handlers} as well as new languages with primitives for effects and handlers like Eff~\citep{pretnar2015introduction}, Koka~\citep{leijen2016algebraic}, Frank~\citep{lindley2017be}, and F*~\citep{swamy2016dependent}.
 
-Concerning modeling effects in dependently typed languages, \citet{mcbride2015turingcompleteness} introduces the \texttt{General} monad to model recursion in Agda.
+Concerning modelling effects in dependently typed languages, \citet{mcbride2015turingcompleteness} introduces the \texttt{General} monad to model recursion in Agda.
 
 \begin{verbatim}
 data General (S : Set) (T : S -> Set) (X : Set) : Set where
@@ -2005,7 +2005,7 @@ inductive data types can be eased using the categorical principle of initial alg
 They are particularly interested in data types that are interleaved with effects --- similar to the monadic liftings of the data types that we have discussed.
 Their approach does not only parametrise over the effects but also the data types.
 That is, they describe an abstraction using \emph{initial f-and-m-algebras}, where \emph{m} describes the interleaved effects as monads and \emph{f} is a functor that describes the pure part of the respective data type.
-The part we like to investigate further is the custom proof principle they use to prove properties about programs modeled as f-and-m-algebras.
+The part we like to investigate further is the custom proof principle they use to prove properties about programs modelled as f-and-m-algebras.
 
 \subsection{Reasoning About Haskell Programs}
 
@@ -2033,7 +2033,7 @@ The experience report by \citet{dijkstra2012experimentation} describes such an a
 \citeauthor{dijkstra2012experimentation} models partial functions using a method presented by \citet{bove2007computation} that extends all functions with additional proof arguments.
 These proof arguments pose certain invariants about all function applications.
 For example, the additional argument for the partial function \emph{head} on lists asserts that the applied list argument is not empty.
-In contrast to this explicit modeling of Haskell's partiality, \citet{spector-zabusky2018total} present a translation from Haskell to Coq that focuses on total Haskell programs.
+In contrast to this explicit modelling of Haskell's partiality, \citet{spector-zabusky2018total} present a translation from Haskell to Coq that focuses on total Haskell programs.
 The advantage of focussing on the total subset of Haskell is that they can translate functions one-to-one to Coq.
 In case of a partial function, like \emph{head}, their translation scheme uses, however, an additional axiom that can be understood as a representation of the polymorphic value \emph{undefined}.
 As they state, this axiom makes their model unsound and is only meant as a temporarily solution.
@@ -2045,7 +2045,7 @@ This approach enables a more practical way to reason about some simple propertie
 
 \subsection{Modelling Curry Programs}
 
-Besides the generic view on modeling effects and the focus on modeling or reasoning about Haskell, we also take a look at related work on proving properties about functional logic programs to find connections and inspirations for our findings about modeling Curry programs.
+Besides the generic view on modelling effects and the focus on modelling or reasoning about Haskell, we also take a look at related work on proving properties about functional logic programs to find connections and inspirations for our findings about modelling Curry programs.
 \citet{cleva2004logic} discuss that common equational reasoning techniques are not valid in the functional logic languages that combine non-deterministic functions and call-time choice semantics.
 They suggest a proof calculus based on \emph{CRLW} (constructor-based rewriting logic)~\citep{gonzalez1996rewriting} to prove properties about first-order functional logic programs.
 On top of that, they encode this approach in various proof assistants for simple exemplary programs and corresponding properties.
@@ -2073,7 +2073,7 @@ The main contribution of an implementation for Curry's call-time choice in Coq u
 This avoidance originates in our usage of Coq, where these features are not available, but are also of interest for an implementation in Haskell as well.
 As future work, we plan to investigate if a Haskell implementation that tracks the decisions of choices instead of references to computations can compete with respect to performance.
 
-An approach by \citet{antoy2017proving} aims at modeling Curry programs in Agda.
+An approach by \citet{antoy2017proving} aims at modelling Curry programs in Agda.
 In contrast to our and \citeauthor{fischer2009purely}'s goal to implement a generic model that combines non-strictness, sharing and effects like non-determinism, \citeauthor{antoy2017proving} explicitly tackle Curry's choice operator only.
 They present two different representations of Curry's non-determinism called \emph{planned choices}, and \emph{set of values} respectively.
 The translation for the first approach adds an extra argument to the translated function.
@@ -2129,7 +2129,7 @@ exampleexample42
 
 We plan to apply the first insights we gained from modelling Curry programs to model Haskell's tracing effect with call-by-need semantics.
 In a first attempt to investigate the current approach \citep{christiansen2019verifying} we took a more detailed look at the effects occurring in Haskell and defined a category of effects that behave the same under call-by-name and call-by-need semantics using a syntactic criteria for the effects involved.
-In that paper, we have shown that a variety of propositions can be successfully modeled using our approach, assuming that the functions involved do not share computations.
+In that paper, we have shown that a variety of propositions can be successfully modelled using our approach, assuming that the functions involved do not share computations.
 
 When thinking about it becomes apparent that we cannot model all possible function with our current approach.
 Consider for example the following two function definitions of the same type.
