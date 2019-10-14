@@ -460,9 +460,9 @@ A container is described as a product of shapes and a position function.
 The shape is a type \cinl{Shape} and the position type \cinl{Pos} is a type function that maps shapes to types.
 Using these two components we can define a container extension that gives rise to a functor.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Inductive Ext (Shape : Type) (Pos : Shape -> Type) A :=
-| ext : forall s, (Pos s -> A) -> Ext Pos A.
+| ext : !$\forall$! s, (Pos s -> A) -> Ext Pos A.
 \end{minted}
 
 A container extension \cinl{Ext S P} is then isomorphic to a functor \cinl{F}.
@@ -495,10 +495,10 @@ Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
 The definition uses the container extension instead of a generic functor \cinl{F}, that is, we are still generic: not over all possible type constructors but over all strictly positive types.
 Note, however, that we do not need the indirection using \cinl{Ext} explicitly, we instead define \cinl{Free} by inlining the definition of \cinl{Ext} in the constructor \cinl{impure} to make its usage more convenient.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Inductive Free (Shape : Type) (Pos : Shape -> Type) A :=
 | pure   : A -> Free Shape Pos A
-| impure : forall s, Pos s -> Free Shape Pos A -> Free Shape Pos A.
+| impure : !$\forall$! s, Pos s -> Free Shape Pos A -> Free Shape Pos A.
 \end{minted}
 
 With this definition of \cinl{Free} at hand we are well-suited to define a lifted version of \cinl{List} as we wished to do at the beginning of this section.
@@ -541,7 +541,7 @@ Definition from_One A (o : One A) : Ext One!$_\text{S}$! One!$_\text{P}$! A :=
 Definition to_One A (e : Ext One!$_\text{S}$! One!$_\text{P}$! A) : One A :=
   one.
 
-Lemma from_to_One : forall (A : Type) (e : Ext One!$_\text{S}$! One!$_\text{P}$! A),
+Lemma from_to_One : !$\forall$! (A : Type) (e : Ext One!$_\text{S}$! One!$_\text{P}$! A),
     from_One (to_One e) = e.
 Proof.
   intros A e.
@@ -549,7 +549,7 @@ Proof.
   f_equal. extensionality p. destruct p.
 Qed.
 
-Lemma to_from_One : forall (A : Type) (o : One A),
+Lemma to_from_One : !$\forall$! (A : Type) (o : One A),
     to_One (from_One o) = o.
 Proof.
   intros A o.
@@ -558,17 +558,17 @@ Qed.
 \end{minted}
 
 The container definition corresponding to \cinl{One} is now ready to used as argument to \cinl{Free}.
-Next up, we can also show that the resulting \cinl{Free One__S}  is isomorphic to the monadic structure \cinl{partial}.
+Next up, we can also show that the resulting \cinl{Free One!$_\text{S}$!}  is isomorphic to the monadic structure \cinl{partial}.
 First, we define the conversion functions \cinl{to_partial} and \cinl{from_partial} analogues to the setup for \cinl{One} above.
 
-\begin{minted}{coq}
-Definition to_partial A (fx : Free One__S One__P A) : partial A :=
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition to_partial A (fx : Free One!$_\text{S}$! One!$_\text{P}$! A) : partial A :=
  match fx with
  | pure x     => defined x
  | impure _ _ => undefined
  end.
 
-Definition from_partial A (p : partial A) : Free One__S One__P A :=
+Definition from_partial A (p : partial A) : Free One!$_\text{S}$! One!$_\text{P}$! A :=
   match p with
   | undefined => let '(ext s pf) := from_One one in impure s pf
   | defined x => pure x
@@ -577,8 +577,8 @@ Definition from_partial A (p : partial A) : Free One__S One__P A :=
 
 Based on these conversion functions, we prove two lemmas that state that both possible compositions of these functions are the identity.
 
-\begin{minted}{coq}
-Lemma from_to_partial : forall (A : Type) (fx : Free One__S One__P A),
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma from_to_partial : !$\forall$! (A : Type) (fx : Free One!$_\text{S}$! One!$_\text{P}$! A),
     from_partial (to_partial fx) = fx.
 Proof.
   intros A fx.
@@ -587,7 +587,7 @@ Proof.
   - do 2 f_equal. extensionality p. destruct p.
 Qed.
 
-Lemma to_from_partial : forall (A : Type) (p : partial A),
+Lemma to_from_partial : !$\forall$! (A : Type) (p : partial    A),
     to_partial (from_partial p) = p.
 Proof.
   intros A p.
@@ -627,18 +627,18 @@ In order to represent \cinl{Zero} as container, we once again need to define the
 Since \cinl{Zero} has no constructors, it has no shapes and no polymorphic values that we might want to access.
 For both types we can reuse \cinl{Empty}.
 
-\begin{minted}{coq}
-Definition Zero__S := Empty.
-Definition Zero__P (s : Zero__S) := Empty.
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition Zero!$_\text{S}$! := Empty.
+Definition Zero!$_\text{P}$! (s : Zero!$_\text{S}$!) := Empty.
 \end{minted}
 
 For both conversion functions, \cinl{from_Zero} and \cinl{to_Zero}, the definition simply matches on the non-existent value to define a function with the wanted type.
 
-\begin{minted}{coq}
-Definition from_Zero A (u : Zero A) : Ext Zero__S Zero__P A :=
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition from_Zero A (u : Zero A) : Ext Zero!$_\text{S}$! Zero!$_\text{P}$! A :=
   match u with end.
 
-Definition to_Zero A (e : Ext Zero__S Zero__P A) : Zero A :=
+Definition to_Zero A (e : Ext Zero!$_\text{S}$! Zero!$_\text{P}$! A) : Zero A :=
   match e with
   | ext s pf => match s with end
   end.
@@ -646,15 +646,15 @@ Definition to_Zero A (e : Ext Zero__S Zero__P A) : Zero A :=
 
 It is quite trivial to prove that the conversion functions form an isomorphism as the following reasoning shows.
 
-\begin{minted}{coq}
-Lemma from_to_Zero : forall (A : Type) (e : Ext Zero__S Zero__P A),
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma from_to_Zero : !$\forall$! (A : Type) (e : Ext Zero!$_\text{S}$! Zero!$_\text{P}$! A),
     from_Zero (to_Zero e) = e.
 Proof.
   intros A e.
   destruct e as [[] pf].
 Qed.
 
-Lemma to_from_Zero : forall (A : Type) (z : Zero A),
+Lemma to_from_Zero : !$\forall$! (A : Type) (z : Zero A),
     to_Zero (from_Zero z) = z.
 Proof.
   intros A z.
@@ -664,14 +664,14 @@ Qed.
 
 The next step is to define the conversion functions \cinl{to_total} and \cinl{from_total} to show that using the container representation for \cinl{Zero} in combination with \cinl{Free} yields the original monad \cinl{total} again.
 
-\begin{minted}{coq}
-Definition to_total A (fx : Free Zero__S Zero__P A) : total A :=
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition to_total A (fx : Free Zero!$_\text{S}$! Zero!$_\text{P}$! A) : total A :=
   match fx with
-  | pure x   => totality x
+  | pure x           => totality x
   | impure (ext s _) => match s with end
   end.
 
-Definition from_total A (t : total A) : Free Zero__S Zero__P A :=
+Definition from_total A (t : total A) : Free Zero!$_\text{S}$! Zero!$_\text{P}$! A :=
   match t with
   | totality x => pure x
   end.
@@ -680,15 +680,15 @@ Definition from_total A (t : total A) : Free Zero__S Zero__P A :=
 \noindent
 In fact, similar as for the case of the partiality monad, we can even show that the conversion functions form an isomorphism as well.
 
-\begin{minted}{coq}
-Lemma from_to_total : forall (A : Type) (fx : Free Zero__S Zero__P A),
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma from_to_total : !$\forall$! (A : Type) (fx : Free Zero!$_\text{S}$! Zero!$_\text{P}$! A),
     from_total (to_total fx) = fx.
 Proof.
   intros A fx.
   destruct fx as [x | [] pf]; reflexivity.
 Qed.
 
-Lemma to_from_total : forall (A : Type) (t : total A),
+Lemma to_from_total : !$\forall$! (A : Type) (t : total A),
     to_total (from_total t) = t.
 Proof.
   intros A t.
@@ -940,13 +940,13 @@ Definition Zero!$_\text{S}$! := Empty.
 Definition Zero!$_\text{P}$! (s : Zero!$_\text{S}$!) := Empty.
 \end{minted}
 
-That is, the container representing totality has neither a position nor a shape, thus, programs modeled as \cinl{Free Zero__S Zero__P} do not have any \cinl{impure} values by construction.
-Whenever we encounter an \cinl{impure}-constructor, we know that the accompanying shape \cinl{s : Zero__S} cannot exist.
+That is, the container representing totality has neither a position nor a shape, thus, programs modeled as \cinl{Free Zero!$_\text{S}$! Zero!$_\text{P}$!} do not have any \cinl{impure} values by construction.
+Whenever we encounter an \cinl{impure}-constructor, we know that the accompanying shape \cinl{s : Zero!$_\text{S}$!} cannot exist.
 Let us now take a look at the associativity of append in the total setting and see how we use this observation about the corresponding container when proving a proposition.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Lemma append_assoc_total :
- forall (A : Type) (fxs fys fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)),
+ !$\forall$! (A : Type) (fxs fys fzs : Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)),
    append fxs (append fys fzs) = append (append fxs fys) fzs.
 Proof.
  intros A fxs fys fzs.
@@ -957,10 +957,10 @@ Proof.
 In order to evaluate \cinl{append}, we make a case distinction on the first list argument \cinl{fxs}.
 In case of a pure value, we have the following goal and assumptions.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   A : Type
-  xs : List Zero__S Zero__P A
-  fys, fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)
+  xs : List Zero!$_\text{S}$! Zero!$_\text{P}$! A
+  fys, fzs : Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)
   ============================
   append' xs (append fys fzs) = append (append' xs fys) fzs
 \end{minted}
@@ -977,10 +977,10 @@ We then need to prove the proposition for \cinl{nil} and \cinl{cons}.
 The former is trivial as both sides of the terms are already equal.
 For the latter case, the goal looks as follows.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   A : Type
-  fx : Free Zero__S Zero__P A
-  fxs, fys, fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)
+  fx : Free Zero!$_\text{S}$! Zero!$_\text{P}$! A
+  fxs, fys, fzs : Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)
   IH : ForFree (fun xs => append' xs (append fys fzs)
                         = append (append' xs fys) fzs) fxs
   ============================
@@ -1000,34 +1000,34 @@ Note that we will discuss the induction hypotheses \cinl{IH} that makes use of a
 \end{minted}
 
 In the former case, the induction hypothesis brings our current goal in the right form such that we can finish the subproof easily using \cinl{reflexivity}.
-For the latter case we only need to focus on one of the assumptions, namely, \cinl{s : Zero__S}.
+For the latter case we only need to focus on one of the assumptions, namely, \cinl{s : Zero!$_\text{S}$!}.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   ...
-  s : Zero__S
+  s : Zero!$_\text{S}$!
   ...
   ============================
   ...
 \end{minted}
 
-Since there cannot exist any value of type \cinl{Zero__S}, the subgoal is trivially true as one of the assumptions is a contradiction.
+Since there cannot exist any value of type \cinl{Zero!$_\text{S}$!}, the subgoal is trivially true as one of the assumptions is a contradiction.
 There are several ways to finish the proof, here we use \cinl{contradiction}, we could also use \cinl{destruct s} in order to force Coq to produce subgoals for all constructors.
 As no constructors exist, there are no more subgoals and we have successfully proven the current goal.
 
 The same reasoning applies for the last remaining goal.
 We started with a case distinction on the original first list arguments \cinl{fxs} and are now in the \cinl{impure}-case.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   A : Type
-  s : Zero__S
-  pf : Zero__P s -> Free Zero__S Zero__P (List Zero__S Zero__P A)
-  fys, fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)
+  s : Zero!$_\text{S}$!
+  pf : Zero!$_\text{P}$! s -> Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)
+  fys, fzs : Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)
   ============================
-  impure s (fun p : Zero__P s => append (pf p) (append fys fzs)) =
-  impure s (fun p : Zero__P s => append (append (pf p) fys) fzs)
+  impure s (fun p : Zero!$_\text{P}$! s => append (pf p) (append fys fzs)) =
+  impure s (fun p : Zero!$_\text{P}$! s => append (append (pf p) fys) fzs)
 \end{minted}
 
-The assumption \cinl{s : Zero__S} is once again a bogus assumption, so we clear the last remaining goal by using \cinl{contradiction} again.
+The assumption \cinl{s : Zero!$_\text{S}$!} is once again a bogus assumption, so we clear the last remaining goal by using \cinl{contradiction} again.
 
 \begin{minted}{coq}
   (* fxs = impure s pf *)
@@ -1040,9 +1040,9 @@ We improved the scripts a little bit and moved the \cinl{contradiction} tactic d
 Alternatively, we could use a nested introduction pattern for \cinl{s} as well and destruct it directly using the pattern \cinl{[]}.
 Then, the additional cases for \cinl{impure} would not be generated at all.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Lemma append_assoc_total :
- forall (A : Type) (fxs fys fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)),
+ !$\forall$! (A : Type) (fxs fys fzs : Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)),
    append fxs (append fys fzs) = append (append fxs fys) fzs.
 Proof.
  intros A fxs fys fzs.
@@ -1071,9 +1071,9 @@ The additional effect of representing undefined values does not contain any recu
 Let us take look at the proof for the associativity of append; we focus on the differences, as most of the proof is actually the same.
 Hence, this time we show the entire proof script first and take a closer look at some subgoals afterwards.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Lemma append_assoc_partial :
- forall (A : Type) (fxs fys fzs : Free One__S One__P (List One__S One__P A)),
+ !$\forall$! (A : Type) (fxs fys fzs : Free One!$_\text{S}$! One!$_\text{P}$! (List One!$_\text{S}$! One!$_\text{P}$! A)),
    append fxs (append fys fzs) = append (append fxs fys) fzs.
 Proof.
  intros A fxs fys fzs.
@@ -1092,42 +1092,42 @@ Qed.
 
 We observe that for both cases of \cinl{impure}-values, we do not have a contradiction in place as we had in the total setting.
 The contradiction in the total setting was introduced by the shape of the container that did not have any constructors.
-Now, we are working with \cinl{One__S}, which is a type synonym for the \cinl{unit} type and has exactly one constructor, namely \cinl{tt}.
+Now, we are working with \cinl{One!$_\text{S}$!}, which is a type synonym for the \cinl{unit} type and has exactly one constructor, namely \cinl{tt}.
 We can, however, finish the \cinl{impure}-cases using \cinl{contradiction} again, but we need to have a position as an
 assumption.
 The position is introduced as assumption when we strip away the prefix of \cinl{impure s pf} on both sides of the equation, such that only the position functions \cinl{pf} remain to be proven equivalent.
 
 The initial situation for the first \cinl{impure}-case looks as follows.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   ...
-  s : One__S
+  s : One!$_\text{S}$!
   ============================
   impure s (fun p => ...) =
   impure s (fun p => ...)
 \end{minted}
 
 As mentioned above, after stripping away the prefix both expressions have in common, we end up with two functions that we need to prove equal.
-We introduce the function argument \cinl{p} using \cinl{extensionality p} and end up with \cinl{p : One__P s} added to the assumptions and a changed goal as follows.
+We introduce the function argument \cinl{p} using \cinl{extensionality p} and end up with \cinl{p : One!$_\text{P}$! s} added to the assumptions and a changed goal as follows.
 
-\begin{minted}{coq}
-  s : One__S
-  p : One__P s
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+  s : One!$_\text{S}$!
+  p : One!$_\text{P}$! s
   ============================
   pf p >>= (fun zs => append' zs (append fys fzs)) =
   pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
 \end{minted}
 
-Since \cinl{One__P s} is a type synonym for \cinl{Empty}, the position \cinl{p} has no constructors and we can finish the proof using \cinl{contradiction}, again.
+Since \cinl{One!$_\text{P}$! s} is a type synonym for \cinl{Empty}, the position \cinl{p} has no constructors and we can finish the proof using \cinl{contradiction}, again.
 
 We follow the same approach to finish the second \cinl{impure}-case.
 
 \subsubsection{Generic Effect}
 Last but not least, we take a look at a generic proof for the associativity of append.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Lemma append_assoc_generic :
- forall (Sh : Type) (Ps : Sh -> Type) (A : Type)
+ !$\forall$! (Sh : Type) (Ps : Sh -> Type) (A : Type)
    (fxs fys fzs : Free Sh Ps (List Sh Ps A)),
    append fxs (append fys fzs) = append (append fxs fys) fzs.
 Proof.
@@ -1155,10 +1155,10 @@ By means of proving the proposition, this observation leads to the consequence t
 
 The \cinl{pure}-case stays basically the same, the difference, once again, lies in the nested \cinl{impure}-case.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   ...
   s : Sh
-  IH' : forall p : Ps s,
+  IH' : !$\forall$! p : Ps s,
         pf p >>= (fun zs => append' zs (append fys fzs)) =
         pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
   p : Ps s
@@ -1170,8 +1170,8 @@ The \cinl{pure}-case stays basically the same, the difference, once again, lies 
 Here, we cannot prove the subgoal by contradiction but need to actually use the induction hypothesis \cinl{IH'} generated by \cinl{induction IH}.
 
 A similar situation appears for the second \cinl{impure}-case that originated from the initial induction on \cinl{fxs}.
-\begin{minted}{coq}
-  IH : forall p : Ps s,
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+  IH : !$\forall$! p : Ps s,
        append (pf p) (append fys fzs) = append (append (pf p) fys) fzs
   ============================
   impure s (fun p : Ps s => append (pf p) (append fys fzs)) =
@@ -1194,16 +1194,16 @@ That is, instead of proving the proposition for all concrete effects again and a
 
 Of course, if we want to prove a property in a concrete setting, we can still reuse the generic propositions as the following alternative proofs for the concrete settings of totality and partiality illustrate.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Lemma append_assoc_total' :
- forall (A : Type) (fxs fys fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)),
+ !$\forall$! (A : Type) (fxs fys fzs : Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)),
    append fxs (append fys fzs) = append (append fxs fys) fzs.
 Proof.
  apply append_assoc_generic.
 Qed.
 
 Lemma append_assoc_partial' :
- forall (A : Type) (fxs fys fzs : Free One__S One__P (List One__S One__P A)),
+ !$\forall$! (A : Type) (fxs fys fzs : Free One!$_\text{S}$! One!$_\text{P}$! (List One!$_\text{S}$! One!$_\text{P}$! A)),
    append fxs (append fys fzs) = append (append fxs fys) fzs.
 Proof.
  apply append_assoc_generic.
@@ -1216,12 +1216,12 @@ Recall that the \cinl{induction} tactic we use in proofs makes use of the associ
 We discussed that an induction principle is an ordinary function of type \cinl{Prop} using the example of Coq's predefined list data type in \autoref{subsub:induction}.
 Since our proofs depend on induction on values of type \cinl{Free}, we will now consider the corresponding induction principle that Coq generates.
 
-\begin{minted}{coq}
-Free_ind : forall (Sh: Type) (Pos : Sh -> Type) A (P : Free A -> Prop),
-   (forall x : A, P (pure x)) ->
-   (forall (s : Sh) (pf : Pos s -> Free A),
-     (forall p : Pos s, P (pf p)) -> P (impure s pf)) ->
-   forall fx : Free A, P fx
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Free_ind : !$\forall$! (Sh: Type) (Pos : Sh -> Type) A (P : Free A -> Prop),
+   (!$\forall$! x : A, P (pure x)) ->
+   (!$\forall$! (s : Sh) (pf : Pos s -> Free A),
+     (!$\forall$! p : Pos s, P (pf p)) -> P (impure s pf)) ->
+   !$\forall$! fx : Free A, P fx
 \end{minted}
 
 For the base case we need to show that a given predicate \cinl{P} holds for \cinl{pure x} for all \cinl{x : A}.
@@ -1238,11 +1238,11 @@ The variable \cinl{x} in the left branch of the introduction pattern corresponds
 In case of data types that contain arguments of type \cinl{Free} due to the lifting of the constructors, the induction principle generated by Coq is not strong enough to fulfil its purpose.
 Consider, for example, the induction principle Coq generates for the \cinl{List} data type defined in \autoref{subsec:freeAndContainers}.
 
-\begin{minted}{coq}
-List_ind : forall (Sh : Type) (Pos : Sh -> Type) A (P : List A -> Prop),
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+List_ind : !$\forall$! (Sh : Type) (Pos : Sh -> Type) A (P : List A -> Prop),
       P nil ->
-      (forall (fx : Free A) (fxs : Free (List A)), P (cons fx fxs)) ->
-      forall l : List Pos A, P l
+      (!$\forall$! (fx : Free A) (fxs : Free (List A)), P (cons fx fxs)) ->
+      !$\forall$! l : List Pos A, P l
 \end{minted}
 
 While the base case for \cinl{nil} looks fine, the generated function for the \cinl{cons} constructor looks a bit odd.
@@ -1255,12 +1255,12 @@ That way, we can use \cinl{induction} as we are used to.
 First of all, we declare the types and the functions we want to use in the induction principle.
 The keyword \cinl{Hypothesis} is commonly used for proposition functions in custom induction principles instead of using the keyword \cinl{Variable}; both keywords fulfil the same purpose though.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Variable A : Type.
 Variable P : List A -> Prop.
 
 Hypothesis nilP : P nil.
-Hypothesis consP : forall fx fxs, ?IH -> P (cons fx fxs).
+Hypothesis consP : !$\forall$! fx fxs, ?IH -> P (cons fx fxs).
 \end{minted}
 
 In order to specify the missing induction hypothesis in case of \cinl{cons}, we need to work out how this hypothesis looks like in the lifted case.
@@ -1271,11 +1271,11 @@ The needed property is similar to stating that a predicate of type \cinl{A -> Pr
 In our case the list-like structure is the \cinl{Free} wrapper with its two constructors \cinl{pure} and \cinl{impure}.
 We define an auxiliary proposition \cinl{ForFree} that states when a predicate of type \cinl{A -> Prop} holds for all elements occurring in a value wrapped using \cinl{Free}.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Inductive ForFree (P : A -> Prop) : Free A -> Prop :=
-| forPure   : forall x   , P x -> ForFree P (pure x)
-| forImpure : forall s pf,
-    (forall p, ForFree P (pf p)) -> ForFree P (impure s pf).
+| forPure   : !$\forall$! x   , P x -> ForFree P (pure x)
+| forImpure : !$\forall$! s pf,
+    (!$\forall$! p, ForFree P (pf p)) -> ForFree P (impure s pf).
 \end{minted}
 
 In case of \cinl{pure x} we can directly apply the predicate to the element \cinl{x}.
@@ -1286,8 +1286,8 @@ That is, the predicate holds for \cinl{impure s pf} if \cinl{ForFree P} already 
 
 Now we use the proposition \cinl{ForFree} to redeclare the necessary induction hypothesis in case of the \cinl{cons} constructor.
 
-\begin{minted}{coq}
-Hypothesis consP : forall fx fxs, ForFree P fxs -> P (cons fx fxs).
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Hypothesis consP : !$\forall$! fx fxs, ForFree P fxs -> P (cons fx fxs).
 \end{minted}
 
 Note that the predicate \cinl{P} is of type \cinl{List A -> Prop}, that is, it is a predicate on lists.
@@ -1301,13 +1301,13 @@ Fixpoint List_ind (xs : List A) : P xs.
 The above declaration corresponds to \cinl{Theorem} statement, that is, we can define the function like proofs using tactics.
 Due to the declared hypothesis the goal and associated assumptions look as follows.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   A : Type
   P : List A -> Prop
   nilP : P nil
-  consP : forall (fx : Free A) (fxs : Free (List A)),
+  consP : !$\forall$! (fx : Free A) (fxs : Free (List A)),
     ForFree P fxs -> P (cons fx fxs)
-  List_ind : forall xs : List A, P xs
+  List_ind : !$\forall$! xs : List A, P xs
   xs : List A
   ============================
   P xs
@@ -1315,16 +1315,16 @@ Due to the declared hypothesis the goal and associated assumptions look as follo
 
 In order to show that the predicate \cinl{P} holds for the list \cinl{xs}, we make a case distinction using the tactic \cinl{destruct xs as [ | fy fys ]}. The case distinction leads to the following two subgoals.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   ...
   nilP : P nil
   ============================
   P nil
 
   ...
-  consP : forall (fx : Free A) (fxs : Free (List A)),
+  consP : !$\forall$! (fx : Free A) (fxs : Free (List A)),
     ForFree P fxs -> P (cons fx fxs)
-  List_ind : forall xs : List A, P xs
+  List_ind : !$\forall$! xs : List A, P xs
   fy : Free A
   fys : Free  (List A)
   ============================
@@ -1336,31 +1336,31 @@ The new subgoal is the precondition of the hypothesis \cinl{consP} instantiated 
 We proceed by induction on \cinl{fys} since the proposition \cinl{ForFree} is an inductively defined proposition with constructors in case of \cinl{pure} and \cinl{impure} values.
 Applying the tactic \cinl{induction fys as [ ys | s pf IH ]} yields two new subgoals.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   ...
-  List_ind : forall xs : List A, P xs
+  List_ind : !$\forall$! xs : List A, P xs
   ys : List A
   ============================
   ForFree P (pure ys)
 
   ...
-  IH : forall (p : Ps s), ForFree P (pf p)
+  IH : !$\forall$! (p : Ps s), ForFree P (pf p)
   ============================
   ForFree P (impure s pf)
 \end{minted}
 
 In both cases we apply the corresponding constructor of the proposition \cinl{ForFree}, namely, \cinl{forPure} and \cinl{forImpure}.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   ...
-  List_ind : forall xs : List A, P xs
+  List_ind : !$\forall$! xs : List A, P xs
   ============================
   P ys
 
   ...
-  IH : forall (p : Ps s), ForFree P (pf p)
+  IH : !$\forall$! (p : Ps s), ForFree P (pf p)
   ============================
-  forall p : Ps s, ForFree P (pf p)
+  !$\forall$! p : Ps s, ForFree P (pf p)
 \end{minted}
 
 We finish both subgoals by simply applying the appropriate assumption.
@@ -1453,10 +1453,10 @@ In order to transfer this functor to its isomorphic container representation, we
 As we have two constructors to represent, we could simply use \cinl{bool} as the type for shapes.
 In order to increase the readability of the resulting code, we use a custom data type with two constructors instead.
 
-\begin{minted}{coq}
-Inductive ND__S :=
-| chc : ND__S
-| fld : ND__S.
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Inductive ND!$_\text{S}$! :=
+| chc : ND!$_\text{S}$!
+| fld : ND!$_\text{S}$!.
 \end{minted}
 
 In contrast to definitions of position functions we have seen before, due to the two different shapes, we have to take the shape into account to determine the position type.
@@ -1464,9 +1464,9 @@ That is, for the first time the dependently typed position function actually dep
 There are no positions to access in case of the \cinl{failed} constructor and two possible positions --- the left or right argument --- in case of \cinl{choice}.
 Hence, we use types with zero and two values as position types: \cinl{Empty} and \cinl{bool}, respectively.
 
-\begin{minted}{coq}
-Definition ND__S := bool.
-Definition ND__P (s : ND__S) :=
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition ND!$_\text{S}$! := bool.
+Definition ND!$_\text{P}$! (s : ND!$_\text{S}$!) :=
  match s with
  | fl => Empty
  | ch => bool
@@ -1475,14 +1475,14 @@ Definition ND__P (s : ND__S) :=
 
 As preparation to show that the constructed container is indeed isomorphic to the introduced functor, we define functions to transform values from one type to another and vice versa.
 
-\begin{minted}{coq}
-Definition from_ND A (nd : ND A) : Ext ND__S ND__P A :=
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Definition from_ND A (nd : ND A) : Ext ND!$_\text{S}$! ND!$_\text{P}$! A :=
  match nd with
- | choice x y => ext ch (fun (p : ND__P true) => if p then x else y)
- | failed     => ext fl (fun (p : ND__P false) => match p with end)
+ | choice x y => ext ch (fun (p : ND!$_\text{P}$! true) => if p then x else y)
+ | failed     => ext fl (fun (p : ND!$_\text{P}$! false) => match p with end)
  end.
 
-Definition to_ND A (e : Ext ND__S ND__P A) : ND A :=
+Definition to_ND A (e : Ext ND!$_\text{S}$! ND!$_\text{P}$! A) : ND A :=
  match e with
  | ext ch pf => choice (pf true) (pf false)
  | ext fl pf => failed
@@ -1495,25 +1495,25 @@ We then implement \cinl{to_ND} such that it complies with its counterpart \cinl{
 
 These definitions indeed form an isomorphism; since we have already seen quite a few of these proofs, we refrain from showing the whole proof script here.
 
-\begin{minted}{coq}
-Lemma from_to_ND : forall (A : Type) (e : Ext ND__S ND__P A),
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma from_to_ND : !$\forall$! (A : Type) (e : Ext ND!$_\text{S}$! ND!$_\text{P}$! A),
    from_ND (to_ND e) = e.
 
-Lemma to_from_ND : forall (A : Type) (nd : ND A),
+Lemma to_from_ND : !$\forall$! (A : Type) (nd : ND A),
    to_ND (from_ND nd) = nd.
 \end{minted}
 
 \subsubsection{Proving Properties About Non-deterministic Functions}
 
-In the following sections the suffix \cinl{ND} for types is used as synonym for the concrete instantiation of data types with the non-determinism effect, e.g., \cinl{FreeND = Free ND__S ND__P} and \cinl{ListND = List ND__S ND__P}.
+In the following sections the suffix \cinl{ND} for types is used as synonym for the concrete instantiation of data types with the non-determinism effect, e.g., \cinl{FreeND = Free ND!$_\text{S}$! ND!$_\text{P}$!} and \cinl{ListND = List ND!$_\text{S}$! ND!$_\text{P}$!}.
 
 We define the following primitives \cinl{Failed} and \cinl{Choice} to construct values introduced by the non-determinism effect; we use the operation \cinl{?} as notation for the latter primitive.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition Failed (A : Type) : FreeND A :=
-  impure fl (fun (p : ND__P fl) => match p with end).
+  impure fl (fun (p : ND!$_\text{P}$! fl) => match p with end).
 Definition Choice (A : Type) (fx : FreeND A) (fy : FreeND A) :=
-  impure ch (fun (p : ND__P ch) => if p then fx else fy).
+  impure ch (fun (p : ND!$_\text{P}$! ch) => if p then fx else fy).
 \end{minted}
 
 \paragraph{First Example}
@@ -1573,18 +1573,18 @@ Definition inc (fn : Free nat) : Free nat :=
 
 We prove that applying the function \cinl{inc} to a non-deterministic choice between two values is equivalent to applying the function to both sides of the choice.
 
-\begin{minted}{coq}
-Lemma pulltab_inc : forall (fx fy : FreeND nat),
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma pulltab_inc : !$\forall$! (fx fy : FreeND nat),
   inc (fx ? fy) = inc fx ? inc fy.
 \end{minted}
 
 We can generalise this property of Curry's evaluation, sometimes called \emph{pull-tabbing}, for any strict function.
 The strictness property states that applying the function to an argument is equivalent to evaluating its argument to head-normal-form first and applying the function to the pure value.
 
-\begin{minted}{coq}
-Lemma pulltab_if_strict : forall (A B : Type)
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma pulltab_if_strict : !$\forall$! (A B : Type)
   (f : FreeND A -> FreeND B) (fx fy : FreeND A)
-  (Hstrict : forall fz, f fz = fz >>= fun z => f (pure z)),
+  (Hstrict : !$\forall$! fz, f fz = fz >>= fun z => f (pure z)),
    f (fx ? fy) = f fx ? f fy.
 \end{minted}
 
@@ -1864,8 +1864,8 @@ Definition const (A B : Type) (fx : Free A) (fy : Free B) : Free A :=
 The following lemma shows a nested usage of the function \cinl{const} arbitrary expression as first argument and passing a shared non-deterministic computation as second and third argument.
 The expected property is that this nested application is equivalent to yielding just the first argument.
 
-\begin{minted}{coq}
-Lemma share_with_const : forall (A : Type) (fx : FreeND A),
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma share_with_const : !$\forall$! (A : Type) (fx : FreeND A),
    shareStrict oneOrTwo >>= fun fy' => const (const fx fy') fy' = fx.
 Proof.
   intros A fx.
@@ -1880,8 +1880,8 @@ However, when using \cinl{shareStrict} the left-hand side of the equality is ---
 When we use \cinl{shareStrict} on an expression that does not need to be evaluated, here \cinl{const} yields its first argument and ignores the second one, results in unwanted behaviour in case of an effectful computation.
 That is, the above example application triggers the non-deterministic computation \cinl{oneOrTwo} and, thus, yields its first argument \cinl{fx} twice.
 
-\begin{minted}{coq}
-Lemma share_with_const : forall (A : Type) (fx : FreeND A),
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma share_with_const : !$\forall$! (A : Type) (fx : FreeND A),
   shareStrict oneOrTwo >>= fun fy' => const (const fx fy') fy' = fx ? fx.
 \end{minted}
 
@@ -1968,20 +1968,20 @@ The formalism FreeSpec~\citep{letan2018modular} allows to model components as pr
 \citeauthor{letan2018modular} implement the framework in Coq based on the \hinl{Program} monad defined in the \texttt{operational} package\footnote{\url{https://hackage.haskell.org/package/operational}} in Haskell.
 In contrast to the free monad we use in this chapter, \cinl{Program} monad adds a third constructor to explicitly model processing a program using a continuation via \cinl{Bind}.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Inductive Program (I : Type -> Type) (A : Type) : Type :=
   Pure    : A -> Program I A
-  Bind    : forall (B : Type),
+  Bind    : !$\forall$! (B : Type),
              Program I B -> (B -> Program I A) -> Program I A
   Request : I A -> Program I A.
 \end{minted}
 
 In a newer version of the framework the constructors \cinl{Bind} and \cinl{Request} were merged into one constructor, hence, resemble the definition of freer monads as introduced by \citet{kiselyov2015freer} more closely.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Inductive Program (I : Type -> Type) (A : Type) : Type :=
   Pure    : A -> Program I A
-  Request : forall (B : Type), I B -> (B -> Program I A) -> Program I A.
+  Request : !$\forall$! (B : Type), I B -> (B -> Program I A) -> Program I A.
 \end{minted}
 
 In contrast the usual free monad definition using a functor, the freer representation removes the functor constraint by using a continuation \cinl{B -> Program I A} instead to directly describe how to process the instruction \cinl{I B}.
@@ -1991,11 +1991,11 @@ The associated DeepSpec project on verifying networked servers implemented in C 
 Again,  a more recent version of the framework uses a slightly modified structure.
 They currently implement a coinductive variant of the free monad to model diverging computations \citep{xia2019interaction}.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 CoInductive itree (E: Type -> Type) (R: Type) : Type :=
 | Ret  : R -> itree E R
 | Tau : itree E R -> itree E R
-| Vis : forall (A : Type), E A -> (A -> itree E R) -> itree E R.
+| Vis : !$\forall$! (A : Type), E A -> (A -> itree E R) -> itree E R.
 \end{minted}
 
 It would be interesting to investigate if a coinductive definition of \cinl{Free} might lead to a model for non-termination in our setting as well.
@@ -2243,31 +2243,31 @@ Assuming a less-strict-relation $\sqsubseteq$, we are then  in a formal specific
 
 A first idea to model the relation in the setting of partiality using the \cinl{Free}-approach looks as follows.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Inductive le_Free_Partial A (leA : A -> A -> Prop)
   : Free A -> Free A -> Prop :=
-| le_pure : forall x y, leA x y -> le_Free_Partial leA (pure x) (pure y)
-| le_impure_pure : forall e x, le_Free_Partial leA (impure e) (pure x)
-| le_impure : forall e1 e2, le_Free_Partial leA (impure e1) (impure e2).
+| le_pure : !$\forall$! x y, leA x y -> le_Free_Partial leA (pure x) (pure y)
+| le_impure_pure : !$\forall$! e x, le_Free_Partial leA (impure e) (pure x)
+| le_impure : !$\forall$! e1 e2, le_Free_Partial leA (impure e1) (impure e2).
 \end{minted}
 
 In a similar matter, we can define a specialised version for an effect like \hinl{error}.
 More interesting, however, is the objective to generalise the relation to arbitrary effects.
 For example, an attempt to generalise the definition for the partiality and error setting passes an additional function to compare the shape of the effects involved.
 
-\begin{minted}{coq}
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Inductive le_Free_Hoare (A : Type) (leS : Shape -> Shape -> Prop)
     (leA : A -> A -> Prop) : Free C A -> Free C A -> Prop :=
-| le_pure_Hoare : forall x y,
+| le_pure_Hoare : !$\forall$! x y,
     leA x y -> le_Free_Hoare leS leA (pure x) (pure y)
-| le_impure_pure_Hoare : forall s pf x,
-    (forall p, le_Free_Hoare leS leA (pf p) (pure x)) ->
+| le_impure_pure_Hoare : !$\forall$! s pf x,
+    (!$\forall$! p, le_Free_Hoare leS leA (pf p) (pure x)) ->
       le_Free_Hoare leS leA (impure (ext s pf)) (pure x)
-| le_impure_Hoare : forall s1 pf1 s2 pf2,
-    (forall p1, exists p2, le_Free_Hoare leS leA (pf1 p1) (pf2 p2)) ->
+| le_impure_Hoare : !$\forall$! s1 pf1 s2 pf2,
+    (!$\forall$! p1, exists p2, le_Free_Hoare leS leA (pf1 p1) (pf2 p2)) ->
     leS s1 s2 ->
     le_Free_Hoare leS leA (impure (ext s1 pf1)) (impure (ext s2 pf2))
-| le_pure_impure_Hoare : forall x s pf,
+| le_pure_impure_Hoare : !$\forall$! x s pf,
     (exists p : Pos s, le_Free_Hoare leS leA (pure x) (pf p)) ->
       le_Free_Hoare leS leA (pure x) (impure (ext s pf)).
 \end{minted}
