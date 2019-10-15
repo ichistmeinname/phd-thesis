@@ -722,7 +722,7 @@ Note that the position function applied to a position yields a \cinl{Free}-value
 The clue is that we just need to reconstruct the effect that we have seen, characterised by its shape \cinl{s}, and apply the function \cinl{f} recursively for all recursive occurrences of the effect that we can access using the position function \cinl{pf}.
 
 With the definition of \cinl{free_bind} at hand, we can go ahead and start the second try to define \cinl{append'}: now we know that we need to use \cinl{free_bind} instead of an explicit case distinction.
-More precisely, the usage of \cinl{free_bind} mimics the evaluation to head-normal-form, which is exactly how pattern matching in Haskell behaves when using a case distinction.
+More precisely, the usage of \cinl{free_bind} mimics the evaluation to head normal form, which is exactly how pattern matching in Haskell behaves when using a case distinction.
 
 \begin{minted}{coq}
 Fail Fixpoint append' A (xs : List A) (fys : Free (List A)) :=
@@ -910,28 +910,22 @@ Proof.
 In order to evaluate \cinl{append}, we make a case distinction on the first list argument \cinl{fxs}.
 In case of a pure value, we have the following goal and assumptions.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{alltt}
   A : Type
-  xs : List Zero!$_\text{S}$! Zero!$_\text{P}$! A
-  fys, fzs : Free Zero!$_\text{S}$! Zero!$_\text{P}$! (List Zero!$_\text{S}$! Zero!$_\text{P}$! A)
+  xs : List Zero\(_\text{S}\) Zero\(_\text{P}\) A
+  fys, fzs : Free Zero\(_\text{S}\) Zero\(_\text{P}\) (List Zero\(_\text{S}\) Zero\(_\text{P}\) A)
   ============================
   append' xs (append fys fzs) = append (append' xs fys) fzs
-\end{minted}
+\end{alltt}
 
 Now we can proceed as if we were working with ordinary lists: we proceed by induction on the \cinl{List} argument \cinl{xs}.
 
-\begin{minted}{coq}
- (* fxs = pure xs *)
- - induction xs as [ | fx fxs IH ]; simpl.
-   (* xs = nil *)
-   + reflexivity.
-\end{minted}
- 
-We then need to prove the proposition for \cinl{nil} and \cinl{cons}.
-The former is trivial as both sides of the terms are already equal.
-For the latter case, the goal looks as follows.
+\begin{cproof}{induction xs as [ | fx fxs IH ]; simpl.}
+  ...
+  fys, fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)
+  ============================
+  fys +++ fzs = fys +++ fzs
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
   ...
   IH : ForFree (fun xs => append' xs (append fys fzs)
                         = append (append' xs fys) fzs) fxs
@@ -939,54 +933,45 @@ For the latter case, the goal looks as follows.
   Cons fx (fxs >>= (fun zs => append' zs (append fys fzs))) =
   Cons fx (fxs >>= (fun zs => append' zs fys) >>=
                    (fun zs => append' zs fzs))
-\end{minted}
+\end{cproof}
 
-We proceed by stripping away the \cinl{Cons}-constructor and take another look at \cinl{fxs} by destructing the induction hypothesis \cinl{IH}, which produces two cases: one for \cinl{pure} and one for \cinl{impure}.
+We then need to prove the proposition for \cinl{nil} and \cinl{cons}.
+The former is trivial as both sides of the terms are already equal.
+For the latter case, we proceed by stripping away the \cinl{Cons}-constructor and take another look at \cinl{fxs} by destructing the induction hypothesis \cinl{IH}, which produces two cases: one for \cinl{pure} and one for \cinl{impure}.
 Note that we will discuss the induction hypotheses \cinl{IH} that makes use of a custom proposition \cinl{ForFree} in detail later.
 
-\begin{minted}{coq}
-   (* xs = cons fx fxs; induction hypothesis IH *)
-   + do 2 f_equal.
-     destruct IH as [ xs H | ]; simpl.
-     * rewrite H. reflexivity.
-     * contradiction.
-\end{minted}
-
-In the former case, the induction hypothesis brings our current goal in the right form such that we can finish the subproof easily using \cinl{reflexivity}.
-For the latter case we only need to focus on one of the assumptions, namely, \cinl{s : Zero!$_\text{S}$!}.
-
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{cproof}{do 2 f_equal. destruct IH as [ xs H | ]; simpl.}
   ...
-  s : Zero!$_\text{S}$!
+  H : append' xs (fys +++ fzs) = append' xs fys +++ fzs
+  ============================
+  append' xs (fys +++ fzs) = append' xs fys +++ fzs
+
+  ...
+  s : Zero\(_\text{S}\)
   ============================
   ...
-\end{minted}
+\end{cproof}
 
+In the former case, the induction hypothesis brings our current goal in the right form such that we can finish the subproof easily by rewriting the hypothesis \cinl{H} and applying \cinl{reflexivity}.
+For the latter case we only need to focus on one of the assumptions, namely, \cinl{s : Zero!$_\text{S}$!}.
 Since there cannot exist any value of type \cinl{Zero!$_\text{S}$!}, the subgoal is trivially true as one of the assumptions is a contradiction.
-There are several ways to finish the proof, here we use \cinl{contradiction}, we could also use \cinl{destruct s} in order to force Coq to produce subgoals for all constructors.
-As no constructors exist, there are no more subgoals and we have successfully proven the current goal.
+After destructing on the value \cinl{s}, there are no more subgoals and we have successfully proven the current goal.
 
 The same reasoning applies for the last remaining goal.
 We started with a case distinction on the original first list arguments \cinl{fxs} and are now in the \cinl{impure}-case.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{alltt}
   ...
-  s : Zero!$_\text{S}$!
+  s : Zero\(_\text{S}\)
   ============================
-  impure s (fun p : Zero!$_\text{P}$! s => append (pf p) (append fys fzs)) =
-  impure s (fun p : Zero!$_\text{P}$! s => append (append (pf p) fys) fzs)
-\end{minted}
+  impure s (fun p : Zero\(_\text{P}\) s => append (pf p) (append fys fzs)) =
+  impure s (fun p : Zero\(_\text{P}\) s => append (append (pf p) fys) fzs)
+\end{alltt}
 
-The assumption \cinl{s : Zero!$_\text{S}$!} is once again a bogus assumption, so we clear the last remaining goal by using \cinl{contradiction} again.
-
-\begin{minted}{coq}
-  (* fxs = impure s pf *)
-  - contradiction.
-Qed.
-\end{minted}
+The assumption \cinl{s : Zero!$_\text{S}$!} is once again a bogus assumption, so we clear the last remaining goal by using \cinl{destruct s} again.
 
 Now that we have successfully proven this statement, we will take a second look at the complete proof script, without the additional remarks and assumptions.
-We improved the scripts a little bit and moved the \cinl{contradiction} tactic directly after destructing the \cinl{Free}-values, to finish the second subgoal immediately.
+We improved the scripts a little bit and moved the \cinl{destruct} tactic directly after destructing the \cinl{Free}-values, to finish the second subgoal immediately.
 Alternatively, we could use a nested introduction pattern for \cinl{s} as well and destruct it directly using the pattern \cinl{[]}.
 Then, the additional cases for \cinl{impure} would not be generated at all.
 
@@ -996,10 +981,10 @@ Lemma append_assoc_total :
    append fxs (append fys fzs) = append (append fxs fys) fzs.
 Proof.
  intros A fxs fys fzs.
- destruct fxs as [ xs | [ s pf ] ]; try contradiction; simpl.
+ destruct fxs as [ xs | [ s pf ] ]; try destruct s; simpl.
  - induction xs as [ | fx fxs IH ]; simpl.
    + reflexivity.
-   + do 2 f_equal. destruct IH as [ xs H | ]; try contradiction; simpl;
+   + do 2 f_equal. destruct IH as [ xs H | [s pf] ]; try destruct s; simpl;
        rewrite H. reflexivity.
 Qed.
 \end{minted}
@@ -1034,39 +1019,38 @@ Proof.
      do 2 f_equal. destruct IH as [ xs | s pf ]; simpl.
      * (* fxs = pure xs *) rewrite H. reflexivity.
      * (* fxs = impure s pf *)
-       do 2 f_equal. extensionality p. contradiction.
+       do 2 f_equal. extensionality p. destruct p.
   - (* fxs = impure s pf *)
-    do 2 f_equal. extensionality p. contradiction.
+    do 2 f_equal. extensionality p. destruct p
 Qed.
 \end{minted}
 
 We observe that for both cases of \cinl{impure}-values, we do not have a contradiction in place as we had in the total setting.
 The contradiction in the total setting was introduced by the shape of the container that did not have any constructors.
 Now, we are working with \cinl{One!$_\text{S}$!}, which is a type synonym for the \cinl{unit} type and has exactly one constructor, namely \cinl{tt}.
-We can, however, prove the \cinl{impure}-cases using \cinl{contradiction} again, but we need to have a position as an
-assumption.
+We can, however, prove the \cinl{impure}-cases using \cinl{destruct} again, but we need to have a position as an assumption.
 The position is introduced as assumption when we strip away the prefix of \cinl{impure s pf} on both sides of the equation, such that only the position functions \cinl{pf} remain to be proven equivalent.
 
 The initial situation for the first \cinl{impure}-case looks as follows.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{alltt}
   ...
-  s : One!$_\text{S}$!
+  s : One\(_\text{S}\)
   ============================
   impure s (fun p => ...) =
   impure s (fun p => ...)
-\end{minted}
+\end{alltt}
 
 As mentioned above, after stripping away the prefix both expressions have in common, we end up with two functions that we need to prove equal.
 We introduce the function argument \cinl{p} using \cinl{extensionality p} and end up with \cinl{p : One!$_\text{P}$! s} added to the assumptions and a changed goal as follows.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
-  s : One!$_\text{S}$!
-  p : One!$_\text{P}$! s
+\begin{alltt}
+  s : One\(_\text{S}\)
+  p : One\(_\text{P}\) s
   ============================
   pf p >>= (fun zs => append' zs (append fys fzs)) =
   pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
-\end{minted}
+\end{alltt}
 
 Since \cinl{One!$_\text{P}$! s} is a type synonym for \cinl{Empty}, the position \cinl{p} has no constructors and we can finish the proof using \cinl{contradiction}, again.
 We follow the same approach to prove the second \cinl{impure}-case.
@@ -1102,28 +1086,28 @@ By means of proving the proposition, this observation leads to the consequence t
 
 The \cinl{pure}-case stays basically the same, the difference, once again, lies in the nested \cinl{impure}-case.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{alltt}
   ...
   s : Sh
-  IH' : !$\forall$! p : Pos s,
+  IH' : \(\forall\) p : Pos s,
         pf p >>= (fun zs => append' zs (append fys fzs)) =
         pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
   p : Pos s
   ============================
   pf p >>= (fun zs => append' zs (append fys fzs)) =
   pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
-\end{minted}
+\end{alltt}
 
 Here, we cannot prove the subgoal by contradiction but need to actually use the induction hypothesis \cinl{IH'} generated by \cinl{induction IH}.
 
 A similar situation appears for the second \cinl{impure}-case that originated from the initial induction on \cinl{fxs}.
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
-  IH : !$\forall$! p : Pos s,
+\begin{alltt}
+  IH : \(\forall\) p : Pos s,
        append (pf p) (append fys fzs) = append (append (pf p) fys) fzs
   ============================
   impure s (fun p : Pos s => append (pf p) (append fys fzs)) =
   impure s (fun p : Pos s => append (append (pf p) fys) fzs)
-\end{minted}
+\end{alltt}
 
 In this case, the induction hypothesis is directly applicable when proving the functions equal.
 This last subgoal then finishes the proof.
@@ -1161,20 +1145,21 @@ Qed.
 
 Recall that the \cinl{induction} tactic we use in proofs makes use of the associated induction principle for the corresponding type.
 We discussed that an induction principle is an ordinary function of type \cinl{Prop} using the example of Coq's predefined list data type in \autoref{subsub:induction}.
-Since our proofs depend on induction on values of type \cinl{Free}, we will now consider the corresponding induction principle that Coq generates.
+Since our proofs depend on induction on values of type \cinl{Free}, we now consider the corresponding induction principle that Coq generates.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-Free_ind : !$\forall$! (Sh: Type) (Pos : Sh -> Type) A (P : Free A -> Prop),
-   (!$\forall$! x : A, P (pure x)) ->
+Free_ind : !$\forall$! (Sh : Type) (Pos : Sh -> Type) (A : Type) (P : Free A -> Prop),
+   (!$\forall$! (x : A), P (pure x)) ->
    (!$\forall$! (s : Sh) (pf : Pos s -> Free A),
      (!$\forall$! p : Pos s, P (pf p)) -> P (impure s pf)) ->
-   !$\forall$! fx : Free A, P fx
+   !$\forall$! (fx : Free A), P fx
 \end{minted}
 
-For the base case we need to show that a given predicate \cinl{P} holds for \cinl{pure x} for all \cinl{x : A}.
+For the base case we need to show that a given predicate \cinl{P} holds for \cinl{pure x} for all \cinl{x} of appropriate type.
 The \cinl{impure} case is a bit more interesting: given a shape \cinl{s} and a position function \cinl{pf}, we need to prove that the predicate holds for \cinl{impure s pf} with an additional induction hypothesis in place.
 The hypothesis states that for all possible positions \cinl{p} the predicate already holds for all recursive values we can access using the position function \cinl{pf}.
 Note that these arguments correspond to the variables introduced in the patterns when using the \cinl{induction} tactic.
+For example, the code above used the tactic using an introduction pattern as follows.
 
 \begin{minted}{coq}
 induction fx as [ x | s pf IH ].
@@ -1186,16 +1171,17 @@ In case of data types that contain arguments of type \cinl{Free} due to the lift
 Consider, for example, the induction principle Coq generates for the \cinl{List} data type defined in \autoref{subsec:freeAndContainers}.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-List_ind : !$\forall$! (Sh : Type) (Pos : Sh -> Type) A (P : List A -> Prop),
+List_ind : !$\forall$! (Sh : Type) (Pos : Sh -> Type) (A : Type) (P : List A -> Prop),
       P nil ->
       (!$\forall$! (fx : Free A) (fxs : Free (List A)), P (cons fx fxs)) ->
       !$\forall$! l : List Pos A, P l
 \end{minted}
 
 While the base case for \cinl{nil} looks fine, the generated function for the \cinl{cons} constructor looks a bit odd.
-More precisely, the second function misses an induction hypothesis for the list \cinl{fxs}; without such a hypothesis at hand, there are not much propositions that we would be able to prove.
+More precisely, the second function misses an induction hypothesis for the list \cinl{fxs}.
+Without such a hypothesis at hand, there are not much propositions that we would be able to prove.
 Fortunately, we can define a custom induction principle for \cinl{List} and other data types that we might define.
-Since an induction principle is an ordinary proposition, that is, function of type \cinl{Prop}, we just need to implement a function of the right type.
+Since an induction principle is an ordinary proposition, that is, a function of type \cinl{Prop}, we just need to implement a function of the right type.
 By enabling an option\footnote{\cinl{Unset Elimination Schemes.}}, we deactivate the automatic generation and define the custom induction principle named \cinl{List_ind}.
 That way, we can use \cinl{induction} as we are used to.
 
@@ -1210,19 +1196,18 @@ Hypothesis nilP : P nil.
 Hypothesis consP : !$\forall$! fx fxs, ?IH -> P (cons fx fxs).
 \end{minted}
 
-In order to specify the missing induction hypothesis in case of \cinl{cons}, we need to work out how this hypothesis looks like in the lifted case.
+In order to specify the missing induction hypothesis in case of \cinl{cons} (that we currently named \cinl{?IH}), we need to work out how this hypothesis looks like in the lifted case.
 When we consider ordinary lists, we require that the predicate holds for a list \cinl{fxs} in order to prove that it also holds for the list \cinl{cons fx fxs} for an arbitrary \cinl{fx} of appropriate type as well.
 In case of a lifted list, the predicate is supposed to hold for all
 pure and effectful lists.
 The needed property is similar to stating that a predicate of type \cinl{A -> Prop} should hold for all elements of a list-like structure.
 In our case the list-like structure is the \cinl{Free} wrapper with its two constructors \cinl{pure} and \cinl{impure}.
-We define an auxiliary proposition \cinl{ForFree} that states when a predicate of type \cinl{A -> Prop} holds for all elements occurring in a value wrapped using \cinl{Free}.
+We define an auxiliary proposition \cinl{ForFree} that states if a predicate of type \cinl{A -> Prop} holds for all elements occurring in a value wrapped using \cinl{Free}.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Inductive ForFree (P : A -> Prop) : Free A -> Prop :=
-| forPure   : !$\forall$! x   , P x -> ForFree P (pure x)
-| forImpure : !$\forall$! s pf,
-    (!$\forall$! p, ForFree P (pf p)) -> ForFree P (impure s pf).
+| forPure   : !$\forall$! x, P x -> ForFree P (pure x)
+| forImpure : !$\forall$! s pf, (!$\forall$! p, ForFree P (pf p)) -> ForFree P (impure s pf).
 \end{minted}
 
 In case of \cinl{pure x} we can directly apply the predicate to the element \cinl{x}.
@@ -1245,74 +1230,73 @@ Fixpoint List_ind (xs : List A) : P xs.
 \end{minted}
 
 \noindent%
-The above declaration corresponds to \cinl{Theorem} statement, that is, we can define the function like proofs using tactics.
+The above declaration corresponds to a \cinl{Lemma}-statement, that is, we can define the function like proofs using tactics.
 Due to the declared hypothesis the goal and associated assumptions look as follows.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{alltt}
   A : Type
   P : List A -> Prop
   nilP : P nil
-  consP : !$\forall$! (fx : Free A) (fxs : Free (List A)),
-    ForFree P fxs -> P (cons fx fxs)
-  List_ind : !$\forall$! xs : List A, P xs
+  consP : \(\forall\) fx fxs, ForFree P fxs -> P (cons fx fxs)
+  List_ind : \(\forall\) xs : List A, P xs
   xs : List A
   ============================
   P xs
-\end{minted}
+\end{alltt}
 
-In order to show that the predicate \cinl{P} holds for the list \cinl{xs}, we make a case distinction using the tactic \cinl{destruct xs as [ | fy fys ]}. The case distinction leads to the following two subgoals.
+\noindent Since the function is recursive, \cinl{List_ind} itself appears as an assumption as well.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+In order to show that the predicate \cinl{P} holds for the list \cinl{xs}, we make a case distinction that leads to the following two subgoals.
+
+\begin{cproof}{destruct xs as [ | fy fys ]}
   ...
   nilP : P nil
   ============================
   P nil
 
   ...
-  consP : !$\forall$! (fx : Free A) (fxs : Free (List A)),
-    ForFree P fxs -> P (cons fx fxs)
-  List_ind : !$\forall$! xs : List A, P xs
+  consP : \(\forall\) fx fxs, ForFree P fxs -> P (cons fx fxs)
+  List_ind : \(\forall\) xs : List A, P xs
   fy : Free A
   fys : Free  (List A)
   ============================
   P (cons fy fys)
-\end{minted}
+\end{cproof}
 
-We finish the first subgoal by applying the hypothesis \cinl{nilP}; for the second goal we proceed by applying the hypothesis \cinl{consP}.
+\noindent We finish the first subgoal by applying the hypothesis \cinl{nilP}; for the second goal we proceed by applying the hypothesis \cinl{consP}.
 The new subgoal is the precondition of the hypothesis \cinl{consP} instantiated with \cinl{fy} and \cinl{fys} for the quantified variables \cinl{fx} and \cinl{fxs}, namely \cinl{ForFree P fys}.
 We proceed by induction on \cinl{fys} since the proposition \cinl{ForFree} is an inductively defined proposition with constructors in case of \cinl{pure} and \cinl{impure} values.
-Applying the tactic \cinl{induction fys as [ ys | s pf IH ]} yields two new subgoals.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{cproof}{induction fys as [ ys | s pf IH ]}
   ...
-  List_ind : !$\forall$! xs : List A, P xs
+  List_ind : \(\forall\) xs : List A, P xs
   ys : List A
   ============================
   ForFree P (pure ys)
 
   ...
-  IH : !$\forall$! (p : Pos s), ForFree P (pf p)
+  IH : \(\forall\) (p : Pos s), ForFree P (pf p)
   ============================
   ForFree P (impure s pf)
-\end{minted}
+\end{cproof}
 
 In both cases we apply the corresponding constructor of the proposition \cinl{ForFree}, namely, \cinl{forPure} and \cinl{forImpure}.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{alltt}
   ...
-  List_ind : !$\forall$! xs : List A, P xs
+  List_ind : \(\forall\) xs : List A, P xs
   ============================
   P ys
 
   ...
-  IH : !$\forall$! (p : Pos s), ForFree P (pf p)
+  IH : \(\forall\) (p : Pos s), ForFree P (pf p)
   ============================
-  !$\forall$! p : Pos s, ForFree P (pf p)
-\end{minted}
+  \(\forall\) p : Pos s, ForFree P (pf p)
+\end{alltt}
 
 We finish both subgoals by simply applying the appropriate assumption.
 In the first case we apply the recursive function \cinl{List_ind} that we are currently defining.
-In the \cinl{impure} case we use the induction hypothesis generated for \cinl{Free}.
+For the \cinl{impure}-case we use the induction hypothesis generated for \cinl{Free}.
 The complete proof script is finalised by using \cinl{Defined} and looks as follows.
 
 \begin{minted}{coq}
@@ -1328,16 +1312,10 @@ Fixpoint List_ind (xs : List Sh Pos A) : P xs.
 Defined.
 \end{minted}
 
-Note that the difference between \cinl{Defined} and \cinl{Qed} to finalise a proof influences the visibility (mostly called \emph{opacity}) of the associated function.
-As the difference is rather technical, let us rely on the description by \citet{chlipala2011certified}.
+Note that the difference between \cinl{Defined} and \cinl{Qed} to finalise a proof influences the visibility (in context of Coq often called \emph{opacity}) of the associated function.
+The difference is rather technical; for here, it is sufficient to know that Coq can unfold definitions that are marked using \cinl{Defined}, while a definition marked with \cinl{Qed} prevents unfolding.
 
-\begin{quote}
-\emph{We end the "proof" with \cinl{Defined} instead of \cinl{Qed}, so that the definition we constructed remains visible.
-This contrasts to the case of ending a proof with \cinl{Qed}, where the details of the proof are hidden afterward.
-(More formally, \cinl{Defined} marks an identifier as transparent, allowing it to be unfolded; while \cinl{Qed} marks an identifier as opaque, preventing unfolding.)}
-\end{quote}
-
-Alternatively, we can define the induction principle as function definition directly.
+As alternative to the proof-mode version, we can, of course, implement the induction principle as function definition directly.
 In that case, instead of using induction on \cinl{Free}, we need a recursive helper function \cinl{free_ind} to work as induction hypothesis in case of \cinl{impure} values.
 
 \begin{minted}{coq}
@@ -1354,16 +1332,16 @@ Fixpoint List_ind (xs : List A) : P xs :=
 \end{minted}
 
 Note that the preceding sections used this definition of \cinl{List_ind} whenever we used the tactic \cinl{induction} on list
-value.
-Hence, using introduction pattern \cinl{[ | fy fys IH ]} corresponds to the arguments of the \cinl{cons} constructor and the induction hypothesis of type \cinl{ForFree}.
+values.
+Hence, the arguments in an introduction pattern like \cinl{[ | fy fys IH ]} correspond to the arguments of the \cinl{cons} constructor and the induction hypothesis of type \cinl{ForFree}.
 
 \section{First Ideas to Model Curry Programs}
 
 In this section we want to take a look at how to model non-strict non-determinism, motivated by the functional logic programming language Curry.
 As we have seen in previous chapters, Curry combines the functional programming paradigm with concepts known from logic programming.
-More precisely, Curry combines non-determinism and laziness introduced by shared variables via let-bindings.
+More precisely, Curry combines non-determinism and laziness; the latter is introduced by shared variables via let-bindings.
 This combination leads to a call-time choice semantics.
-The approach we illustrated in the first sections enables to reason about non-strict functional programs.
+The approach we illustrated in the first sections enables reasoning about non-strict functional programs.
 The difference that we want to illuminate in this section is that sharing expressions via let-bindings in a model of Haskell with \hinl{undefined} values is an optimisation only, but cannot be observed by the programmer.
 In Curry, on the other side, we can observe the difference between sharing a non-deterministic computation that is evaluated once and duplicating non-deterministic computations due to Curry's call-time choice semantics.
 
@@ -1377,17 +1355,17 @@ The effect of tracing results in an observable difference between sharing and du
 Hence, we need a similar technique to model call-time choice semantics as well as for more involved effects than we have seen so far.
 
 Second, the ideas about how to model sharing are still work-in-progress.
-That is, we illustrate the motivation only and then reference related work that tackle similar problems and we think is applicable for our problem.
+That is, we illustrate the motivation only and then reference related work that tackle similar problems and that we think is applicable for our problem.
 
 \subsection{Non-Determinism as Effect}
 
-We discussed how to model totality and partiality using \cinl{Free} in \autoref{subsub:totality_container} and \autoref{subsub:partiality_container}, respectively.
+We discussed how to model totality and partiality using \cinl{Free} in \hyperref[subsub:totality_container]{\autoref{subsub:totality_container} (a)} and \hyperref[subsub:partiality_container]{\autoref{subsub:partiality_container} (b)}, respectively.
 In the same manner, we now take a look at how to model non-determinism.
+That is, we define a container representation and prove that this representation is isomorphic to a data structure that combines a pair-structure with a nullary constructor.
 With these definitions at hand, we define simple non-deterministic functions and prove exemplary properties.
 
 \subsubsection{Representing Non-determinism using Containers}
-In Curry the built-in non-determinism effects comes with two primitives: \hinl{failed} to represent finite failures as known from logic programming as well as an operator \hinl{(?) :: a -> a -> a} to construct a non-deterministic choice between two expressions.
-
+In Curry the built-in non-determinism effects comes with two primitives: a polymorphic value \hinl{failed :: a} to represent finite failures as known from logic programming as well as the operator \hinl{(?) :: a -> a -> a} to construct a non-deterministic choice between two expressions.
 That is, we define the functor representing the non-determinism effect using two constructors as follows. 
 
 \begin{minted}{coq}
@@ -1396,7 +1374,7 @@ Inductive ND (A : Type) :=
 | failed : ND A.
 \end{minted}
 
-In order to transfer this functor to its isomorphic container representation, we need to define the shapes and positions functions involved.
+In order to transfer this functor to its isomorphic container representation, we need to define the shape and position type function involved.
 As we have two constructors to represent, we could simply use \cinl{bool} as the type for shapes.
 In order to increase the readability of the resulting code, we use a custom data type with two constructors instead.
 
@@ -1406,8 +1384,8 @@ Inductive ND!$_\text{S}$! :=
 | fld : ND!$_\text{S}$!.
 \end{minted}
 
-In contrast to definitions of position functions we have seen before, due to the two different shapes, we have to take the shape into account to determine the position type.
-That is, for the first time the dependently typed position function actually depends on the given shape.
+In contrast to definitions of position type functions we have seen before, due to the two different shapes, we have to take the shape into account to determine the final position type.
+That is, for the first time the dependently typed position type function actually depends on the given shape.
 There are no positions to access in case of the \cinl{failed} constructor and two possible positions --- the left or right argument --- in case of \cinl{choice}.
 Hence, we use types with zero and two values as position types: \cinl{Empty} and \cinl{bool}, respectively.
 
@@ -1436,9 +1414,9 @@ Definition to_ND A (e : Ext ND!$_\text{S}$! ND!$_\text{P}$! A) : ND A :=
  end.
 \end{minted}
 
-The interesting part in both definitions is the case of \cinl{choice}.
+Since the code corresponding to \cinl{failed} resembles the implementation we have seen for \cinl{Zero} before, the interesting part in both definitions is the case of \cinl{choice}.
 In the definition of \cinl{from_ND} we decide between the left argument \cinl{x} and right argument \cinl{y} depending on the given position \cinl{p} that is of type \cinl{bool}.
-We then implement \cinl{to_ND} such that it complies with its counterpart \cinl{from_ND}, i.e., we access the left argument using \cinl{true} and the right argument using \cinl{false}.
+We then implement \cinl{to_ND} such that it complies with its counterpart \cinl{from_ND}, that is, we access the left argument using \cinl{true} and the right argument using \cinl{false}.
 
 These definitions indeed form an isomorphism; since we have already seen quite a few of these proofs, we refrain from showing the whole proof script here.
 
@@ -1454,7 +1432,7 @@ Lemma to_from_ND : !$\forall$! (A : Type) (nd : ND A),
 
 In the following sections the suffix \cinl{ND} for types is used as synonym for the concrete instantiation of data types with the non-determinism effect, e.g., \cinl{FreeND = Free ND!$_\text{S}$! ND!$_\text{P}$!} and \cinl{ListND = List ND!$_\text{S}$! ND!$_\text{P}$!}.
 
-We define the following primitives \cinl{Failed} and \cinl{Choice} to construct values introduced by the non-determinism effect; we use the operation \cinl{?} as notation for the latter primitive.
+We define the following primitives \cinl{Failed} and \cinl{Choice} to construct values introduced by the non-determinism effect; we use the operator \cinl{?} as notation for the latter primitive.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition Failed (A : Type) : FreeND A :=
@@ -1465,7 +1443,7 @@ Definition Choice (A : Type) (fx : FreeND A) (fy : FreeND A) :=
 
 \paragraph{First Example}
 \label{par:firstNDExample}
-For our first example we will work on a non-deterministic (positive) number that is the choice between \cinl{1} and \cinl{2}.
+For our first example we work on a non-deterministic (positive) number that is the choice between \cinl{1} and \cinl{2}.
 Note, that we work with (positive) numbers as representatives for \hinl{Int} values in Curry, that is, these numbers are primitive and only need to be lifted at the top-level constructor.
 Thus, we reuse Coq's type for Peano numbers \cinl{nat} to model positive numbers.
 
@@ -1474,7 +1452,7 @@ Definition oneOrTwo : FreeND nat :=
   pure 1 ? pure 2.
 \end{minted}
 
-We define the following function \cinl{even} for arbitrary effects based on primitive operations already predefined in Coq on \cinl{nat} values.
+We define the following function \cinl{even} for arbitrary effects based on predefined Coq functions for \cinl{nat} values.
 
 \begin{minted}{coq}
 Definition even (fn : Free nat) : Free bool :=
@@ -1485,9 +1463,9 @@ Definition liftM1 A R (f : A -> R) (x : Free A) : Free R :=
 \end{minted}
 
 Here, the auxiliary function \cinl{liftM1} is used to lift primitive functions --- like the \cinl{even} function on Peano numbers.
-We will additionally use the notations \cinl{TTrue} and \cinl{FFalse}, respectively, for lifted Boolean values to distinguish them more comfortably from Coq's primitive Boolean values.
+We will additionally use the notations \cinl{TTrue} and \cinl{FFalse}, respectively, for lifted Boolean values to distinguish them more comfortably from Coq's predefined Boolean values.
 
-Now we are ready for some simple propositions about the defined functions: we prove that multiplying the non-deterministic computation \cinl{oneOrTwo} non-deterministically yields \cinl{TTrue} twice.
+Now we are ready for some simple propositions about the defined functions: we prove that doubling the non-deterministic computation \cinl{oneOrTwo} non-deterministically and checking if the value is even yields \cinl{TTrue} twice.
 That is, doubling the value \cinl{oneOrTwo} is always even.
 
 \begin{minted}{coq}
@@ -1501,7 +1479,7 @@ Definition AllND (A : Type) (P : FreeND A -> Prop) (fx : FreeND A) : Prop :=
   ForFree (fun x => P (pure x)) fx.
 \end{minted}
 
-Given the relation \cinl{AllND}, we can simplify the statement above using a suitable proposition instead of reconstructing all non-deterministic choices on the right-hand side manually.
+Given the definition \cinl{AllND}, we can simplify the statement above using a suitable proposition instead of reconstructing all non-deterministic choices on the right-hand side manually.
 
 \begin{minted}{coq}
 Lemma even_oneOrTwo_allND :
@@ -1526,7 +1504,7 @@ Lemma pulltab_inc : !$\forall$! (fx fy : FreeND nat),
 \end{minted}
 
 We can generalise this property of Curry's evaluation, sometimes called \emph{pull-tabbing}, for any strict function.
-The strictness property states that applying the function to an argument is equivalent to evaluating its argument to head-normal-form first and applying the function to the pure value.
+The strictness property states that applying the function to an argument is equivalent to evaluating its argument to head normal form first and applying the function to the pure value.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Lemma pulltab_if_strict : !$\forall$! (A B : Type)
@@ -1537,7 +1515,7 @@ Lemma pulltab_if_strict : !$\forall$! (A B : Type)
 
 \paragraph{Third Example}
 The third example considers not only a non-deterministic computation but a non-deterministic function.
-The function \cinl{ndInsert} non-deterministically inserts a value at each position of a list.
+We reimplement the function \cyinl{insert}, which non-deterministically inserts a value at each position of a list, that we introduced in \autoref{code:ndInsert}.
 
 \begin{minted}{coq}
 Fixpoint ndInsert' (A : Type) (fx : FreeND A) (xs : ListND A)
@@ -1569,7 +1547,7 @@ Definition length (A : Type) (fxs : Free (List A)) : Free nat :=
   fxs >>= fun xs => length' xs.
 \end{minted}
   
-More precisely, the property we define is more specific, as we do not quantify the list argument, but show it for a concrete list only.
+More precisely, the property we define is more specific, as we do not universally quantify over the list argument, but show it for a concrete list only.
 
 \begin{minted}{coq}
 Lemma ndInsert_inc :
@@ -1577,7 +1555,7 @@ Lemma ndInsert_inc :
         (ndInsert (pure 1) (Cons (pure 2) (Cons (pure 3) Nil))).
 \end{minted}
 
-Let's take a more detailed look at this example, as the first try to prove the property fails.
+Let us take a more detailed look at this example, as a first naive try to prove the property fails.
 After simplifying the expression, that is, evaluating the expression
 \begin{minted}{coq}
   ndInsert (pure 1) (Cons (pure 2) (Cons (pure 3) Nil))
@@ -1592,7 +1570,7 @@ the goal looks as follows.
         ? Cons (pure 2) (Cons (pure 1) Nil)))
 \end{cproof1}
 
-As \cinl{AllND} is defined via \cinl{ForFree}, we can use the second rule of the relation to process the goal.
+As \cinl{AllND} is defined via \cinl{ForFree}, we can use the second rule of the proposition to process the goal.
 Based on the decision for the non-deterministic choice, we get the first resulting list for the left branch and the recursive call for the right branch.
 We make a case distinction on that decision to proceed, which results in two subgoals.
 
@@ -1602,19 +1580,18 @@ We make a case distinction on that decision to proceed, which results in two sub
   ForFree (fun x => length' x = pure 3)
           (Cons (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)))
 
-subgoal 2 (ID 30) is:
   ForFree (fun x => length' x = pure 3)
           (Cons (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)
           ? Cons (pure 2) (Cons (pure 1) Nil)))
 \end{cproof1}
 
-For the first subgoal, we use the first rule of the \cinl{ForFree}-relation to handle the pure list constructor and then only need to show that the list has indeed \cinl{pure 3} elements.
+For the first subgoal, we use the first rule of the \cinl{ForFree}-proposition to handle the pure list constructor and then only need to show that the list has indeed \cinl{pure 3} elements.
 
 \begin{minted}{coq}
 - apply forPure. reflexivity.
 \end{minted}
 
-In the second subgal the outermost constructor is the pure list constructor \cinl{Cons}, that is, we use the first rule of the \cinl{ForFree}-relation again to process the goal.
+In the second subgal the outermost constructor is the pure list constructor \cinl{Cons}, that is, we use the first rule of the \cinl{ForFree}-proposition again to process the goal.
 
 \begin{cproof1}{- apply forPure.}{0.2}{0.7}
 
@@ -1624,17 +1601,17 @@ In the second subgal the outermost constructor is the pure list constructor \cin
   = pure 3
 \end{cproof1}
 
-When restructuring the left-hand side of the goal, we can unroll the definition of \cinl{length} once\footnote{This unrolling is a simplified illustration for the reader and not exactly the expression that Coq yields when using the tactic \cinl{simpl} here. We can, however, define a lemma that proves the simplification is valid.}, yielding the following expression.
+When restructuring the left-hand side of the goal, we can unroll the definition of \cinl{length} once\footnote{This unrolling is a simplified illustration for the reader and not exactly the expression that Coq yields when using the tactic \cinl{simpl} here. We can, however, define a lemma proving that this simplification is valid.}, yielding the following expression.
 
-\begin{minted}{coq}
+\begin{alltt}
   liftM1 (fun n => S n) (length (Cons (pure 1) (Cons (pure 2) Nil)
                                 ? Cons (pure 2) (Cons (pure 1) Nil)))
   = pure 3
-\end{minted}
+\end{alltt}
 
-Fortunately, we know from one of the preceding examples that a strict function applied to a non-deterministic value performs a pull-tab step.
+Fortunately, we know from the preceding examples that a strict function applied to a non-deterministic value performs a pull-tab step.
 That is, we can rewrite the above equation as follows.
-Note that we can prove the hypothesis about the strictness of the applied function \cinl{liftM1 (fun n => S n) . length} by induction on the argument of type \cinl{FreeND (ListND nat)}.
+Note that we prove the hypothesis about the strictness of the applied function \cinl{liftM1 (fun n => S n) . length} by induction on the argument of type \cinl{FreeND (ListND nat)}.
 
 \begin{cproof1}{rewrite pulltab_f_strict with (f := fun fxs => inc (length fxs)); simpl.}{0.5}{0.5}
 
@@ -1646,10 +1623,9 @@ We finally realise that we have a non-deterministic choice on the left-hand side
 That is, we cannot prove this property.
 The problem with the original property is that we disregarded that the non-determinism introduced by the function \cinl{ndInsert} occurs nested in the list constructors.
 
-We regain the correctness of the property we initially wanted to state by evaluating the resulting list to normal-form, that is, pulling all nested occurrences of non-deterministic choices to the top-level.
-Remember that in our setting the usage of the operator \cinl{>>=} mimics the evaluation to head-normal-form, that is, we can define the evaluation to normal-form by traversing a given data structure and evaluating all constructor arguments to head-normal-form.
-Here, we only present the definition for \cinl{ListND nat}, but note that the nature of the functions is more generic, that is, we can use the same definition for arbitrary effects and arbitrary types.
-Taking this idea one step further, we could define an overloaded function \cinl{nf} using a type class and implement instances for all translated data types.
+We regain the correctness of the property we initially wanted to state by evaluating the resulting list to normal form, that is, pulling all nested occurrences of non-deterministic choices to the top-level.
+Remember that in our setting the usage of the operator \cinl{>>=} mimics the evaluation to head normal form, that is, we can define the evaluation to normal form by traversing a given data structure and evaluating all constructor arguments to head normal form.
+Here, we only present the definition for \cinl{ListND nat}, but the nature of the functions is more generic: we can use the same definition for arbitrary effects and arbitrary types.
 
 \begin{minted}{coq}
 Fixpoint nfList' (ns : ListND nat) : FreeND (ListND nat) :=
@@ -1664,7 +1640,8 @@ Definition nfList (fns : FreeND (ListND nat)) : FreeND (ListND nat) :=
  fns >>= nfList'.
 \end{minted}
 
-Using the function \cinl{nfList}, we redefine the property by evaluating the list argument to normal-form and finally succeed with the proof.
+Taking this idea one step further, we could define an overloaded function \cinl{nf} using a type class and implement instances for all translated data types.
+Using the function \cinl{nfList}, we redefine the property by evaluating the list argument to normal form and finally succeed with the proof.
 
 \begin{minted}{coq}
 Lemma ndInsert_inc :
@@ -1674,11 +1651,11 @@ Lemma ndInsert_inc :
 
 \subsection{Sharing as Effect}
 
-The preceding examples illustrate how to model simple non-deterministic values and functions and prove properties about them.
+The preceding examples illustrate how to model simple non-deterministic values and functions as well as how to prove properties about them.
 The model we use so far, however, is not a suitable model for Curry's call-time choice semantics.
 The difference between Curry's call-time choice semantics and the non-strict non-determinism we are currently able to model can be generalised to the difference between call-by-name and call-by-need.
-In the following, we will first compare our example definition of \cinl{double} with an alternative version to exhibit the call-by-name behaviour of our model.
-We discuss an ad-hoc solution to mimic call-by-need for concrete examples and give an examples that shows the limitations of that idea.
+In the following, we first compare our example definition of doubling a number with an alternative version to exhibit the call-by-name behaviour of our model.
+We discuss an ad-hoc solution to mimic call-by-need for concrete examples and give an example that shows the limitations of that idea.
 Secondly, we propose a combination of the underlying mechanism of the \emph{KiCS2} compiler with related work on algebraic effects with scoped operations to implement Curry's call-time choice semantics.
 
 
@@ -1721,15 +1698,19 @@ Proof.
 Abort.
 \end{minted}
 
-The argument \cinl{oneOrTwo} is evaluated two times: once as first argument of the addition and once as the second one.
+Using the tactic \cinl{admit} we give up a try to prove a subgoal and the keyword \cinl{Abort} marks that we give up on the whole proof of the lemma.
+The comments highlight that the argument \cinl{oneOrTwo} is evaluated two times: once as first argument of the addition and once as the second one.
 The two occurrences of the variable \cinl{fx} in the definition of \cinl{doublePlus} result in two individual evaluations.
 That is, the expression is equivalent to the inlined version using addition directly on two individual calls to the non-deterministic computation \cinl{oneOrTwo}.
-Applying the predicate \cinl{even} to this computation then yields four results, which we illustrate with the second proof.
 
 \begin{minted}{coq}
 Lemma doublePlus_inline :
   doublePlus oneOrTwo = liftM2 plus oneOrTwo oneOrTwo.
+\end{minted}
 
+\noindent Applying the predicate \cinl{even} to this computation then yields four results, which we illustrate with the second proof.
+
+\begin{minted}{coq}
 Lemma even_doublePlus_Choice :
   even (doublePlus oneOrTwo) = (TTrue ? FFalse) ? (FFalse ? TTrue).
 \end{minted}
@@ -1749,9 +1730,10 @@ Lemma even_doublePlus_Failed :
   even (doubleMult Failed) = Failed.
 \end{minted}
 
-We observe here that the difference between call-by-name and call-by-need, i.e., between sharing a value or duplicating its evaluation, cannot be observed for effects like partiality (here: \cinl{Failed}) but becomes observable for an effect like non-determinism.
+We observe here that the difference between call-by-name and call-by-need --- that is, between sharing a value or duplicating its evaluation --- cannot be observed for effects like partiality --- as mimicked using \cinl{Failed} --- but becomes observable for an effect like non-determinism.
 
 \subsubsection{An Ad-hoc Solution}
+\label{subsubsec:adhoc}
 
 In order to regain the property that we want to prove, we need to evaluate a shared non-deterministic computation once and use the pure value of that computation for all occurrences in the expression.
 
@@ -1774,7 +1756,7 @@ Lemma even_doubleSharePos_Choice :
   even (doubleSharePos oneOrTwo) = TTrue ? TTrue.
 \end{minted}
 
-Since it is inconvenient to handle the sharing of the argument \cinl{fn} by using and explicit pattern matching on the \cinl{Free}-structure, we introduce an auxiliary function for explicit sharing.
+Since it is inconvenient to handle sharing of the argument \cinl{fn} by using explicit pattern matching on the \cinl{Free}-structure, we introduce an auxiliary function for explicit sharing.
 
 \begin{minted}{coq}
 Definition shareStrict (A : Type) (fx : Free A) : Free (Free A) :=
@@ -1784,7 +1766,7 @@ Definition shareStrict (A : Type) (fx : Free A) : Free (Free A) :=
   end.
 \end{minted}
 
-Note that we can define this explicit sharing function for an arbitrary effect, we do not need to know about the possible shapes that we are reconstructing on the right-hand side.
+Note that we define this explicit sharing function for an arbitrary effect, we do not need to know about the possible shapes that we are reconstructing on the right-hand side.
 In order to define this functionality in a separate function, we yield a nested value, that is a value of type \cinl{Free (Free A)}.
 The inner layer of \cinl{Free} represent the shared computation while the outer layer is a reconstruction of the effect occurring in the argument \cinl{fx} that we want to share.
 
@@ -1798,17 +1780,17 @@ Lemma even_doubleShare_Choice :
   even (doubleShare oneOrTwo) = TTrue ? TTrue.
 \end{minted}
 
-Note that the naming of the explicit sharing function was not picked randomly: the above usage for the definition of \cinl{doublePlus} only works as expected, because \cinl{doublePlus} is strict in its argument.
+Note that the naming of the explicit sharing function was not picked by chance: the above usage for the definition of \cinl{doublePlus} only works as expected, because \cinl{doublePlus} is strict in its argument.
 That is, we can only use \cinl{shareStrict} if we are sure that the computation that we are sharing needs to be evaluated anyway.
 Otherwise we might trigger a non-deterministic computation or a partial value that was not needed in the first place.
-In order to construct an example that shows the limitations of the explicit sharing function we consider an nested application of the effect-generic function \cinl{const} takes two arguments, ignores its latter one and yields the former.
+In order to construct an example that shows the limitations of the explicit sharing function we consider a nested application of the effect-generic function \cinl{const} that takes two arguments, ignores its latter one and yields the former.
 
 \begin{minted}{coq}
 Definition const (A B : Type) (fx : Free A) (fy : Free B) : Free A :=
   fx.
 \end{minted}
 
-The following lemma shows a nested usage of the function \cinl{const} arbitrary expression as first argument and passing a shared non-deterministic computation as second and third argument.
+The following lemma shows a nested usage of the function \cinl{const} on an arbitrary expression as first argument and passing a shared non-deterministic computation as second and third argument.
 The expected property is that this nested application is equivalent to yielding just the first argument.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
@@ -1824,7 +1806,7 @@ Abort.
 \end{minted}
 
 However, when using \cinl{shareStrict} the left-hand side of the equality is --- as the name of the function already suggests --- too strict.
-When we use \cinl{shareStrict} on an expression that does not need to be evaluated, here \cinl{const} yields its first argument and ignores the second one, results in unwanted behaviour in case of an effectful computation.
+When we use \cinl{shareStrict} on an expression that does not need to be evaluated --- here \cinl{const} yields its first argument and ignores the second one --- the usage results in an unwanted behaviour in case of an effectful computation.
 That is, the above example application triggers the non-deterministic computation \cinl{oneOrTwo} and, thus, yields its first argument \cinl{fx} twice.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
@@ -1832,16 +1814,16 @@ Lemma share_with_const : !$\forall$! (A : Type) (fx : FreeND A),
   shareStrict oneOrTwo >>= fun fy' => const (const fx fy') fy' = fx ? fx.
 \end{minted}
 
-At the end, although we can use the explicit sharing function \cinl{shareStrict} to mimic the sharing behaviour of Curry for some concrete examples, the usage is limited to situation that demand the evaluation of the shared expression anyways.
+At the end, although we can use the explicit sharing function \cinl{shareStrict} to mimic the sharing behaviour of Curry for some concrete examples, the usage is limited to situations that demand the evaluation of the shared expression anyway.
 In order to enable a more generic version of the explicit sharing function that does not rely on the demand of the shared expression, a more sophisticated underlying model is required.
 
 \subsubsection{Free Monads with Scope}
 
-A promising approach to modell Curry's call-time choice semantics is to use scoped operations as discussed by \citet{wu2014effect} and \citet{pirog2018syntax}.
-More precisely, \citeauthor{wu2014effect} present two approaches for implementations in Haskell: (a) using explicit primitives to mark the beginning and the end a scoped expression; (b) adapting the free monad construction by replacing the underlying functor with a higher-order functor.
+A promising approach to model Curry's call-time choice semantics is to use scoped operations as discussed by \citet{wu2014effect} and \citet{pirog2018syntax}.
+More precisely, \citeauthor{wu2014effect} present two approaches for implementations in Haskell: (a) using explicit primitives to mark the beginning and the end of a scoped expression; (b) adapting the free monad construction by replacing the underlying functor with a higher-order functor.
 The higher-order functor is a type constructor that takes a functor as argument, i.e., is of kind \hinl{(* -> *) -> * -> *}.
-The former approach leads to an administrative overhead to keep track of well-balanced begin and end tags and the problem that it is able to construct an unbalanced program in the first place.
-The usage is more convenient in the latter approach since the sharing primitive explicitly takes the scoped expression is explicitly as its argument.
+The former approach leads to an administrative overhead to keep track of well-balanced begin and end tags and the problem that it the construction of an unbalanced program is possible in the first place.
+The usage is more convenient in the latter approach since the sharing primitive explicitly takes the scoped expression explicitly as its argument.
 On the other hand, \citeauthor{pirog2018syntax} derive a representation of scoped effects using category theory.
 They also give a Haskell implementation for their representation of the free monad with scoped effects by adding an additional constructor \hinl{Scope}.
 
@@ -1852,7 +1834,7 @@ data Prog f g a = Return a
 \end{minted}
 
 Note that the resulting data type \hinl{Prog} is parametrised over an additional type constructor \hinl{g}.
-This type constructor is the functor for the effect with scope -- the type constructor \hinl{f} is still used for the effects, like partiality or non-determinism, that we have seen so far.
+This type constructor is the functor for the effect with scope --- the type constructor \hinl{f} is still used for the effects, like partiality or non-determinism, that we have seen so far.
 The nested structure of the \hinl{Scope} constructor enables the separation of \emph{ordinary} and scoped effects: the inner \hinl{Prog} layer is not affected when using \hinl{(>>=)} to transform the structure.
 
 \begin{figure}[tb]
@@ -1876,19 +1858,23 @@ The nested structure of the \hinl{Scope} constructor enables the separation of \
 \label{fig:searchTreeScope}
 \end{figure}
 
-In order to illustrate how a scoped effect can help in case of Curry's call-time choice semantics, \autoref{fig:searchTreeScope} shows an adapted version of the search tree representation.
-More precisely, the illustration enhances the search tree representation resulting from the sharing primitive introduced in the previous section using explicit markers.
+In order to illustrate how a scoped effect can help in case of Curry's call-time choice semantics, \autoref{fig:searchTreeScope} shows an adapted version of the search tree representation for the following Curry expression.
 
-Due to the explicit markers, the interpreting function \cinl{numberChoices} uses the end-delimiter to stop numbering.
+\begin{curry}
+example :: Int
+example = let x = 1 ? 2 in (x + (1 ? 2)) + (x + (1 ? 2))  
+\end{curry}
+
+More precisely, the illustration enhances the search tree representation using explicit markers.
+Due to the explicit markers, we can number the \texttt{?}-edges corresponding to the given label of the \texttt{Share}-edges.
 That is, the choices in line number $5$ and $11$ are not affected by the sharing effect and do not get any number.
-Note that a numbering that affects only the choices within the markers corresponds to the tree in \autoref{fig:searchTreeScope} when evaluating the example expression in Curry.
+Note that a numbering that affects only the choices within the markers corresponds to the tree representation when evaluating the example expression in Curry.
 
-\section{Related and Future Work}
+\section{Related Work}
 
 In this section we present and discuss related and future work concerning formal reasoning about functional programs with effects.
 We classify the related work using three categories: work on modelling algebraic effects in general, but especially using free monads; modelling and reasoning techniques that focus on Haskell programs; and approaches that model Curry's call-time choice semantics.
 If applicable, we state our interests in future work for specific topics that we discuss as related work directly.
-The last part of this section then collects all other directions for future work that we have not mentioned so far.
 
 \subsection{Modelling Algebraic Effects}
 
@@ -1896,7 +1882,7 @@ In his attempt to combine several functional programming idioms to describe a te
 
 \citet{plotkin2009handlers} give a more theoretical overview of algebraic effects and the corresponding handlers.
 They were motivated by finding models for exception handlers, but also present algebraic theories for effects like non-determinism, IO and state.
-For all these effects the underlying computation monad is the free-model monad of the respective theory.
+For all these effects the underlying computation monad is the free-model of the respective theory.
 That is, they derive the representation of free monads to model effects from an algebraic theory.
 Starting with their work on algebraic effects, by now there are implementations in Idris~\citep{brady2013programming}, Scala~\citep{brachthauser2017effekt}, OCaml~\citep{kiselyov2018eff}, and Haskell~\citep{kiselyov2015freer,kammar2013handlers} as well as new languages with primitives for effects and handlers like Eff~\citep{pretnar2015introduction}, Koka~\citep{leijen2016algebraic}, Frank~\citep{lindley2017be}, and F*~\citep{swamy2016dependent}.
 
@@ -1909,29 +1895,28 @@ data General (S : Set) (T : S -> Set) (X : Set) : Set where
 \end{verbatim}
 
 He describes \texttt{General} as a request-response tree with values of type \texttt{X}.
-The definition is basically the implementation of the free monad model we have presented and used here modulo renaming: \texttt{!!} embeds value as we do using \cinl{pure} and \cinl{impure} corresponds to \texttt{??}.
+The definition is basically the implementation of the free monad we have presented and used here modulo renaming: \texttt{!!} embeds value as we do using \cinl{pure} and \cinl{impure} corresponds to \texttt{??}.
 
 The formalism FreeSpec~\citep{letan2018modular} allows to model components as programs with algebraic effects in a modular fashion and verify properties of these components.
 \citeauthor{letan2018modular} implement the framework in Coq based on the \hinl{Program} monad defined in the \texttt{operational} package\footnote{\url{https://hackage.haskell.org/package/operational}} in Haskell.
-In contrast to the free monad we use in this chapter, \cinl{Program} monad adds a third constructor to explicitly model processing a program using a continuation via \cinl{Bind}.
+In contrast to the free monad we use in this chapter, their \cinl{Program} monad adds a third constructor to explicitly model processing a program using a continuation via the additional constructor \cinl{Bind}.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-Inductive Program (I : Type -> Type) (A : Type) : Type :=
-  Pure    : A -> Program I A
-  Bind    : !$\forall$! (B : Type),
-             Program I B -> (B -> Program I A) -> Program I A
-  Request : I A -> Program I A.
+Inductive Program (I : Type -> Type) (A : Type) :=
+| Pure    : A -> Program I A
+| Bind    : !$\forall$! (B : Type), Program I B -> (B -> Program I A) -> Program I A
+| Request : I A -> Program I A.
 \end{minted}
 
 In a newer version of the framework the constructors \cinl{Bind} and \cinl{Request} were merged into one constructor, hence, resemble the definition of freer monads as introduced by \citet{kiselyov2015freer} more closely.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-Inductive Program (I : Type -> Type) (A : Type) : Type :=
-  Pure    : A -> Program I A
-  Request : !$\forall$! (B : Type), I B -> (B -> Program I A) -> Program I A.
+Inductive Program (I : Type -> Type) (A : Type) :=
+| Pure    : A -> Program I A
+| Request : !$\forall$! (B : Type), I B -> (B -> Program I A) -> Program I A.
 \end{minted}
 
-In contrast the usual free monad definition using a functor, the freer representation removes the functor constraint by using a continuation \cinl{B -> Program I A} instead to directly describe how to process the instruction \cinl{I B}.
+In contrast to the usual free monad definition using a functor, the freer representation removes the functor constraint by using a continuation \cinl{B -> Program I A} instead of a direct description of how to process the instruction \cinl{I B}.
 
 The work of \citet{koh2019interaction} on \emph{interaction trees} adapts the freer monad in Coq as well.
 The associated DeepSpec project on verifying networked servers implemented in C uses interaction trees as general structure to represent reactive components.
@@ -1939,7 +1924,7 @@ Again,  a more recent version of the framework uses a slightly modified structur
 They currently implement a coinductive variant of the free monad to model diverging computations \citep{xia2019interaction}.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
-CoInductive itree (E: Type -> Type) (R: Type) : Type :=
+CoInductive itree (E: Type -> Type) (R: Type) :=
 | Ret  : R -> itree E R
 | Tau : itree E R -> itree E R
 | Vis : !$\forall$! (A : Type), E A -> (A -> itree E R) -> itree E R.
@@ -1950,23 +1935,23 @@ It would be interesting to investigate if a coinductive definition of \cinl{Free
 Concerning other ideas that are worth further investigation, \citet{atkey2015interleaving} examine how the reasoning about
 inductive data types can be eased using the categorical principle of initial algebras.
 They are particularly interested in data types that are interleaved with effects --- similar to the monadic liftings of the data types that we have discussed.
-Their approach does not only parametrise over the effects but also the data types.
+Their approach does not only parametrise over the effects but also over the data structures.
 That is, they describe an abstraction using \emph{initial f-and-m-algebras}, where \emph{m} describes the interleaved effects as monads and \emph{f} is a functor that describes the pure part of the respective data type.
-The part we like to investigate further is the custom proof principle they use to prove properties about programs modelled as f-and-m-algebras.
+The part we like to investigate further is the approachability of the custom proof principle they use to prove properties about programs modelled as f-and-m-algebras for our setting.
 
 \subsection{Reasoning About Haskell Programs}
 
-In addition to related work that models effects using mondas, there is also a variety of work that focuses on modelling and reasoning about Haskell programs.
+In addition to related work that model effects using monads, there is also a variety of work that focuses on modelling and reasoning about Haskell programs.
 Most prominently represented in this thesis is the work by \citet{abel2005verifying}.
-We based our approach on their original idea to model Haskell programs in the dependently typed language Agda~\citep{norell2008dependently} using a monadic lifting for data types and functions.
+We based our approach on their original idea to model Haskell programs in the dependently typed language Agda using a monadic lifting for data types and functions.
 The monadic lifting models two aspects of Haskell.
-First, Haskell is a non-strict language, such that the monadic \hinl{>>=}-operator comes in handy when defining function that need to pattern match on their arguments.
+First, Haskell is a non-strict language, such that the monadic \hinl{>>=}-operator comes in handy when defining functions that need to pattern match on their arguments.
 Second, since \citeauthor{abel2005verifying} want to model total as well as partial Haskell programs, the monadic approach enables the reuse of generic data type and function definitions.
 By instantiating the monadic parameter with a concrete instance the model can be used for either one of the wanted settings.
 
-\citet{demol2002theorem} develop the interactive proof assistant Sparkle that is integrated into the development of  the programming language Clean~\citep{brus1987clean}.
+The interactive proof assistant Sparkle developed by demol2002theoremis integrated in the programming language Clean~\citep{brus1987clean}.
 Since Clean is a non-strict functional language like Haskell, reasoning about Clean is similar to reasoning about Haskell programs.
-Furthermore, Sparkle considers the partiality of Clean as default and, thus, explicitly models \emph{undefined} values.
+Furthermore, Sparkle considers the partiality of Clean as default and, thus, explicitly models undefined values.
 As an especially interesting use-case of this explicit model, \citet{vaneekelen2006proof} reason about the strictness of functions.
 As future work, it would be interesting to model such strictness properties in the framework used in this thesis in the same manner as they do in Sparkle.
 
@@ -1975,7 +1960,7 @@ HERMIT is a toolkit for reasoning about Haskell programs that integrates directl
 The tool was successfully used by \citeauthor{farmer2015reasoning} to formalise and prove properties about various type classes and their corresponding laws as well as pen-and-paper proofs taken from \citetitle{bird2010pearls}~\citep{bird2010pearls}.
 
 More recently, the translation of Haskell to Coq is a line of research that is of growing interest.
-In the process, they want to keep the generated Coq code as close to the original structure of the Haskell code as possible.
+In the process, the goal is to have generated Coq code as close to the original structure of the Haskell code as possible.
 The experience report by \citet{dijkstra2012experimentation} describes such an approach for an automatically translation.
 \citeauthor{dijkstra2012experimentation} models partial functions using a method presented by \citet{bove2007computation} that extends all functions with additional proof arguments.
 These proof arguments pose certain invariants about all function applications.
@@ -1993,7 +1978,7 @@ This approach enables a more practical way to reason about some simple propertie
 \subsection{Modelling Curry Programs}
 
 Besides the generic view on modelling effects and the focus on modelling or reasoning about Haskell, we also take a look at related work on proving properties about functional logic programs to find connections and inspirations for our findings about modelling Curry programs.
-\citet{cleva2004logic} discuss that common equational reasoning techniques are not valid in the functional logic languages that combine non-deterministic functions and call-time choice semantics.
+\citet{cleva2004logic} discuss that common equational reasoning techniques are not valid in functional logic languages that combine non-deterministic functions and call-time choice semantics.
 They suggest a proof calculus based on \emph{CRLW} (constructor-based rewriting logic)~\citep{gonzalez1996rewriting} to prove properties about first-order functional logic programs.
 On top of that, they encode this approach in various proof assistants for simple exemplary programs and corresponding properties.
 
@@ -2008,20 +1993,20 @@ class MonadPlus m where
   mzero :: m a
 \end{minted}
 
-The type constructor class \hinl{MonadPlus} comes with two functions \hinl{mplus} and \hinl{mzero} that represent operations for non-deterministic choices and failure values, respectively.
-As we have already discussed in \autoref{subsubsec:cbneed}, such a monadic representation models call-by-name rather than the  concept of call-by-need.
+Recall that the type constructor class \hinl{MonadPlus} comes with two functions \hinl{mplus} and \hinl{mzero} that represent operations for non-deterministic choices and failure values, respectively.
+As we have already discussed in \autoref{subsubsec:cbneed}, such a monadic representation models call-by-name rather than the concept of call-by-need.
 In order to overcome this issue, they introduce an explicit sharing function \hinl{share :: MonadPlus m => m a -> m (m a)}.
-We used the same interface for the sharing operator in our approach as discussed in \autoref{subsubsec:cbneed}.
-These two layers of monads of the result of the sharing function is necessary to retain the non-strictness property.
-The first monadic layer additionally performs bookkeeping in order to implement call-time choice in case of sharing involving non-deterministic computations.
+We used the same interface for the sharing operator in our approach as discussed in \autoref{subsubsec:adhoc}.
+These two layers for the resulting value of the sharing function is necessary to retain the non-strictness property.
+The first monadic layer additionally performs bookkeeping when sharing non-deterministic computations.
 In order to track the decisions of shared non-deterministic computations during evaluation, \citeauthor{fischer2009purely} use an untyped heap that stores computations corresponding to variable references.
 That is, their implementation is a realisation of the heap used in the operational call-by-need semantics as introduced by \citet{launchbury1993natural}.
 The main contribution of an implementation for Curry's call-time choice in Coq using \cinl{Free} in contrast to the implementation of \citeauthor{fischer2009purely} is to avoid unpure features.
-This avoidance originates in our usage of Coq, where these features are not available, but are also of interest for an implementation in Haskell as well.
+This avoidance originates in our usage of Coq, that does not allow such features, but are also of interest for an implementation in Haskell as well.
 As future work, we plan to investigate if a Haskell implementation that tracks the decisions of choices instead of references to computations can compete with respect to performance.
 
 An approach by \citet{antoy2017proving} aims at modelling Curry programs in Agda.
-In contrast to our and \citeauthor{fischer2009purely}'s goal to implement a generic model that combines non-strictness, sharing and effects like non-determinism, \citeauthor{antoy2017proving} explicitly tackle Curry's choice operator only.
+In contrast to our as well as the goal of \citeauthor{fischer2009purely} to implement a generic model that combines non-strictness, sharing and effects like non-determinism, \citeauthor{antoy2017proving} explicitly tackle Curry's choice operator only.
 They present two different representations of Curry's non-determinism called \emph{planned choices}, and \emph{set of values} respectively.
 The translation for the first approach adds an extra argument to the translated function.
 This argument represents the choice to make for non-deterministic choices during the computation of the translated function and, hence, makes the function deterministic.
@@ -2039,24 +2024,25 @@ Here, it comes apparent that their model is a specialisation of the generic mona
 The provided operators \texttt{\$*} and \texttt{*\$*} underline the correspondance to a monadic interface: The former operator corresponds to the functor method \hinl{fmap} and the latter to the monadic bind-operation \hinl{>>=}.
 
 Lastly, we like to mention the promising prototype developed by \citet{bunkenburg2019modeling} that was developed during his master's thesis.
-\citeauthor{bunkenburg2019modeling} implements Curry's call-time choices semantics in Coq using the \cinl{Free} model in combination with the results of \citet{wu2014effect} about scoped effects.
+\citeauthor{bunkenburg2019modeling} implements Curry's call-time choice semantics in Coq using the \cinl{Free} model in combination with the results of \citet{wu2014effect} about scoped effects.
 \citeauthor{wu2014effect} describe two representation for scoped effects: explicit syntax with begin- and end-tags to delimit the scope and higher-order syntax that uses a higher-order functor to describe effects.
 The first approach leads to cumbersome implementations for handlers of scoped effects when also considering possible mismatches of the tags.
 The higher-order syntax, on the other hand, takes the scoped program directly as argument and, thus, avoids to mark the begin and end of the scope manually.
 Concerning the implementations in Coq, the higher-order syntax, however, opens a new cans of worms when trying to circumvent Coq's strict positivity restriction for data types, especially for the definition of the container representation of higher-order functors.
-As future work we like to try out this prototype using several case studies to detects the limits of the approach or the implementation in particular.
+As future work we like to try out this prototype using several case studies to detect the limits of the approach or the implementation in particular.
 With respect to the difficulty of defining the container representation for the higher-order approach in Coq, we hope to circumvent the problem by finding an appropriate implementation that is probably less general than the implementation in Haskell but
 adheres to Coq's restrictions.
 First experiments revealed that Agda accepts a slightly adjusted definition of the data type \citeauthor{bunkenburg2019modeling} tried to implement in Coq.
-Hence, it might be worthwhile to reimplement the model for call- choice in Agda to try out first proofs about Curry programs for the higher-order approach.
+Hence, it might be worthwhile to reimplement the model for call-time choice in Agda to try out first proofs about Curry programs for the higher-order approach.
 A fairly long-term goal is to show that our model using \cinl{Free} correctly models Curry's call-time choice.
 Thanks to the implementation in Coq, we can use the model to prove the equivalence with an operational or denotational model of Curry.
 The implementation of the operational or denotation of Curry is an interesting line of work itself that is useful for a wide range of questions and issues.
 
-\subsection{Future Work}
+\section{Future Work}
+
 Besides the special case of modelling Curry programs, we are interested in adapting our approach to be applicable to call-by-need semantics in general.
-In Haskell, for example, we can also observe the  between call-by-name and call-by-need when considering tracing as effect.
-Consider the following exemplary Haskell program and its evaluation using a call-by-need and call-by-name semantics, respectively.
+In Haskell, for example, we can also observe the difference between call-by-name and call-by-need when considering tracing as effect.
+Consider the following exemplary Haskell program and its evaluation assuming a call-by-need and call-by-name semantics, respectively.
 
 \begin{verbatim}
 > let xNeed = trace "example" 42 in xNeed + xNeed
@@ -2078,7 +2064,7 @@ We plan to apply the first insights we gained from modelling Curry programs to m
 In a first attempt to investigate the current approach \citep{christiansen2019verifying} we took a more detailed look at the effects occurring in Haskell and defined a category of effects that behave the same under call-by-name and call-by-need semantics using a syntactic criteria for the effects involved.
 In that paper, we have shown that a variety of propositions can be successfully modelled using our approach, assuming that the functions involved do not share computations.
 
-When thinking about it becomes apparent that we cannot model all possible function with our current approach.
+When thinking about non-deterministic functions, it becomes apparent that we cannot model all possible functions with our current approach.
 Consider for example the following two function definitions of the same type.
 
 \begin{curry}
@@ -2089,9 +2075,9 @@ fun2 :: Int -> Int
 fun2 = (+1) ? (*2)
 \end{curry}
 
-Both functions increment the input value by one as well as multiplies it by two by using non-determinism.
-The crucial difference is that the first function non-deterministically yields a value whereas the second one yields a function.
-When using these functions as argument to \hinl{map}, for example, we can even observe that these implementation behave differently.
+Both functions increment the input value by one as well as multiply it by two by using non-determinism.
+The crucial difference is that the first function non-deterministically yields a value whereas the second one yields a non-deterministic function.
+When using these functions as argument to \hinl{map}, for example, we can observe that these implementation behave differently.
 
 \begin{verbatim}
 > map fun1 [1,1]
@@ -2106,7 +2092,7 @@ When using these functions as argument to \hinl{map}, for example, we can even o
 \end{verbatim}
 
 These examples are also used by \citet{mehner2014parametricity} to show that eta-equivalence does not hold for Curry.
-Translating the second function into our framework with usual pattern is, however, not possible.
+Translating the second function into our framework is, however, not possible.
 Up to now, we have translated all function types by lifting each individual argument.
 In case of \hinl{fun2}, we need to implement the non-deterministic choice between two functions, thus, the final type is a function type that must be lifted.
 More precisely, let us take a look at the definition of \cyinl{fun1} and the try to define \cyinl{fun2} with the usual pattern.
@@ -2122,7 +2108,7 @@ Definition fun2 (A : Type) : Free nat -> Free nat :=
 The second definition will not typecheck, because both arguments of \cinl{?} are functions, not the resulting expression.
 The resulting expression is of type \cinl{Free (Free nat -> Free nat)}.
 When thinking about the translation of types in more detail, it indeed makes sense to translate a Curry (or Haskell) function of type \hinl{a -> a} to \cinl{Free (Free a -> Free a)} in our monadic lifting.
-We have corresponding type definition that lift all arguments of the corresponding constructors.
+Currently, we have corresponding type definitions that lift all arguments of the corresponding constructors.
 For example, a type for pairs has a constructor \cinl{pair} of the following type.
 
 \begin{crepl}
@@ -2152,7 +2138,7 @@ Definition fun2 (A : Type) : Free (Arrow (Free nat) (Free nat)) :=
 Although both functions have the same type, we can now see the difference of the implementation more explicitly: the first definition produces a non-deterministic result that consists of two functions first, while the second definition yields a pure function with non-deterministic values as argument for the \cinl{arrow} constructor.
 Note that a similar construction is also possible in the partiality setting we discussed for Haskell.
 The difference between such two function definitions can, however, only be observed in the presence of the function \hinl{seq :: a -> b -> b} that evaluates its first argument to head normal form and yields its second argument.
-The example consisting of two function in case of partiality in Haskell look as follows.
+The example consisting of two functions in case of partiality in Haskell look as follows.
 
 \begin{minted}{haskell}
 fun1 :: a -> b
@@ -2163,7 +2149,7 @@ fun2 = undefined
 \end{minted}
 
 In order to make the framework approachable for users, we like to investigate if all functions should be translated using \cinl{Arrow} or only functions that cannot be constructed otherwise.
-In both cases a case study is needed to check how these decisions affect the usage of the framework when writing proofs.
+For both variants it makes sense to conduct a case study to check how these decisions affect the usage of the framework when writing proofs.
 
 As a different direction for future work, it would be interesting to consider inequational propositions as well.
 Using inequational propositions, we can, for example, compare the strictness of two implementations of the same function.
@@ -2180,8 +2166,8 @@ mult2 (Succ _) Zero = Zero
 mult2 (Succ m) n    = add n (mult2 m n)
 \end{minted}
 
-We refere to the former definition as the default implementation, whereas the latter definition is a more advanced variant that is less-strict.
-Assuming a less-strict-relation $\sqsubseteq$, we are then  in a formal specification that \hinl{mult2} is less strict than \hinl{mult}.
+We refer to the former definition as the default implementation, whereas the latter definition is a more advanced variant that is less-strict.
+Assuming a less-strict-relation $\sqsubseteq$, we are then interested in a formal specification that \hinl{mult2} is less strict than \hinl{mult}.
 
 \[
 \forall \text{ p q : Peano}. \text{ mult p q} \sqsubseteq \text{mult2
@@ -2231,15 +2217,15 @@ We have presented these ideas in \citet{christiansen2019proving} and plan to con
 In this chapter we discussed an approach to model and reason about non-strict effectful programs in a proof assistant like Coq.
 Here, partiality as most notably occurring in Haskell as well as Curry's non-determinism were effects of special interest.
 We started with a detailed motivation that resembles the obstacles we stumbled upon and the corresponding ideas and final solutions we came up with to tackle the problems.
-After establishing the preliminary concepts underlying the  framework, we define first Haskell functions and associated properties.
-One of the advantages of the framework is its generality: Although we are especially interested in an effect like partiality that can occur in Haskell, we emphasise the definition of effect-generic functions and proofs.
+After establishing the preliminary concepts underlying the framework, we define first Haskell functions and associated properties.
+One of the advantages of the framework is its generality: although we are especially interested in an effect like partiality that can occur in Haskell, we emphasise the definition of effect-generic functions and proofs.
 The former is a common idiom in functional programming, we generalise functions using, for example, a monadic abstraction.
-In case of our framework the latter generalisation is even more interesting: if a propositions holds for arbitrary effects, we can reuse these propositions in other generic proofs as well as in proofs about more specialised settings like partiality.
+In case of our framework the latter generalisation is even more interesting: if a proposition holds for arbitrary effects, we can reuse this proposition in other generic proofs as well as in proofs about more specialised settings like partiality.
 That is, we can even reuse a variety of functions and properties we define to model Haskell programs when reasoning about Curry programs.
 Of course, for Curry programs we need a non-deterministic choice between two computations as an additional primitive, nonetheless, effect-generic functions and propositions can be reused.
 In the section about Curry, we additionally observe that the current model we use for Haskell as well as Curry follows call-by-name semantics.
 In both cases, call-by-need semantics is what we are actually aiming for.
-In case of Curry, however, we more naturally stumble about this problem, because in case of non-determinism we can observe the difference between call-by-name and call-by-need whereas we cannot observe this difference in case of partiality only.
+In case of Curry, however, we more naturally stumble upon this problem, because in case of non-determinism we can observe the difference between call-by-name and call-by-need whereas we cannot observe this difference in case of partiality only.
 For an effect like tracing, on the other hand, that is common for Haskell programmers as well, we can again observe the difference.
 Thus, this observation leads us to the goal to define a model that enables us to reason about call-by-need semantics.
 We discussed a first naive approach to reproduce the wanted semantics for simple programs, but could not use this approach in a more general setting.
@@ -2251,7 +2237,7 @@ We hope to apply the ideas on scoped operations to reason about Haskell's tracin
 The framework presented in this chapter as well as additional content has been previously published.
 We published the general approach to represent Haskell programs as monadic Coq programs using free monads and container representations for functors in The Art, Science, and Engineering of Programming, Volume 3 \citep{dylus2019one}.
 In the publication we additionally present a case study on queues that we did not include here.
-Furthermore, the publication has a fairy tale theme that allowed us to present the obstacles and their solution in a more beginner-friendly atmosphere.
+Furthermore, the publication has a fairy tale theme that allowed us to present the obstacles and their solution in a more tutorial-like manner.
 Note that we decided here to define \cinl{Free} with an inlined version of \cinl{Ext} instead of using the data type to represent the container extension explicitly.
 The additional content about Haskell's tracing effect and the observations concerning modelling call-by-name and call-by-need were published recently in the Proceedings of the 12th International Symposium on Haskell \citep{christiansen2019verifying}.
 The publication also covers the translation of function types using an additional layer of monadic liftings as we discuss properties about Haskell's primitive function \hinl{seq}.
