@@ -15,7 +15,7 @@ In \autoref{ch:permutations} we implemented a variety of sorting functions param
 The resulting functions enumerate permutations of the input list.
 We implemented this approach in Curry using the built-in non-determinism as well as in Haskell using lists as representation for non-deterministic computations.
 The Haskell implementation uses a generic, monadic lifting of the ordinary, pure sorting function in order to use a non-deterministic comparison function and compute non-deterministic results.
-One particularly interesting observation was that the Haskell version of selection sort computes more lists than the permutations of the input list whereas the Curry version computes exactly all permutations.
+One particularly interesting observation was that the Haskell version of selection sort computes duplicated results whereas the Curry version computes exactly all permutations.
 This difference was the main reason we investigated the difference of both implementations in the first place.
 Furthermore, we observed that the Curry version of these implementations can exploit non-strictness better than their Haskell counterparts.
 We investigated this property for all sorting function that computed exactly all permutations in Curry as well as in Haskell.
@@ -23,7 +23,7 @@ In order to check for this property, we computed only the head elements of the p
 The most impressive sorting functions for this example are selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
 On top of that, none of the Curry implementations need to demand all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations demand at least $n!$ computations.
 This comparison shows a clear advantage of the Curry implementation: $n!$ non-deterministic computations in Haskell corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
-On the other hand, selecting only the head element of the permutations has no effect on the non-determinism that needs to be demanded in Curry.
+On the other hand, selecting only the head element of the permutations has no effect on the non-determinism that needs to be demanded for these example in Curry.
 
 In \autoref{ch:pflp} we presented an implementation for probabilistic programming in Curry.
 Such a library proves to be a good fit for an implementation using a functional logic language, because both paradigms share similar features.
@@ -45,8 +45,8 @@ In case of our framework the generalisation of proofs is especially beneficial: 
 That is, we can even reuse a variety of functions and properties we define to model Haskell programs when reasoning about Curry programs.
 
 We observed that the current model we use for Haskell as well as Curry follows call-by-name semantics instead of the wanted call-by-need semantics.
-We stumbled about this problem in case of Curry, because we can observe the difference between call-by-name and call-by-need in case of non-determinism.
+We stumbled upon this problem in case of Curry, because we can observe the difference between call-by-name and call-by-need in case of non-determinism.
 In case of Haskell, we cannot observe this difference when modelling partiality only.
 In Haskell we can, however, again observe the difference for an effect like tracing.
 Thus, this observation lead us to the goal to define a model that enables us to reason about call-by-need semantics.
-We hope to apply ideas of a prototypical implementation using scoped operations to model Curry's call-time choice semantics to reason about Haskell's tracing effects and other effects that rely on call-by-need semantics as well.
+We hope to apply ideas of a prototypical implementation using scoped operations to model call-time choice to reason about Haskell's tracing effects and other effects that rely on call-by-need semantics as well.
