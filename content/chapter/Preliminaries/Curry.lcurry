@@ -160,6 +160,7 @@ insert :: a -> [a] -> [a]
 insert x []     = [x]
 insert x (y:ys) = (x : y : ys) ? y : insert x ys
 \end{curry}
+\label{code:ndInsert}
 
 As expected, we get 5 results when we run the exemplary expression from the Haskell section.
 

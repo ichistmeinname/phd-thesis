@@ -291,7 +291,7 @@ Let us take a look at an example: the induction principle for Coq's predefined l
   list_ind : \(\forall\) (A : Type) (P : list A -> Prop),
     P nil ->
     (\(\forall\) (x : A) (xs : list A), P xs -> P (cons x xs)) ->
-    \(\forall\) xs : list A, P xs
+    \(\forall\) (xs : list A), P xs
 \end{crepl}
 
 Dissecting this type signatures gives us the following parts: given a proposition \cinl{P} on lists, we need to supply two proofs.
