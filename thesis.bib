@@ -20,7 +20,6 @@
 
 @book{jones2002haskell,
   title = {Haskell 98 {{Language}} and {{Libraries}}: {{The Revised Report}}},
-  publisher = {{http://haskell.org/}},
   editor = {Jones, Simon Peyton},
   month = sep,
   year = {2002},
@@ -79,8 +78,7 @@
 @book{hanus2017pakcs,
   title = {{{PAKCS}}: {{The Portland Aachen Kiel Curry System}}},
   author = {Hanus, Michael},
-  year = {2017},
-  note = {Published: Available at http://www.informatik.uni-kiel.de/{$\sim$}pakcs/}
+  year = {2017}
 }
 
 @inproceedings{paige2014compilation,
@@ -460,7 +458,7 @@
   title = {On the {{Implementation}} of the {{Probabilistic Logic Programming Language ProbLog}}},
   volume = {11},
   doi = {10.1017/S1471068410000566},
-  author = {Kimmig, Angelika and Demoen, Bart and De Raedt, Luc and Costa, V\textbackslash\textasciiacute\{i\}tor Santos and Rocha, Ricardo},
+  author = {Kimmig, Angelika and Demoen, Bart and De Raedt, Luc and Costa, V{\'i}tor Santos and Rocha, Ricardo},
   year = {2011},
   pages = {235 -- 262}
 }
@@ -901,7 +899,6 @@
   title = {Computation by {{Prophecy}}},
   volume = {4583},
   abstract = {We describe a new method to represent (partial) recursive functions in type theory. For every recursive definition, we define a co-inductive type of prophecies that characterises the traces of the computation of the function. The structure of a prophecy is a possibly infinite tree, which is coerced by linearisation to a type of partial results defined by applying the delay monad to the co-domain of the function. Using induction on a weight relation defined on the prophecies, we can reason about them and prove that the formal type-theoretic version of the recursive function, resulting from the present method, satisfies the recursive equations of the original function. The advantages of this technique over the method previously developed by the authors via a special-purpose accessibility (domain) predicate are: there is no need of extra logical arguments in the definition of the recursive function; the function can be applied to any element in its domain, regardless of termination properties; we obtain a type of partial recursive functions between any two given types; and composition of recursive functions can be easily defined.},
-  language = {English},
   booktitle = {Typed {{Lambda Calculi}} and {{Applications}}},
   publisher = {{Springer Berlin Heidelberg}},
   author = {Bove, Ana and Capretta, Venanzio},
@@ -931,10 +928,9 @@
   organization = {{Springer}}
 }
 
-@phdthesis{bunkenburg2019modeling,
-  address = {{Germany}},
+@article{bunkenburg2019modeling,
   title = {Modeling {{Call}}-{{Time Choice}} as {{Effect}} Using {{Scoped Free Monads}}},
-  school = {Kiel University},
+  journal = {Master's Thesis, Kiel University},
   author = {Bunkenburg, Niels},
   year = {2019}
 }
@@ -974,7 +970,7 @@
   volume = {234},
   booktitle = {Proceedings of the 24th {{International Workshop}} on {{Functional}} and ({{Constraint}}) {{Logic Programming}}},
   publisher = {{Open Publishing Association}},
-  author = {Antoy, S. and Hanus, M. and Libby, S.},
+  author = {Antoy, Sergio and Hanus, Michael and Libby, Steven},
   year = {2017},
   pages = {180-195}
 }
@@ -1019,7 +1015,7 @@
 
 @article{kiselyov2018eff,
   title = {Eff Directly in {{OCaml}}},
-  journal = {arXiv preprint arXiv:1812.11664},
+  journal = {arXiv preprint arXiv:\textbackslash{}-1812.11664},
   author = {Kiselyov, Oleg and Sivaramakrishnan, KC},
   year = {2018}
 }
@@ -1149,7 +1145,6 @@
 
 @article{pierce2010software,
   title = {Software {{Foundations}}},
-  journal = {Webpage: \textbackslash{}url\{http://www.cis.upenn.edu/bcpierce/sf/current/index.html\}},
   author = {Pierce, Benjamin C and Casinghino, Chris and Gaboardi, Marco and Greenberg, Michael and Hri{\c t}cu, C{\u a}t{\u a}lin and Sj{\"o}berg, Vilhelm and Yorgey, Brent},
   year = {2010}
 }
@@ -1176,19 +1171,11 @@
 
 @inproceedings{christiansen2019verifying,
   title = {Verifying Effectful {{Haskell}} Programs in {{Coq}}},
-  booktitle = {Proceedings of the 12th {{ACM SIGPLAN International Symposium}} on {{Haskell}}, {{Haskell}}@{{ICFP}} 2019, {{Berlin}}, {{Germany}}, {{August}} 18-23, 2019},
+  booktitle = {Proceedings of the 12th {{ACM SIGPLAN International Symposium}} on {{Haskell}}},
   doi = {10.1145/3331545.3342592},
   author = {Christiansen, Jan and Dylus, Sandra and Bunkenburg, Niels},
   year = {2019},
   pages = {125-138}
-}
-
-@article{dylus2019implementing,
-  title = {Implementing a {{Library}} for {{Probabilistic Programming}} Using {{Non}}-Strict {{Non}}-Determinism},
-  volume = {abs/1905.07212},
-  journal = {CoRR},
-  author = {Dylus, Sandra and Christiansen, Jan and Teegen, Finn},
-  year = {2019}
 }
 
 @inproceedings{hutton2008reasoning,
@@ -1234,7 +1221,7 @@
 }
 
 @article{czaplicki2012elm,
-  title = {Elm: {{Concurrent}} Frp for Functional Guis},
+  title = {Elm: {{Concurrent FRP}} for Functional {{GUIs}}},
   journal = {Senior thesis, Harvard University},
   author = {Czaplicki, Evan},
   year = {2012}
@@ -1269,7 +1256,7 @@
   title = {The Call-by-Need Lambda Calculus},
   volume = {7},
   number = {3},
-  journal = {Journal of functional programming},
+  journal = {Journal of Functional Programming},
   author = {Ariola, Zena M and Felleisen, Matthias},
   year = {1997},
   pages = {265-301},
@@ -1308,6 +1295,15 @@
   year = {2010},
   pages = {127-132},
   organization = {{Citeseer}}
+}
+
+@article{dylus2019implementinga,
+  title = {Implementing a Library for Probabilistic Programming Using Non-Strict Non-Determinism},
+  journal = {Theory and Practice of Logic Programming},
+  doi = {10.1017/S1471068419000085},
+  author = {DYLUS, SANDRA and CHRISTIANSEN, JAN and TEEGEN, FINN},
+  year = {2019},
+  pages = {1-29}
 }
 
 
