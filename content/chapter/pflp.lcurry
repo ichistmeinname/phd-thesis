@@ -2280,7 +2280,7 @@ Considering these restrictions, we showed that the library obeys the expected mo
 \section{Final Remarks}
 
 The basis of this chapter has been published previously.
-The general introduction of the library and its implementation ideas have been published in the Proceedings of the twentieth International Symposium on Practical Aspects of Declarative Languages \citep{dylus2018probabilistic}.
+The general introduction of the library and its implementation ideas have been published in the Proceedings of the 20th International Symposium on Practical Aspects of Declarative Languages \citep{dylus2018probabilistic}.
 An extended version includes reasoning about the monad laws, a small case study containing the random string examples as well as performance results for these examples with comparisions to WebPPL and ProbLog.
 This extended version was published in Theory and Practice of Logic Programming~\citep{dylus2019implementing}.
 The chapter at hand contains additional material.
