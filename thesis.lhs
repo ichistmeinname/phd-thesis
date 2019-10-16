@@ -112,7 +112,7 @@
 \label{ch:permutations}
 %include content/chapter/Permutations/permutations.lcurry
 
-\chapter{Implementing a Library for Probabilistic Functional Logic Programming}
+\chapter{Probabilistic Functional Logic Programming}
 \label{ch:pflp}
 %include content/chapter/pflp.lcurry
  
