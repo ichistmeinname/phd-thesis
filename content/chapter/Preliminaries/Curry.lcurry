@@ -69,7 +69,7 @@ On the other hand, in case of determinism the REPL displays a head normal form w
 \end{cyrepl}
 
 The second exemplary expression above yields four values: all non-determinism is pulled to the top-level leading to four different lists.
-The step-by-step evaluation of occurring non-deterministic computations that are pulled to the top is called \emph{pull-tabbing}.
+The step-by-step evaluation of occurring non-deterministic computations that are pulled to the top is called \emph{pull-tabbing} \citep{alqaddoumi2010pull}.
 The equation in \autoref{fig:pull-tabbing} illustrates the pull-tabbing steps from left-to-right; the last line shows the simplified resulting expression.
 
 \begin{figure}[h]
