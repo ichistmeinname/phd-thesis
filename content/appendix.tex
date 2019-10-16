@@ -190,7 +190,123 @@ Infer({ model: function () { palindrome(5) }
 
 
 \paragraph{Secret Santa}
+\begin{minted}{javascript}
+  var santaGame = function(n) {
+  return fromTo(1,n);
+};
 
+var fromTo = function(n,m) {
+  if (n > m) {
+    return [];
+  } else if (n == m) {
+    return [n];
+  } else {
+    return [n].concat(fromTo(n+1,m));
+  }
+};
+
+var remove = function (x,arr) {
+  var remove2 = function (x,arr,i) {
+    if (i >= arr.length) {
+        return [];
+    } else {
+      var y = arr[i];
+      if (x == y) {
+        return remove2(x,arr,i+1);
+      } else {
+        return [y].concat(remove2(x,arr,i+1));
+      }
+    }
+  }
+  return remove2(x,arr,0);
+};
+
+var pPicks = function (p,hat) {
+  if (hat.length == 0) {
+    return { nothing : true }
+  } else {
+    var x = uniformDraw(hat);
+    var hatNew = remove(x,hat);
+    return { nothing : false
+           , getter : x
+           , hatNew : hatNew
+           };
+  }
+};
+
+var pickRound = function(hat) {
+  if (hat.length === 0) {
+    return {failed : true};
+  } else {
+    var pickRound2 = function(ps, hat, arrs, n) {
+      if (n >= ps.length) {
+        return { failed : false
+               , assignments : arrs
+               };
+      } else {
+        var giver = ps[n];
+        var assgnmnt = pPicks(giver,hat);
+        if (assgnmnt.nothing) {
+          return { failed : true };
+        } else {
+          pickRound2( ps
+                    , assgnmnt.hatNew
+                    , arrs.concat({ giver : giver
+                                  , getter : assgnmnt.getter
+                                  })
+                    , n+1);
+        }
+      }
+    };
+    pickRound2(hat,hat,[],0);
+  }
+};
+
+var pickRound2 = function(hat) {
+  if (hat.length === 0) {
+    return {failed : true};
+  } else {
+    var pickRound3 = function(ps, hat, arrs, n) {
+      if (n >= ps.length) {
+        return { failed : false
+               , assignments : arrs
+               };
+      } else {
+        var giver = ps[n];
+        var newHat = remove(giver,hat);
+        var assgnmnt = pPicks(giver,newHat);
+        if (assgnmnt.nothing) {
+          return { failed : true
+                 , assignments : arrs // not necessary, but helpful for tests
+                 };
+        } else {
+          pickRound3( ps
+                    , remove(assgnmnt.getter, hat)
+                    , arrs.concat({ giver : giver
+                                  , getter : assgnmnt.getter
+                                  })
+                    , n+1);
+        }
+      }
+    };
+    pickRound3(hat,hat,[],0);
+  }
+};
+
+var isInvalid = function(assgnmnt) {
+  return (assgnmnt.failed || any( function (a) { a.getter === a.giver }, assgnmnt.assignments));
+};
+\end{minted}
+
+\begin{minted}{javascript}
+Infer({ model: function() { isInvalid(pickRound(santaGame(len))) }
+        , method: 'enumerate'
+        , maxRuntimeInMS: Infinity});
+Infer({ model: function() { isInvalid(pickRound2(santaGame(len))) }
+        , method: 'enumerate'
+        , maxRuntimeInMS: Infinity});
+}
+\end{minted}
 \subsection{ProbLog}
 
 \paragraph{Bayesian Network}
@@ -209,13 +325,7 @@ query(grassWetWhenRaining).
 
 \paragraph{Replicate Die}
 \begin{minted}{prolog}
-% In ProbLog everything is tabled (or memoized).
-% Tabling is an advanced form of caching that is
-% used to speed-up the execution of logic programs
-% and that allows certain types of cyclic programs.
-
-% We need to add some kind of ID in order to "disable" tabling.
-  
+% We need to add some kind of ID in order to "disable" tabling/memoisation.
 (1/6)::die(D,1).
 (1/6)::die(D,2).
 (1/6)::die(D,3).
@@ -305,92 +415,53 @@ query(palindrome(X)) :- len(X).
 \end{minted}
 
 \paragraph{Secret Santa}
+\begin{minted}{prolog}
+:- use_module(library(lists)).
+
+% reuse select_uniform as it's not trivial to define
+% uniform/2 with the expected behaviour
+uniform([X|XS],Y) :- select_uniform(42,[X|XS],Y,ZS).
+
+pPicks(P,Hat,V) :- uniform(Hat,V), V \== P.
+
+pickRound(Hat,Arrs) :- pickRound(Hat,Hat,Arrs).
+pickRound([],_,[]).
+pickRound([P|Ps], Hat, [(P,V)|Arrs]) :- pPicks(P,Hat,V), delete(Hat,V,HatNew), pickRound(Ps,HatNew, Arrs).
+
+ppPicks(P,Hat,just(V)) :- uniform(Hat,V), V \== P.
+ppPicks(P,Hat,nothing) :- uniform(Hat,V), V = P.
+
+ppickRound(Hat,Arrs) :- ppickRound(Hat,Hat,Arrs).
+ppickRound([],_,[]).
+ppickRound([P|Ps], Hat, [(P,V)|Arrs]) :- ppPicks(P,Hat,just(V)), delete(Hat,V,HatNew), ppickRound(Ps,HatNew, Arrs).
+ppickRound([P|Ps], Hat, [failedGame]) :- ppPicks(P,Hat,nothing).
+
+is_pair((X,Y)).
+
+allValid([]).
+allValid([X|Xs]) :- is_pair(X), allValid(Xs).
+
+anyFailed(Xs) :- member(failedGame,Xs).
+
+hat(2,[2,1]).
+hat(N,[N|Xs]) :- N > 1, M is N-1, hat(M,Xs).
+
+% clever pick: a person cannot pick herself
+% invalid games are just `false`
+pickRound2(Hat,Arrs) :- pickRound2(Hat,Hat,Arrs).
+pickRound2([],_,[]).
+pickRound2([P|Ps], Hat, [(P,V)|Arrs]) :- delete(Hat,P,HatTemp), pPicks(P,HatTemp,V), delete(Hat,V,HatNew), pickRound2(Ps,HatNew, Arrs).
+
+% clever pick: a person cannot pick herself
+% invalid games are tracked as well
+ppickRound2(Hat,Arrs) :- ppickRound2(Hat,Hat,Arrs).
+ppickRound2([],_,[]).
+ppickRound2([P],[P],[failedGame]).
+ppickRound2([P|Ps], Hat, [(P,V)|Arrs]) :- delete(Hat,P,HatTemp), pPicks(P,HatTemp,V), delete(Hat,V,HatNew), ppickRound2(Ps,HatNew, Arrs).
+
+isValid([],true).
+isValid([X|Xs],false) :- X == failedGame.
+isValid([X|Xs],Bool) :- X \= failedGame, isValid(Xs,Bool).
+\end{minted}
 
 \section{Formal Reasoning}
-
-\subsection{Definition of Effect to Combine Non-Determinism and
-  Sharing}
-\label{subsec:appendix:NDSharing}
-
-\begin{minted}{coq}
-Module NDSharing.
-
-  Import Container.
-
-  Inductive ND (A : Type) :=
-  | choice : option nat -> A -> A -> ND A
-  | failed : ND A.
-
-  Inductive Sharing (A : Type) :=
-  | share  : nat -> A -> Sharing A.
-
-  Arguments failed {_}.
-
-  Inductive ND__S :=
-  | choiceS : option nat -> ND__S
-  | failedS : ND__S.
-
-  Inductive Sharing__S :=
-  | shareS  : nat -> Sharing__S.
-
-  Definition Sharing__P (s : Sharing__S) := unit.
-  Definition ND__P (s : ND__S) :=
-    match s with
-    | choiceS n => bool
-    | failedS   => Empty
-    end.
-
-  Definition from_Sharing A (sh : Sharing A) : Ext Sharing__S Sharing__P A :=
-    match sh with
-    | share n x => ext (shareS n) (fun (p : Sharing__P (shareS n)) => x)
-    end.
-
-  Definition from_ND A (nd : ND A) : Ext ND__S ND__P A :=
-    match nd with
-  | choice n x y => ext (choiceS n) (fun (p : ND__P (choiceS n)) => if p then x else y)
-  | failed       => ext failedS (fun (p : ND__P failedS) => match p with end)
-  end.
-
-  Definition to_Sharing A (e : Ext Sharing__S Sharing__P A) : Sharing A :=
-    match e with
-    | ext (shareS n)  pf => share n (pf tt)
-    end.
-
-  Definition to_ND A (e : Ext ND__S ND__P A) : ND A :=
-    match e with
-    | ext (choiceS n) pf => choice n (pf true) (pf false)
-    | ext failedS     pf => failed
-    end.
-
-  Import Combination.
-
-  Definition Ext__Comb A := Ext (Comb__S ND__S Sharing__S) (Comb__P ND__P Sharing__P) A.
-
-  Definition to__Comb (A : Type) (e : Ext__Comb A) : Comb ND Sharing A :=
-    match e with
-    | ext (inl s) pf => Inl (to_ND (ext s pf))
-    | ext (inr s) pf => Inr (to_Sharing (ext s pf))
-    end.
-
-  Definition from__Comb (A : Type) (z : Comb ND Sharing A) : Ext__Comb A :=
-    match z with
-    | Inl x => let '(ext s pf) := from_ND x in ext (inl s) pf
-    | Inr x => let '(ext s pf) := from_Sharing x in ext (inr s) pf
-    end.
-
-  Lemma to_from__Comb : forall A (cx : Comb ND Sharing A), to__Comb (from__Comb cx) = cx.
-  Proof.
-    intros A cx.
-    destruct cx as [ [ ] | [ ] ]; reflexivity.
-  Qed.
-
-  Lemma from_to__Comb : forall A (e : Ext__Comb A), from__Comb (to__Comb e) = e.
-  Proof.
-    intros A [s pf].
-    destruct s as [ [ n | ] | [ n ] ]; simpl;
-      unfold Comb__S; f_equal; extensionality p;
-        destruct p; reflexivity.
-  Qed.
-
-End NDSharing.
-\end{minted}
