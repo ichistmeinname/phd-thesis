@@ -912,17 +912,18 @@ In case of a pure value, we have the following goal and assumptions.
 
 \begin{alltt}
   A : Type
-  xs : List Zero\(_\text{S}\) Zero\(_\text{P}\) A
-  fys, fzs : Free Zero\(_\text{S}\) Zero\(_\text{P}\) (List Zero\(_\text{S}\) Zero\(_\text{P}\) A)
+  xs : List Zero\(\sb{\text{S}}\) Zero\(\sb{\text{P}}\) A
+  fys, fzs : Free Zero\(\sb{\text{S}}\) Zero\(\sb{\text{P}}\) (List Zero\(\sb{\text{S}}\) Zero\(\sb{\text{P}}\) A)
   ============================
   append' xs (append fys fzs) = append (append' xs fys) fzs
 \end{alltt}
 
 Now we can proceed as if we were working with ordinary lists: we proceed by induction on the \cinl{List} argument \cinl{xs}.
 
-\begin{cproof}{induction xs as [ | fx fxs IH ]; simpl.}
+\begin{cproof1}{induction xs as [ | fx fxs IH ]; simpl.}{0.15}{0.85}
+  
   ...
-  fys, fzs : Free Zero__S Zero__P (List Zero__S Zero__P A)
+  fys, fzs : Free Zero\(\sb{\text{S}}\) Zero\(\sb{\text{P}}\) (List Zero\(\sb{\text{S}}\) Zero\(\sb{\text{P}}\) A)
   ============================
   fys +++ fzs = fys +++ fzs
 
@@ -933,24 +934,25 @@ Now we can proceed as if we were working with ordinary lists: we proceed by indu
   Cons fx (fxs >>= (fun zs => append' zs (append fys fzs))) =
   Cons fx (fxs >>= (fun zs => append' zs fys) >>=
                    (fun zs => append' zs fzs))
-\end{cproof}
+\end{cproof1}
 
 We then need to prove the proposition for \cinl{nil} and \cinl{cons}.
 The former is trivial as both sides of the terms are already equal.
 For the latter case, we proceed by stripping away the \cinl{Cons}\--constructor and take another look at \cinl{fxs} by destructing the induction hypothesis \cinl{IH}, which produces two cases: one for \cinl{pure} and one for \cinl{impure}.
 Note that we will discuss the induction hypotheses \cinl{IH} that makes use of a custom proposition \cinl{ForFree} in detail later.
 
-\begin{cproof}{do 2 f_equal. destruct IH as [ xs H | ]; simpl.}
+\begin{cproof1}{do 2 f_equal. destruct IH as [ xs H | ]; simpl.}{0.15}{0.85}
+  
   ...
   H : append' xs (fys +++ fzs) = append' xs fys +++ fzs
   ============================
   append' xs (fys +++ fzs) = append' xs fys +++ fzs
 
   ...
-  s : Zero\(_\text{S}\)
+  s : Zero\(\sb{\text{S}}\)
   ============================
   ...
-\end{cproof}
+\end{cproof1}
 
 In the former case, the induction hypothesis brings our current goal in the right form such that we can finish the subproof easily by rewriting the hypothesis \cinl{H} and applying \cinl{reflexivity}.
 For the latter case we only need to focus on one of the assumptions, namely, \cinl{s : Zero!$_\text{S}$!}.
@@ -962,10 +964,10 @@ We started with a case distinction on the original first list arguments \cinl{fx
 
 \begin{alltt}
   ...
-  s : Zero\(_\text{S}\)
+  s : Zero\(\sb{\text{S}}\)
   ============================
-  impure s (fun p : Zero\(_\text{P}\) s => append (pf p) (append fys fzs)) =
-  impure s (fun p : Zero\(_\text{P}\) s => append (append (pf p) fys) fzs)
+  impure s (fun p : Zero\(\sb{\text{P}}\) s => append (pf p) (append fys fzs)) =
+  impure s (fun p : Zero\(\sb{\text{P}}\) s => append (append (pf p) fys) fzs)
 \end{alltt}
 
 The assumption \cinl{s : Zero!$_\text{S}$!} is once again a bogus assumption, so we clear the last remaining goal by using \cinl{destruct s} again.
@@ -1035,7 +1037,7 @@ The initial situation for the first \cinl{impure}\--case looks as follows.
 
 \begin{alltt}
   ...
-  s : One\(_\text{S}\)
+  s : One\(\sb{\text{S}}\)
   ============================
   impure s (fun p => ...) =
   impure s (fun p => ...)
@@ -1045,8 +1047,8 @@ As mentioned above, after stripping away the prefix both expressions have in com
 We introduce the function argument \cinl{p} using \cinl{extensionality p} and end up with \cinl{p : One!$_\text{P}$! s} added to the assumptions and a changed goal as follows.
 
 \begin{alltt}
-  s : One\(_\text{S}\)
-  p : One\(_\text{P}\) s
+  s : One\(\sb{\text{S}}\)
+  p : One\(\sb{\text{P}}\) s
   ============================
   pf p >>= (fun zs => append' zs (append fys fzs)) =
   pf p >>= (fun zs => append' zs fys) >>= (fun zs => append' zs fzs)
@@ -1248,7 +1250,8 @@ Due to the declared hypothesis the goal and associated assumptions look as follo
 
 In order to show that the predicate \cinl{P} holds for the list \cinl{xs}, we make a case distinction that leads to the following two subgoals.
 
-\begin{cproof}{destruct xs as [ | fy fys ]}
+\begin{cproof1}{destruct xs as [ | fy fys ].}{0.25}{0.75}
+
   ...
   nilP : P nil
   ============================
@@ -1261,13 +1264,13 @@ In order to show that the predicate \cinl{P} holds for the list \cinl{xs}, we ma
   fys : Free  (List A)
   ============================
   P (cons fy fys)
-\end{cproof}
+\end{cproof1}
 
 \noindent We finish the first subgoal by applying the hypothesis \cinl{nilP}; for the second goal we proceed by applying the hypothesis \cinl{consP}.
 The new subgoal is the precondition of the hypothesis \cinl{consP} instantiated with \cinl{fy} and \cinl{fys} for the quantified variables \cinl{fx} and \cinl{fxs}, namely \cinl{ForFree P fys}.
 We proceed by induction on \cinl{fys} since the proposition \cinl{ForFree} is an inductively defined proposition with constructors in case of \cinl{pure} and \cinl{impure} values.
 
-\begin{cproof}{induction fys as [ ys | s pf IH ]}
+\begin{cproof}{induction fys as [ ys | s pf IH ].}
   ...
   List_ind : \(\forall\) xs : List A, P xs
   ys : List A
