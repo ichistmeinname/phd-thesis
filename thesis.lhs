@@ -108,7 +108,7 @@
 %include content/chapter/Preliminaries/Curry.lcurry
 \input{content/chapter/Preliminaries/Coq.tex}
  
-\chapter{Generating Permutations via Non-deterministic Sorting}
+\chapter{Generating Permutations via Non\--deterministic Sorting}
 \label{ch:permutations}
 %include content/chapter/Permutations/permutations.lcurry
 
@@ -116,7 +116,7 @@
 \label{ch:pflp}
 %include content/chapter/pflp.lcurry
  
-\chapter{Formal Reasoning About Effectful Non-Strict Programs}
+\chapter{Formal Reasoning About Effectful Non\--Strict Programs}
 \label{ch:reasoning}
 \input{content/chapter/FormalReasoning/FormalReasoning.tex}
  

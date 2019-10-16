@@ -121,6 +121,21 @@ Languages and Compiler Construction}
     bookmarksopen=true          %
   }
 
+% remove certain fiels from bib
+\AtEveryBibitem{
+  \clearfield{language}
+  \clearfield{month}
+  \clearlist{language}
+  \clearlist{location}
+}
+
+% hyphenation
+\usepackage[shortcuts]{extdash}
+\hyphenation{de-ter-mi-nism}
+\hyphenation{de-ter-mi-nis-tic}
+\hyphenation{non-de-ter-mi-nism}
+\hyphenation{non-de-ter-mi-nis-tic}
+
 % minted-related definitions
 \newminted[curry]{haskell}{style=friendly,mathescape=true,escapeinside=<>}
 \newmintinline[cyinl]{haskell}{style=friendly}

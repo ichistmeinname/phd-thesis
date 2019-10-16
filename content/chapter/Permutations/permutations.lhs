@@ -7,20 +7,20 @@
 
 %endif
 
-\section{Non-deterministic Sorting Functions in Haskell}
+\section{Non\--deterministic Sorting Functions in Haskell}
 
-After discussing non-deterministic sorting functions in the functional language Curry with built-in non-determinism, we switch to Haskell as an exemplary functional language without non-determinism.
-We reimplement a selection of the sorting functions introduced in \autoref{sec:NDCurry} in Haskell using a naive model of non-determinism based on lists.
-As we want to test out different models later, we refactor the list-specific implementations to monad-generic implementations for the sorting algorithm.
+After discussing non\--deterministic sorting functions in the functional language Curry with built\--in non\--determinism, we switch to Haskell as an exemplary functional language without non\--determinism.
+We reimplement a selection of the sorting functions introduced in \autoref{sec:NDCurry} in Haskell using a naive model of non\--determinism based on lists.
+As we want to test out different models later, we refactor the list\--specific implementations to monad\--generic implementations for the sorting algorithm.
 
 We will notice a difference between the Curry and the Haskell implementation when testing the sorting functions on concrete lists.
-This difference is not a new insight, but interesting nonetheless: Curry's non-determinism can exploit non-strictness in a way the Haskell model of non-determinism using a monadic interface cannot.
+This difference is not a new insight, but interesting nonetheless: Curry's non\--determinism can exploit non\--strictness in a way the Haskell model of non\--determinism using a monadic interface cannot.
 
-\subsection{Modeling Non-determinism}
+\subsection{Modeling Non\--determinism}
 
-In a pure functional language like Haskell, we can express non-deterministic function using lists to represent multiple non-deterministic results as we have already introduced and discussed in \autoref{subsec:monadicAbstractions}.
-That is, we reuse the type synonym \hinl{ND} in order to distinguish between list values that are used to model non-determinism and list values in the common sense.
-Recall that we use the monadic operations \hinl{return} and \hinl{(>>=)} for lists when working with \hinl{ND} as well as the convenience operator \hinl{(?)} to combine multiple non-deterministic results.
+In a pure functional language like Haskell, we can express non\--deterministic function using lists to represent multiple non\--deterministic results as we have already introduced and discussed in \autoref{subsec:monadicAbstractions}.
+That is, we reuse the type synonym \hinl{ND} in order to distinguish between list values that are used to model non\--determinism and list values in the common sense.
+Recall that we use the monadic operations \hinl{return} and \hinl{(>>=)} for lists when working with \hinl{ND} as well as the convenience operator \hinl{(?)} to combine multiple non\--deterministic results.
 
 \begin{minted}{haskell}
 instance Monad ND where
@@ -31,7 +31,7 @@ instance Monad ND where
 (?) = (++)
 \end{minted}
      
-Using the monadic abstraction and the helper function, we can define the non-deterministic comparison function \hinl{coinCmpND} --- corresponding to the function \hinl{coinCmp} that we have used in Curry before, which transfers easily to the list model in Haskell.
+Using the monadic abstraction and the helper function, we can define the non\--deterministic comparison function \hinl{coinCmpND} --- corresponding to the function \hinl{coinCmp} that we have used in Curry before, which transfers easily to the list model in Haskell.
 
 %if False
 
@@ -45,8 +45,8 @@ coinCmpND :: a -> a -> ND Bool
 coinCmpND _ _ = [True] ? [False]
 \end{minted}
 
-\paragraph{Example: Non-deterministic application of filter}
-Equipped with these auxiliary functions, let us consider the Haskell function \hinl{filterND :: (a -> ND Bool) -> [a] -> ND [a]}, which is a non-deterministic extension of the higher-order function \hinl{filter}.
+\paragraph{Example: Non\--deterministic application of filter}
+Equipped with these auxiliary functions, let us consider the Haskell function \hinl{filterND :: (a -> ND Bool) -> [a] -> ND [a]}, which is a non\--deterministic extension of the higher\--order function \hinl{filter}.
 
 %if False
 
@@ -65,11 +65,11 @@ filterND p (x:xs) = p x >>= \b ->
                          else filterND p xs
 \end{minted}
 
-Note that the potentially non-deterministic values occur in the result of the predicate and in the resulting type of the overall function \hinl{filterND}; moreover, the input list is a deterministic argument.
-We need to process the potentially non-deterministic computation resulting from the predicate check \hinl{p x} and the recursive call \hinl{filterND p xs} using \hinl{(>>=)} to handle each possible value of the computation.
+Note that the potentially non\--deterministic values occur in the result of the predicate and in the resulting type of the overall function \hinl{filterND}; moreover, the input list is a deterministic argument.
+We need to process the potentially non\--deterministic computation resulting from the predicate check \hinl{p x} and the recursive call \hinl{filterND p xs} using \hinl{(>>=)} to handle each possible value of the computation.
 The attentive reader notices that the definition of \hinl{filterND} is not specific to the specified type \hinl{ND}, but works for any monad.
 That is, since we solely rely on the abstractions provided by monads, we can generalise the type definition.
-The resulting definition is \hinl{filterM :: Monad m => (a -> m Bool) -> [a] -> m [a]}; the implementation stays the same.\footnote{Note that the definition of \hinl{filterM} is based on the \hinl{Applicative} instead of \hinl{Monad} type class now. \url{http://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Monad.html\#v:filterM} (last accessed: 2019-09-10)}
+The resulting definition is \hinl{filterM :: Monad m => (a -> m Bool) -> [a] -> m [a]}; the implementation stays the same.\footnote{Note that the definition of \hinl{filterM} is based on the \hinl{Applicative} instead of \hinl{Monad} type class now. \url{http://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Monad.html\#v:filterM} (last accessed: 2019\--09\--10)}
 
 %if False
 
@@ -81,7 +81,7 @@ The resulting definition is \hinl{filterM :: Monad m => (a -> m Bool) -> [a] -> 
 
 %endif
 
-When running concrete examples, we then instantiate the monadic contexts with \hinl{ND} to illustrate the behaviour of a non-deterministic version.
+When running concrete examples, we then instantiate the monadic contexts with \hinl{ND} to illustrate the behaviour of a non\--deterministic version.
 
 Since \hinl{filter} needs to be applied to a unary predicate, we partially apply \hinl{coinCmpND} with \hinl{42} in the examples.
 
@@ -90,7 +90,7 @@ Since \hinl{filter} needs to be applied to a unary predicate, we partially apply
 \{ [1,2,3], [1,2], [1,3], [1], [2,3], [2], [3], [] \}
 \end{hrepl}
 
-As a side note, consider the following urge to outsource the duplicate call to \hinl{filterM p xs} in both branches of the if-then-else-expression.
+As a side note, consider the following urge to outsource the duplicate call to \hinl{filterM p xs} in both branches of the if\--then\--else\--expression.
 
 %if False
    
@@ -110,17 +110,17 @@ filterM' f (x:xs) = f x >>= \p ->
                     return (if p then x:ys else ys)
 \end{minted}
 
-This transformation, which computes the non-deterministic computation \hinl{filterM p xs} only once, is still equivalent to the original implementation of \hinl{filterM}.
+This transformation, which computes the non\--deterministic computation \hinl{filterM p xs} only once, is still equivalent to the original implementation of \hinl{filterM}.
 
 \begin{hrepl}
 \haskellrepl filterM' (coinCmpND 42) [1,2,3]
 \{ [1,2,3], [1,2], [1,3], [1], [2,3], [2], [3], [] \}
 \end{hrepl}
 
-We must be aware, however, that the transformation is only valid because we use the result of \hinl{filterM p xs} in both branches of the if-then-else-expression.
+We must be aware, however, that the transformation is only valid because we use the result of \hinl{filterM p xs} in both branches of the if\--then\--else\--expression.
 In the next paragraph we discuss an example that yields different results before and after the transformation.
 
-\paragraph{Example: Non-deterministic application of insert}
+\paragraph{Example: Non\--deterministic application of insert}
 Consider the following two monadic versions of the function \cyinl{insert} we defined in Curry.
 
 %if False
@@ -153,7 +153,7 @@ insertM' p x (y:ys) = p x y >>= \b ->
                       return (if b then x:y:ys else y:zs)
 \end{minted}
 
-The alternative version \hinl{insertM'} computes the potentially non-deterministic computation of the recursive call to \hinl{insertM' p x ys} before checking the condition \hinl{b} such that it does not behave as the original version of \hinl{insertM} anymore.
+The alternative version \hinl{insertM'} computes the potentially non\--deterministic computation of the recursive call to \hinl{insertM' p x ys} before checking the condition \hinl{b} such that it does not behave as the original version of \hinl{insertM} anymore.
  
 \begin{hrepl}
 \haskellrepl insertM coinCmpND 1 [2,3]
@@ -163,7 +163,7 @@ The alternative version \hinl{insertM'} computes the potentially non-determinist
 \{ [1,2,3], [1,2,3], [2,1,3], [2,3,1] \}
 \end{hrepl}
 
-The exemplary calls using the non-deterministic comparison function \hinl{coinCmpND} do not yield the same results.
+The exemplary calls using the non\--deterministic comparison function \hinl{coinCmpND} do not yield the same results.
 When we apply a monadic version of insert to \hinl{coinCmpND}, we expect $n+1$ results for a input list of length $n$ --- the same result we observed in Curry.
 The application \hinl{insertM' coinCmpND}, however, yields $2^n$ results.
 
@@ -178,8 +178,8 @@ The application \hinl{insertM' coinCmpND}, however, yields $2^n$ results.
 1024
 \end{hrepl}
 
-Due to the call to \hinl{insertM' p x ys} before checking the Boolean value \hinl{b}, we need to evaluate the recursive call, even though we do not need the resulting variable binding \hinl{zs} when taking the else-branch.
-The important insight is that we need to be careful when using the \hinl{(>>=)}-operator.
+Due to the call to \hinl{insertM' p x ys} before checking the Boolean value \hinl{b}, we need to evaluate the recursive call, even though we do not need the resulting variable binding \hinl{zs} when taking the else\--branch.
+The important insight is that we need to be careful when using the \hinl{(>>=)}\--operator.
 In most settings, and the list instance is no exception, \hinl{(>>=)} needs to be interpreted as a sequencing operator that is strict in its first argument.
 That is, if we have an expression \hinl{mx >>= f}, we cannot proceed with \hinl{f} without evaluating \hinl{mx} first.
 
@@ -200,9 +200,9 @@ insertM' p x ys >>= \zs -> return (if b then x:y:ys else y:zs)
 \end{minted}
 
 \noindent we need to evaluate \hinl{insertM' p x ys} first.
-In this example, we trigger the evaluation of the non-deterministic comparison function \hinl{coinCmpND} although we do not need the result \hinl{zs} if the condition \hinl{b} is \hinl{True}.
+In this example, we trigger the evaluation of the non\--deterministic comparison function \hinl{coinCmpND} although we do not need the result \hinl{zs} if the condition \hinl{b} is \hinl{True}.
 
-As example, consider the excerpt of a step-wise evaluation of the example from above listed in \autoref{fig:filterMStep}.
+As example, consider the excerpt of a step\--wise evaluation of the example from above listed in \autoref{fig:filterMStep}.
 Note that we need to evaluate \hinl{filterM' (coinCmpND 42) [1,2,3]} and all recursive calls of \hinl{filterM'} that arise during evaluation.
 
 \begin{figure}
@@ -248,7 +248,7 @@ Note that we need to evaluate \hinl{filterM' (coinCmpND 42) [1,2,3]} and all rec
   ...
 \end{spec}
 \framedhs
-\caption{Extract of a step-wise evaluation of \hinl{filterM' (coinCmpND 42) [1,2,3]}}
+\caption{Extract of a step\--wise evaluation of \hinl{filterM' (coinCmpND 42) [1,2,3]}}
 \label{fig:filterMStep}
 \end{figure}
 
@@ -256,8 +256,8 @@ Note that we need to evaluate \hinl{filterM' (coinCmpND 42) [1,2,3]} and all rec
 \label{subsec:drawing}
 
 Thanks to the generic implementation using a monadic interface, we are free to use whatever instance fits our purpose to actually run the sorting functions.
-For example, we can generate decision trees like in Curry by using a monad that keeps track of all operations and pretty-prints the non-deterministic parts of our computation.
-As first step to define such a pretty-printing function, we generalise the comparison function \hinl{coinCmpND} to \hinl{MonadPlus}, which is an extension of the \hinl{Monad} type class that introduces an additional function \hinl{mplus} to combine monadic computations and \hinl{mzero} as neutral element for the function \hinl{mplus}.
+For example, we can generate decision trees like in Curry by using a monad that keeps track of all operations and pretty\--prints the non\--deterministic parts of our computation.
+As first step to define such a pretty\--printing function, we generalise the comparison function \hinl{coinCmpND} to \hinl{MonadPlus}, which is an extension of the \hinl{Monad} type class that introduces an additional function \hinl{mplus} to combine monadic computations and \hinl{mzero} as neutral element for the function \hinl{mplus}.
 
 \begin{minted}{haskell}
 class Monad m => MonadPlus m where
@@ -265,7 +265,7 @@ class Monad m => MonadPlus m where
   mzero :: m a
 \end{minted}
 
-The idea of the non-deterministic comparison function \hinl{coinCmpND} is to yield two results non-deterministically.
+The idea of the non\--deterministic comparison function \hinl{coinCmpND} is to yield two results non\--deterministically.
 In the concrete implementation using lists, we define \hinl{coinCmpND} based on singleton lists \hinl{[True]} and \hinl{[False]} that are combined using the concatenation operator \hinl{(++)}.
 A generalisation using \hinl{MonadPlus} replaces the concatenation operator by \hinl{mplus}.
 
@@ -283,10 +283,10 @@ coinCmp _ _ = return True `mplus` return False
   
 As second step, we use a monad instance that can interpret all monadic
 operations in an abstract way: the free monad \citep{swierstra2008data} we introduced in \autoref{subsec:freeMonad}.
-As we are interested in pretty-printing the non-deterministic components of our monadic computations, we need a suitable functor to model non-determinism.
-The important primitive operations of non-determinism are exactly the ones provided by the \hinl{MonadPlus} type class: an operator to combine two effectful computations and the failing computation.
+As we are interested in pretty\--printing the non\--deterministic components of our monadic computations, we need a suitable functor to model non\--determinism.
+The important primitive operations of non\--determinism are exactly the ones provided by the \hinl{MonadPlus} type class: an operator to combine two effectful computations and the failing computation.
 Note that the simplified version in the introduction (\autoref{subsec:freeMonad}) does not have a representation for the latter computation.
-Since we want to print the arguments the non-deterministic comparison function is applied to, we store additional information in the constructor \hinl{Choice} as follows.
+Since we want to print the arguments the non\--deterministic comparison function is applied to, we store additional information in the constructor \hinl{Choice} as follows.
 
 %if False
 
@@ -298,7 +298,7 @@ Since we want to print the arguments the non-deterministic comparison function i
 data Sort a = Choice (Maybe (String,String)) a a || Fail deriving Show
 \end{minted}
 
-In order to use \hinl{Free Sort} as underlying monad in a non-deterministic application of, for example, \hinl{filterM coinCmp}, we need to define a functor instance for \hinl{Sort} and a \hinl{MonadPlus} instance for \hinl{Free Sort}.
+In order to use \hinl{Free Sort} as underlying monad in a non\--deterministic application of, for example, \hinl{filterM coinCmp}, we need to define a functor instance for \hinl{Sort} and a \hinl{MonadPlus} instance for \hinl{Free Sort}.
 
 %if False
 
@@ -329,8 +329,8 @@ instance MonadPlus (Free Sort) where
 \end{minted}
 
 Note that, initially, we do not have any information about the arguments of the \hinl{mplus} operator, so we use \hinl{Nothing}.
-We add information to the structure when we apply the function that introduces non-determinism.
-For example, we define the non-deterministic function \hinl{cmpCoinFree} that stores the string representation of its arguments and non-deterministically yields \hinl{True} and \hinl{False} as follows.
+We add information to the structure when we apply the function that introduces non\--determinism.
+For example, we define the non\--deterministic function \hinl{cmpCoinFree} that stores the string representation of its arguments and non\--deterministically yields \hinl{True} and \hinl{False} as follows.
 
 %if False
 
@@ -346,7 +346,7 @@ coinCmpFree x y =
   Impure (Choice (Just (show x,show y)) (return True) (return False))
 \end{minted}
 
-Now we can apply \hinl{filterM} to our non-determinism-tracking comparison function \hinl{cmpCoinFree} and get a \hinl{Free Sort}-term that contains information about the arguments that need to be compared.
+Now we can apply \hinl{filterM} to our non\--determinism\--tracking comparison function \hinl{cmpCoinFree} and get a \hinl{Free Sort}\--term that contains information about the arguments that need to be compared.
 
 \begin{hrepl}
 \haskellrepl filterM (coinCmpFree 42) [1,2]
@@ -355,13 +355,13 @@ Impure (Choice  (Just ("42","1"))
                 (Impure (Choice (Just ("42","2")) (Pure [2])    (Pure []))))
 \end{hrepl}
 
-Since this term representation looks more complicated than helpful, as last step, we define a pretty-printing function for \hinl{Free Sort}.
+Since this term representation looks more complicated than helpful, as last step, we define a pretty\--printing function for \hinl{Free Sort}.
 The function
 \begin{minted}{haskell}
 pretty :: Show a => Free Sort a -> String
 \end{minted}
 produces a decision tree similar to the one we got to know from Curry.
-Now we take a look at the well-arranged decision tree resulting from the above call.
+Now we take a look at the well\--arranged decision tree resulting from the above call.
 
 \begin{hrepl}
 \haskellrepl putStrLn (pretty (filterM (coinCmpFree 42) [1,2]))
@@ -408,9 +408,9 @@ Now we take a look at the well-arranged decision tree resulting from the above c
 
 We will use these drawing capabilities in the next section when we compare our implementation of sorting functions in Haskell with the implementation in Curry.
 
-\subsection{Curry versus Monadic Non-determinism}
+\subsection{Curry versus Monadic Non\--determinism}
 \label{subsec:sortND}
-With this insight about the strictness of \hinl{(>>=)} in mind, we check out the consequences when applying a non-deterministic comparison function to monadic sorting functions.
+With this insight about the strictness of \hinl{(>>=)} in mind, we check out the consequences when applying a non\--deterministic comparison function to monadic sorting functions.
 That is, we transform the Curry implementation discussed in \autoref{sec:NDCurry} to Haskell.
 
 \paragraph{Insertion Sort}\label{par:insert}
@@ -430,7 +430,7 @@ insertionSortM _ []     = return []
 insertionSortM p (x:xs) = insertionSortM p xs >>= \ys -> insertM p x ys
 \end{minted}
 
-Note that is again crucial to introduce potentially non-deterministic values only as result of the comparison function and the result of the function itself.
+Note that is again crucial to introduce potentially non\--deterministic values only as result of the comparison function and the result of the function itself.
 This observation also applies to the definition of \hinl{insertM}: the input list \hinl{ys} needs to be deterministic.
 That is, in order to insert the head element \hinl{x} into the already sorted tail, we unwrap the monadic context using \hinl{(>>=)} and apply \hinl{insertM} to each possible value of the computation \hinl{insertionSortM p xs}.
 
@@ -446,13 +446,13 @@ Applying \hinl{insertionSortM} to \hinl{coinCmpND} and exemplary list values yie
 True
 \end{hrepl}
 
-The second example call checks for lists of length 1 to 10, if the number of non-deterministic results is equal to the factorial of the corresponding length, which is indeed the case.
+The second example call checks for lists of length 1 to 10, if the number of non\--deterministic results is equal to the factorial of the corresponding length, which is indeed the case.
 Now we have a good feeling that both implementations --- the Haskell and the Curry version --- compute the same number of results.
 The interesting question is, however, if they behave the same in all contexts.
 
-Recall that the Curry implementation defines \hinl{insertionSortM} using a let-declaration for the recursive call.
+Recall that the Curry implementation defines \hinl{insertionSortM} using a let\--declaration for the recursive call.
 This recursive call only has to be evaluated if we demand more than one element of the resulting list.
-In the example below, we call \hinl{insertionSortM} on a non-empty list to compute the head element of all non-deterministic results and count the number of non-deterministic results afterwards.
+In the example below, we call \hinl{insertionSortM} on a non\--empty list to compute the head element of all non\--deterministic results and count the number of non\--deterministic results afterwards.
 
 \begin{hrepl}
 \haskellrepl map (\func n -> length (insertionSortM coinCmpND [1..n] >>= \func xs ->
@@ -461,7 +461,7 @@ In the example below, we call \hinl{insertionSortM} on a non-empty list to compu
 [120,720,5040,40320,362880,3628800]
 \end{hrepl}
 
-Again, we have $n!$ non-deterministic results for an input list of length $n$.
+Again, we have $n!$ non\--deterministic results for an input list of length $n$.
 The result illustrates that all resulting permutations need to be computed to yield the corresponding head element.
 Next, we compare the behaviour of the Haskell implementation with the Curry implementation \cyinl{insertionSort}.
 
@@ -471,12 +471,12 @@ Next, we compare the behaviour of the Haskell implementation with the Curry impl
 [16,32,64,128,256,512]
 \end{cyrepl}
 
-In Curry we do not need to evaluate all non-deterministic computations to yield the head element.
-Instead of $n!$ number of non-deterministic results, we only get $2^{(n-1)}$ results for an input list of length $n$.
-The crucial difference between the Haskell and the Curry implementation with respect to the model of non-determinism is that Haskell's non-determinism is flat, while in Curry non-deterministic computations can occur in arbitrarily deep positions.
-Here, deep position means that the non-determinism is not visible at the outermost constructor, but hides in the component of a constructor.
+In Curry we do not need to evaluate all non\--deterministic computations to yield the head element.
+Instead of $n!$ number of non\--deterministic results, we only get $2^{(n-1)}$ results for an input list of length $n$.
+The crucial difference between the Haskell and the Curry implementation with respect to the model of non\--determinism is that Haskell's non\--determinism is flat, while in Curry non\--deterministic computations can occur in arbitrarily deep positions.
+Here, deep position means that the non\--determinism is not visible at the outermost constructor, but hides in the component of a constructor.
 
-Consider the following non-deterministic expression \cyinl{exp} of type \cyinl{[Bool]} and its projection to the head element and tail, respectively, in Curry.
+Consider the following non\--deterministic expression \cyinl{exp} of type \cyinl{[Bool]} and its projection to the head element and tail, respectively, in Curry.
 
 \begin{cyrepl}
 \curryrepl let exp = True : ([] ? [False]) in head exp
@@ -486,11 +486,11 @@ True
 [False]
 \end{cyrepl}
 
-The list \cyinl{exp} is non-deterministic in its tail component, the head element is deterministic and the top-level list constructor \cyinl{(:)} is also deterministic.
-That is, on the one hand applying \cyinl{head} to \cyinl{exp} does not trigger any non-determinism, the evaluation yields a deterministic result, namely \cyinl{True}.
-On the other hand the non-determinism appears in the overall result when we project to the tail of the list \cyinl{exp}.
+The list \cyinl{exp} is non\--deterministic in its tail component, the head element is deterministic and the top\--level list constructor \cyinl{(:)} is also deterministic.
+That is, on the one hand applying \cyinl{head} to \cyinl{exp} does not trigger any non\--determinism, the evaluation yields a deterministic result, namely \cyinl{True}.
+On the other hand the non\--determinism appears in the overall result when we project to the tail of the list \cyinl{exp}.
 This application yields the two results \cyinl{[]} and \cyinl{[False]}.
-In contrast, we cannot model the same behaviour in Haskell when using a list-based model for non-deterministic computations.
+In contrast, we cannot model the same behaviour in Haskell when using a list\--based model for non\--deterministic computations.
 
 \begin{hrepl}
 \haskellrepl let exp = True : (return [] ? return [False]) in head exp
@@ -504,9 +504,9 @@ In contrast, we cannot model the same behaviour in Haskell when using a list-bas
 \end{hrepl}
 
 The error message says that the list constructor \hinl{(:)} expects a second argument of type \hinl{[Bool]}, but we apply it to an argument of type \hinl{ND [Bool]}.
-Due to the explicit modeling of non-determinism that is visible in the type-level --- using \hinl{ND} ---- we cannot construct non-deterministic computations that occur deep in the arguments of constructors like \hinl{(:)} out of the box.
-In contrast, Curry's non-determinism is not visible on the type-level, such that we can use non-determinism expressions in any constructor argument without altering the type of the expression.
-We can reconcile the computation we want to express with the explicit non-determinism in Haskell by binding the non-deterministic computation first and reuse the list constructor then.
+Due to the explicit modeling of non\--determinism that is visible in the type\--level --- using \hinl{ND} --- we cannot construct non\--deterministic computations that occur deep in the arguments of constructors like \hinl{(:)} out of the box.
+In contrast, Curry's non\--determinism is not visible on the type\--level, such that we can use non\--determinism expressions in any constructor argument without altering the type of the expression.
+We can reconcile the computation we want to express with the explicit non\--determinism in Haskell by binding the non\--deterministic computation first and reuse the list constructor then.
 
 \begin{hrepl}
 \haskellrepl  return [] ? return [False] >>= \func nd ->
@@ -518,14 +518,14 @@ We can reconcile the computation we want to express with the explicit non-determ
 \{ [], [False] \}
 \end{hrepl}
 
-In this case, however, the non-determinism is definitely triggered: even though \hinl{head} does not need to evaluate its tail --- where the non-determinism occurs, the first argument of \hinl{(>>=)} is evaluated.
+In this case, however, the non\--determinism is definitely triggered: even though \hinl{head} does not need to evaluate its tail --- where the non\--determinism occurs, the first argument of \hinl{(>>=)} is evaluated.
  The overall computation then yields two results.
-All in all, the main insight here is that the non-determinism in Curry can occur deep within data structure components and gives us the possibility to exploit non-strictness.
-In contrast, the naive Haskell model using lists can only express flat non-determinism, that is, all possibly deep occurrences of non-determinism are pulled to the top-level.
+All in all, the main insight here is that the non\--determinism in Curry can occur deep within data structure components and gives us the possibility to exploit non\--strictness.
+In contrast, the naive Haskell model using lists can only express flat non\--determinism, that is, all possibly deep occurrences of non\--determinism are pulled to the top\--level.
 
 \paragraph{Selection Sort}
 
-Whereas the application of insertion sort to a non-deterministic comparison function yields the same number of results for the Haskell as well as the Curry implementation, we will now take a look at an example that yields duplicate results: selection sort.
+Whereas the application of insertion sort to a non\--deterministic comparison function yields the same number of results for the Haskell as well as the Curry implementation, we will now take a look at an example that yields duplicate results: selection sort.
 We directly define the version of selection sort that uses \hinl{pickMinM} instead of traversing the list twice.
 
 %if False
@@ -588,9 +588,9 @@ More generally, for $n \geq 7$ we have that $n \leq 2^{\frac{n-1}{2}}$ such that
 n! \leq n^n \leq {2^{\frac{n-1}{2}}}^n = 2^{\frac{n * (n-1)}{2}}
 \]
      
-Since the number of results for \hinl{selectionSort} applied to a non-deterministic comparison function differs from the result we got for the Curry implementation, we compare the underlying decision trees.
-The non-determinism produced by \hinl{selectionSort} arises from the usage of \hinl{coinCmpND}, which is only evaluated in the auxiliary function \hinl{pickMinM}.
-That is, it is sufficient to take a look at the decision tree for a sub-call of \hinl{pickMinM} to detect the different behaviour.
+Since the number of results for \hinl{selectionSort} applied to a non\--deterministic comparison function differs from the result we got for the Curry implementation, we compare the underlying decision trees.
+The non\--determinism produced by \hinl{selectionSort} arises from the usage of \hinl{coinCmpND}, which is only evaluated in the auxiliary function \hinl{pickMinM}.
+That is, it is sufficient to take a look at the decision tree for a sub\--call of \hinl{pickMinM} to detect the different behaviour.
 We compute the decision tree displayed left in \autoref{fig:pickDecision} by applying a free monad based data type as described in \autoref{subsec:drawing}.
 The right side of the figure recapitulates the decision tree when using the Curry implementation.
 
@@ -624,9 +624,9 @@ $\quad$ \vline $\quad$
 \end{figure}
 
 The monadic version is more strict: the recursive call to \hinl{pickMinM} needs to be evaluated in order to apply the predicate \hinl{p}.
-In the Curry version, however, we can already take the \cyinl{True}-branch for the application of \cyinl{p} without considering the recursive call first.
-Thus, the first result \cyinl{(1, [2,3])} triggers only one non-deterministic decision in Curry.
-Of course, the number of unnecessarily triggered non-deterministic decisions in the Haskell version increases with each recursive call of \hinl{pickMinM}.
+In the Curry version, however, we can already take the \cyinl{True}\--branch for the application of \cyinl{p} without considering the recursive call first.
+Thus, the first result \cyinl{(1, [2,3])} triggers only one non\--deterministic decision in Curry.
+Of course, the number of unnecessarily triggered non\--deterministic decisions in the Haskell version increases with each recursive call of \hinl{pickMinM}.
 That is, the number of duplicate results increases with the length of the list.
 
 \begin{hrepl}
@@ -637,7 +637,7 @@ That is, the number of duplicate results increases with the length of the list.
 \end{hrepl}
 
 More precisely, \hinl{pickMinM coinCmpND xs} yields $2^{\text{length xs}}$ results, while the Curry version only yields $\text{length xs}$ results.
-Note that the Curry version is what we expect in the first place: picking a minimum with a non-deterministic predicate is basically a function that non-deterministically yields each element of the list.
+Note that the Curry version is what we expect in the first place: picking a minimum with a non\--deterministic predicate is basically a function that non\--deterministically yields each element of the list.
 
 In the end, \hinl{pickMinM} and \cyinl{pickMin}, respectively, are the functions used to implement the selection sort algorithm and, thus, determine the number of permutations.
 Whereas \cyinl{selectionSort} yields only the permutations of the input list in Curry, we get duplicate permutations in the Haskell version.
@@ -645,17 +645,17 @@ Whereas \cyinl{selectionSort} yields only the permutations of the input list in 
 \paragraph{Other Sorting Algorithms}
 
 The remaining sorting algorithms discussed in \autoref{sec:NDCurry} --- bubble sort, quick sort and merge sort --- yield the same results for the monadic Haskell version as they do in Curry.
- However, we observe similar effects as with \hinl{insertionSortM} in \autoref{par:insert} concerning non-strictness.
-When we demand only the head elements of all permutations, the monadic Haskell versions need to trigger more non-determinism than is necessary in the Curry version.
-\autoref{fig:strictSort} visualises the number of triggered non-deterministic computations that are necessary to compute only the head element of all permutations.
-We observe that all Curry implementations (visualised by the completely coloured bars) compute less non-deterministic computations than all Haskell implementations.
-One interesting contrast is the behaviour of bubble sort: the Curry version only needs to trigger one non-deterministic computation for each element of the list.
-That is, the number of non-deterministic computations is linear in the length of the list, whereas the Haskell version triggers $n!$ non-deterministic computations for an input list of length $n$.
-Note that the evaluation of all permutations for bubble sort needs to trigger $n!$ non-deterministic computations as well, that is, in this case demanding only the head of each permutations is as strict as evaluating all list elements for each permutation.
+ However, we observe similar effects as with \hinl{insertionSortM} in \autoref{par:insert} concerning non\--strictness.
+When we demand only the head elements of all permutations, the monadic Haskell versions need to trigger more non\--determinism than is necessary in the Curry version.
+\autoref{fig:strictSort} visualises the number of triggered non\--deterministic computations that are necessary to compute only the head element of all permutations.
+We observe that all Curry implementations (visualised by the completely coloured bars) compute less non\--deterministic computations than all Haskell implementations.
+One interesting contrast is the behaviour of bubble sort: the Curry version only needs to trigger one non\--deterministic computation for each element of the list.
+That is, the number of non\--deterministic computations is linear in the length of the list, whereas the Haskell version triggers $n!$ non\--deterministic computations for an input list of length $n$.
+Note that the evaluation of all permutations for bubble sort needs to trigger $n!$ non\--deterministic computations as well, that is, in this case demanding only the head of each permutations is as strict as evaluating all list elements for each permutation.
 
 \begin{figure}[t]
 \input{content/figures/permutations}
-\caption{Comparison of the number of triggered non-deterministic computations for demanding the head element of all permutations}
+\caption{Comparison of the number of triggered non\--deterministic computations for demanding the head element of all permutations}
 \label{fig:strictSort}
 \end{figure}
 

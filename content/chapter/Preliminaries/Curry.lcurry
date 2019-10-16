@@ -8,19 +8,19 @@
 
 The functional logic programming language Curry combines --- as the name already suggests --- the features of the functional and logic paradigms.
 A familiarity with Haskell is especially helpful for using Curry, since the syntax is basically the same.
-Hence, Curry has most of the features users know from Haskell: algebraic data types, higher-order functions, type classes and lazy evaluation.
-On top of these functional features, Curry adds non-determinism as a built-in effect.
+Hence, Curry has most of the features users know from Haskell: algebraic data types, higher\--order functions, type classes and lazy evaluation.
+On top of these functional features, Curry adds non\--determinism as a built\--in effect.
 There are two maintained implementations of Curry: KiCS2 \citep{hanus2014kics2} and PAKCS \citep{hanus2017pakcs}.
-In the remainder of this thesis, we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.\footnote{More precisely, all source code was tested with version \verb+2.0.0-b14+ of KiCS2.}
+In the remainder of this thesis, we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.\footnote{More precisely, all source code was tested with version \verb+2.0.0\--b14+ of KiCS2.}
 All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile --- ~\curryrepl~ --- prompt.
 
-\subsection{Non-determinism}
+\subsection{Non\--determinism}
 \label{subsec:non-determinism}
 
-While Curry's non-determinism comes in a variety of forms, we are mostly interested in an explicit introduction of non-determinism using a dedicated operator.
-The binary operator \cyinl{(?) :: a -> a -> a} non-deterministically yields two computations: its first and second argument.
-Note that the non-determinism is not visibile in the type signature, it is an implicit effect with respect to Curry's type system.
-The following expression non-deterministically yields two results.
+While Curry's non\--determinism comes in a variety of forms, we are mostly interested in an explicit introduction of non\--determinism using a dedicated operator.
+The binary operator \cyinl{(?) :: a -> a -> a} non\--deterministically yields two computations: its first and second argument.
+Note that the non\--determinism is not visibile in the type signature, it is an implicit effect with respect to Curry's type system.
+The following expression non\--deterministically yields two results.
 
 \begin{cyrepl}
 \curryrepl True ? False
@@ -28,7 +28,7 @@ True
 False
 \end{cyrepl}
 
-The other function associated with non-determinism is \cyinl{failed :: a}, which is often used in similar situations as \hinl{undefined} in Haskell.
+The other function associated with non\--determinism is \cyinl{failed :: a}, which is often used in similar situations as \hinl{undefined} in Haskell.
 The crucial difference to \hinl{undefined} in Haskell is that \cyinl{failed} is rather a silent failure.
 More specifically, \cyinl{failed} is a neutral element with respect to \cyinl{(?)}.
 The following expressions illustrate this behaviour.
@@ -42,7 +42,7 @@ False
 \end{cyrepl}
 
 Due to its polymorphic type, \cyinl{failed} can also occur nested within a data structure.
-The same applies for non-determinism in the form of choices constructed by \cyinl{(?)}.
+The same applies for non\--determinism in the form of choices constructed by \cyinl{(?)}.
 
 \begin{cyrepl}
 \curryrepl (1 : failed) ? [1,2]
@@ -55,9 +55,9 @@ The same applies for non-determinism in the form of choices constructed by \cyin
 [2,3]
 \end{cyrepl}
 
-As the REPL evaluates to normal form, the first example just yields one result, because the left argument of the \cyinl{?}-operator evaluates to \cyinl{failed}.
-Note that KiCS2 displays a failure within a deterministic and non-deterministic value differently.
-On the one hand, a failed branch is not printed at all in case of non-determinism like in the first exemplary expression.
+As the REPL evaluates to normal form, the first example just yields one result, because the left argument of the \cyinl{?}\--operator evaluates to \cyinl{failed}.
+Note that KiCS2 displays a failure within a deterministic and non\--deterministic value differently.
+On the one hand, a failed branch is not printed at all in case of non\--determinism like in the first exemplary expression.
 On the other hand, in case of determinism the REPL displays a head normal form with \cyinl{!} as representation for \cyinl{failed} as the following examples show.
 
 \begin{cyrepl}
@@ -68,27 +68,27 @@ On the other hand, in case of determinism the REPL displays a head normal form w
 [!]
 \end{cyrepl}
 
-The second exemplary expression above yields four values: all non-determinism is pulled to the top-level leading to four different lists.
-The step-by-step evaluation of occurring non-deterministic computations that are pulled to the top is called \emph{pull-tabbing} \citep{alqaddoumi2010pull}.
-The equation in \autoref{fig:pull-tabbing} illustrates the pull-tabbing steps from left-to-right; the last line shows the simplified resulting expression.
+The second exemplary expression above yields four values: all non\--determinism is pulled to the top\--level leading to four different lists.
+The step\--by\--step evaluation of occurring non\--deterministic computations that are pulled to the top is called \emph{pull\--tabbing} \citep{alqaddoumi2010pull}.
+The equation in \autoref{fig:pull-tabbing} illustrates the pull\--tabbing steps from left\--to\--right; the last line shows the simplified resulting expression.
 
 \begin{figure}[h]
 \begin{spec}
    (1 ? 2) : ([] ? [3])
-== {- pull-tabbing |1 ? 2| -}
+== {- pull\--tabbing |1 ? 2| -}
    (1 : ([] ? [3])) ? (2 : ([] ? [3]))
-== {- pull-tabbing for left-most |[] ? [3]| -}
+== {- pull\--tabbing for left\--most |[] ? [3]| -}
    ((1 : []) ? (1 : [3])) ? (2 : ([] ? [3]))
-== {- pull-tabbing for |[] ? [3]| -}
+== {- pull\--tabbing for |[] ? [3]| -}
    ((1 : []) ? (1 : [3])) ? ((2 : []) ? (2 : [3]))
 == {- simplification of list representation -}
    ([1] ? [1,3]) ? ([2] ? [2,3])
 \end{spec}
-\caption{Step-by-step evaluation of the expression \cyinl{(1 ? 2) : ([] ? [3])} using pull-tabbing}
+\caption{Step\--by\--step evaluation of the expression \cyinl{(1 ? 2) : ([] ? [3])} using pull\--tabbing}
 \label{fig:pull-tabbing}
 \end{figure}
 
-An intuitive mental model for the non-determinism is the interpretation as tree structure.
+An intuitive mental model for the non\--determinism is the interpretation as tree structure.
 The REPL allows us to enable \verb|:set choices| to present all values as trees instead of Curry terms.
 The above expression, for example, yields the following tree.
 
@@ -104,11 +104,11 @@ The above expression, for example, yields the following tree.
         └── R: [2,3]
 \end{cyrepl}
 
-The tree is a one-to-one representation of the simplified expression from above.
-Overall there are three branches: one top-level branch and two more branches as sub-trees, leading to the four results.
-The left (\texttt{L}) and right (\texttt{R}) sub-trees of a branch are illustrated by corresponding labels.
+The tree is a one\--to\--one representation of the simplified expression from above.
+Overall there are three branches: one top\--level branch and two more branches as sub\--trees, leading to the four results.
+The left (\texttt{L}) and right (\texttt{R}) sub\--trees of a branch are illustrated by corresponding labels.
 Given the tree representation of an expression, the REPL computes all possible results using a tree traversal.
-The default traversal for KiCS2 is a breadth-first search, but depth-first search is also possible.
+The default traversal for KiCS2 is a breadth\--first search, but depth\--first search is also possible.
 The user can change the behaviour of the tree traversal in the REPL using \texttt{:set dfs} and \texttt{:set bfs}, respectively.
 Note that the order of results changes for expressions corresponding to unbalanced trees.
 
@@ -132,7 +132,7 @@ Note that the order of results changes for expressions corresponding to unbalanc
 \end{minipage}
 
 As a side note consider the following adaptation of the expression above that changes the parentheses according to associativity.
-We evaluate the expression using breadth-first search again.
+We evaluate the expression using breadth\--first search again.
 
 \begin{cyrepl}
 \curryrepl :set bfs
@@ -142,10 +142,10 @@ We evaluate the expression using breadth-first search again.
 2
 \end{cyrepl}
 
-That is, the order of results is not stable with respect to associativity in case of breadth-first search.
-When we consider only the set of results instead of considering the order of the results, then we observe that the \cinl{?}-operator is associative.
+That is, the order of results is not stable with respect to associativity in case of breadth\--first search.
+When we consider only the set of results instead of considering the order of the results, then we observe that the \cinl{?}\--operator is associative.
 
-We can now take a look at the implementation of a non-deterministic version of \cyinl{insert} that we modelled in Haskell using lists in \autoref{subsec:monadicAbstractions}.
+We can now take a look at the implementation of a non\--deterministic version of \cyinl{insert} that we modelled in Haskell using lists in \autoref{subsec:monadicAbstractions}.
 
 %if False
 
@@ -174,8 +174,8 @@ As expected, we get 5 results when we run the exemplary expression from the Hask
 \end{cyrepl}
 
 Last but not least, we compute all the head elements of the above expression.
-Recall that we discussed the missing composability of effectful functions like \hinl{insertND} or \hinl{headPartial} in the Haskell representation of non-determinism.
-In case of Curry's built-in non-determinism, the effect is not visible in the type-level, thus, the composition of pure and effectful functions works out of the box.
+Recall that we discussed the missing composability of effectful functions like \hinl{insertND} or \hinl{headPartial} in the Haskell representation of non\--determinism.
+In case of Curry's built\--in non\--determinism, the effect is not visible in the type\--level, thus, the composition of pure and effectful functions works out of the box.
 
 \begin{cyrepl}
 \curryrepl head (insert 1 [2,3,4,5])
@@ -183,16 +183,16 @@ In case of Curry's built-in non-determinism, the effect is not visible in the ty
 2
 \end{cyrepl}
 
-The interesting part about the composition in case of Curry's built-in non-determinism is its non-strict behaviour.
+The interesting part about the composition in case of Curry's built\--in non\--determinism is its non\--strict behaviour.
 Instead of five results --- one head element for each produced list like in the Haskell version, the computation yields only two results.
-Once again, we leave it here to build up the tension for the forthcoming chapters, when we discuss the difference between Curry's built-in non-determinism and the representation using lists in Haskell in more details.
+Once again, we leave it here to build up the tension for the forthcoming chapters, when we discuss the difference between Curry's built\--in non\--determinism and the representation using lists in Haskell in more details.
 
-\subsection{Non-strictness}
+\subsection{Non\--strictness}
 \label{subsec:non-strictness}
 
-For Haskell we discussed some use-cases for non-strictness.
-A common programming pattern to exploit non-strictness that we have not introduced so far, is especially interesting for Curry due to its combination with non-determinism.
-We can use \cyinl{let}-bindings instead of pattern matching to define a less-strict version of a function.
+For Haskell we discussed some use\--cases for non\--strictness.
+A common programming pattern to exploit non\--strictness that we have not introduced so far, is especially interesting for Curry due to its combination with non\--determinism.
+We can use \cyinl{let}\--bindings instead of pattern matching to define a less\--strict version of a function.
 In order to understand this difference, let us consider the following implementation of \cyinl{fromJustToList} and an alternative implementation \cyinl{fromJustToListLet}.
 
 %if False
@@ -243,10 +243,10 @@ False
 \end{cyrepl}
 
 Due to the pattern matching in the definition of \cyinl{fromJustToList} the argument \cyinl{failed} needs to be evaluated and, thus, the function \cyinl{null} propagates \cyinl{failed} as return value.
-The definition of \cyinl{fromJustToListLet} postpones the evaluation of its argument to the right-hand side: the argument needs to be evaluated only if the computation demands the value \cyinl{x} explicitly.
+The definition of \cyinl{fromJustToListLet} postpones the evaluation of its argument to the right\--hand side: the argument needs to be evaluated only if the computation demands the value \cyinl{x} explicitly.
 
 The strictness property for \cyinl{fromJustToList} holds for a definition via explicitly pattern matching using \cyinl{case ... of} as well.
-In particular, pattern matching of the left hand-side of a rule desugars to case expressions on the right-hand side.
+In particular, pattern matching of the left\--hand side of a rule desugars to case expressions on the right\--hand side.
 
 %if False
 
@@ -267,13 +267,13 @@ fromJustToListCase mx = case mx of
 !
 \end{cyrepl}
 
-Note that we can observe the same non-strictness and strictness property, respectively, when using a non-deterministic value instead of using Curry's \cyinl{failed}-value in all examples.
+Note that we can observe the same non\--strictness and strictness property, respectively, when using a non\--deterministic value instead of using Curry's \cyinl{failed}\--value in all examples.
 
-\subsection{Call-time Choice}
+\subsection{Call\--time Choice}
 
 As Curry's similarities to Haskell are obvious, we also need to talk about the underlying evaluation strategy.
 The combination of Haskell's functional features with the logic paradigm in Curry has consequences with respect to lazy evaluation.
-More precisely, the combination of sharing and non-determinism is particularly interesting.
+More precisely, the combination of sharing and non\--determinism is particularly interesting.
 Consider an adaption of the sharing example we used in Haskell that adds two numbers.
 
 %if False
@@ -291,9 +291,9 @@ test2 n = let x = n ? (n+1) in x + x
 \end{curry}
 
 Recall that we showed the effect of logging a message whenever an expression is evaluated in Haskell.
-The key observation was that introducing a let-binding for such an effectful computation, i.e., sharing the computation, behaves differently than an inlined version: in the latter case the evaluation triggers the effect twice but only once when sharing the computation.
-We observe a similar behaviour for Curry's non-determinism effect.
-Sharing a non-deterministic computation leads to different results than its inlined version.
+The key observation was that introducing a let\--binding for such an effectful computation, i.e., sharing the computation, behaves differently than an inlined version: in the latter case the evaluation triggers the effect twice but only once when sharing the computation.
+We observe a similar behaviour for Curry's non\--determinism effect.
+Sharing a non\--deterministic computation leads to different results than its inlined version.
 
 \begin{minipage}[t]{0.5\textwidth}
 \begin{cyrepl}
@@ -312,7 +312,7 @@ Sharing a non-deterministic computation leads to different results than its inli
 \end{cyrepl}
 \end{minipage}
 
-In case of Curry non-determinism emerges as effect: we can observe sharing of computations as it affects the number of results.
+In case of Curry non\--determinism emerges as effect: we can observe sharing of computations as it affects the number of results.
 We take a look at the corresponding tree visualisations for both expressions.
 
 \begin{figure}[h]
@@ -345,62 +345,62 @@ We take a look at the corresponding tree visualisations for both expressions.
 \end{figure}
 
 The tree structure is the same for both expressions.
-We can, however, observe that the crucial difference lies in the labels for the non-deterministic choices that are displayed as \texttt{?1}, \texttt{?2} and \texttt{?3}, respectively.
+We can, however, observe that the crucial difference lies in the labels for the non\--deterministic choices that are displayed as \texttt{?1}, \texttt{?2} and \texttt{?3}, respectively.
 Note that we simplified the tree visualisation we showed before by removing these labels, because the labels are only of interest when an expression introduces sharing.
-Let us take a look at a step-by-step evaluation of \cyinl{test2 42} that introduces sharing in \autoref{fig:sharing-step}.
+Let us take a look at a step\--by\--step evaluation of \cyinl{test2 42} that introduces sharing in \autoref{fig:sharing-step}.
 
 \begin{figure}[h]
 \begin{spec}
    let x = 42 ? 43 in x + x
-== {- inlining of let-binding for |x|: use label |?*| -}
+== {- inlining of let\--binding for |x|: use label |?*| -}
    (42 ?* 43) + (42 ?* 43)
-== {- pull-tabbing for left-most |42 ?* 43| -}
+== {- pull\--tabbing for left\--most |42 ?* 43| -}
    (42 + (42 ?* 43)) ?* (43 + (42 ?* 43))
-== {- pull-tabbing for left-most |42 ?_1 43| -}
+== {- pull\--tabbing for left\--most |42 ?_1 43| -}
    ((42 + 42) ?* (42 + 43)) ?* (43 + (42 ?* 43))
-== {- pull-tabbing for |42 ?* 43|-}
+== {- pull\--tabbing for |42 ?* 43|-}
    ((42 + 42) ?* (42 + 43)) ?* ((43 + 42) ?* (43 + 43))
 == {- simplification -}
    (84 ?* 85) ?* (85 ?* 86)
 \end{spec}
-\caption{Step-by-step evaluation of the expression \cyinl{test2 42}}
+\caption{Step\--by\--step evaluation of the expression \cyinl{test2 42}}
 \label{fig:sharing-step}
 \end{figure}
 
-The crucial difference to our step-by-step evaluation before is that we give the \cyinl{(?)}-operator an explicit label when we inline the let-binding.
-The resulting expression is once again a one-to-one representation of the tree visualisation above.
+The crucial difference to our step\--by\--step evaluation before is that we give the \cyinl{(?)}\--operator an explicit label when we inline the let\--binding.
+The resulting expression is once again a one\--to\--one representation of the tree visualisation above.
 Now the question arises how we should interpret these labels.
 The idea is to make consistent choices for each label.
-That is, when the REPL traverses the tree to compute all results, the algorithm tracks for each label if the traversal continues in the left or right sub-tree.
+That is, when the REPL traverses the tree to compute all results, the algorithm tracks for each label if the traversal continues in the left or right sub\--tree.
 If we reach a label that was already tracked, we take the same direction again: the traversal makes consistent choices for all labels.
 
-A more high-level way to use equational reasoning for expressions with shared computations is to pull the whole let-expression to the top-level.
+A more high\--level way to use equational reasoning for expressions with shared computations is to pull the whole let\--expression to the top\--level.
 That way we do not need to use labeled choices as the following equation in \autoref{fig:sharing-step2} illustrates.
 
 \begin{figure}[h]
 \begin{spec}
    let x = 42 ? 43 in x + x
-== {- pull-tabbing |42 ? 43| in let-binding -}
+== {- pull\--tabbing |42 ? 43| in let\--binding -}
    let x = 42 in x + x ? let x = 43 in x + x
-== {- inlining of left-most let-binding for |x| -}
+== {- inlining of left\--most let\--binding for |x| -}
    42 + 42 ? let x = 43 in x + x
-== {- inlining of let-binding for |x| -}
+== {- inlining of let\--binding for |x| -}
    42 + 42 ? 43 + 43
 == {- simplification -}
    84 ? 86
 \end{spec}
-\caption{Alternative representation for step-by-step evaluation of the expression \cyinl{test2 42}}
+\caption{Alternative representation for step\--by\--step evaluation of the expression \cyinl{test2 42}}
 \label{fig:sharing-step2}
 \end{figure}
 
 \subsection{Encapsulation}
 \label{subsec:encapsulation}
 
-The implementation of \cyinl{insert} is a nice example for a straightforward realisation of the algorithm's specification due to the usage of non-determinism.
-When we use such non-deterministic functions in our code basis, we cannot regain a pure, deterministic function anymore.
-Luckily, there exists a mechanism in Curry to encapsulate the non-determinism of computations.
+The implementation of \cyinl{insert} is a nice example for a straightforward realisation of the algorithm's specification due to the usage of non\--determinism.
+When we use such non\--deterministic functions in our code basis, we cannot regain a pure, deterministic function anymore.
+Luckily, there exists a mechanism in Curry to encapsulate the non\--determinism of computations.
 Curry provides one implementation of such an encapsulation with the primitive function \cyinl{allValues :: a -> { a }} that
-operates on a polymorphic --- and potentially non-deterministic --- value and yields a multiset of all non-deterministic values.
+operates on a polymorphic --- and potentially non\--deterministic --- value and yields a multiset of all non\--deterministic values.
 For presentation purposes, we use an abstract view of the result of an encapsulation to emphasise that the order of encapsulated results does not matter.
 In order to work with encapsulated values, Curry furthermore provides the following two functions to fold and map the resulting multiset.
 
@@ -421,7 +421,7 @@ Using lists as underlying representation, let us focus on the usage of the funct
 [1, 2]
 \end{cyrepl}
 
-We can also manipulate all the results of a non-deterministic computation in a deterministic way by working directly on the list structure.
+We can also manipulate all the results of a non\--deterministic computation in a deterministic way by working directly on the list structure.
 For example, we can project to the head element of each resulting list.
 
 \begin{cyrepl}

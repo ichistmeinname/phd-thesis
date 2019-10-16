@@ -4,10 +4,10 @@
 
 %endif
 
-The most prominent use of non-determinism in combination with sorting is permutation sort: a sorting algorithm that generates all permutations and selects the one that is sorted to yield as result.
-In this chapter we shed some light on a different combination of sorting functions and non-determinism: we enumerate permutations by applying sorting functions to a non-deterministic comparison function.
+The most prominent use of non\--determinism in combination with sorting is permutation sort: a sorting algorithm that generates all permutations and selects the one that is sorted to yield as result.
+In this chapter we shed some light on a different combination of sorting functions and non\--determinism: we enumerate permutations by applying sorting functions to a non\--deterministic comparison function.
 First, we take a look at implementations of some famous sorting functions in Curry and define a suitable comparison function to enumerate permutations.
-Thanks to Curry's built-in non-determinism, we can reuse all common sorting functions as they are.
+Thanks to Curry's built\--in non\--determinism, we can reuse all common sorting functions as they are.
 We discuss the resulting permutation enumeration functions; the number of results is of special interest here.
 A selection of questions that we will answer reads as follows.
 
@@ -20,42 +20,42 @@ A selection of questions that we will answer reads as follows.
 As a quick teaser for these questions, we anticipate that all (correct) sorting functions indeed enumerate every permutation of the input list at least once. However, enumerating every permutation exactly once is a property that not all sorting functions share.
 
 In the second part of this chapter we transfer our implementation in Curry to Haskell.
-One possible model of non-determinism in a functional language is to use lists to represent all non-deterministic results as we discussed in \autoref{subsec:monadicAbstractions}.
-We go even one step further and generalise all functions to monadic functions and use a more specialised version of monads that have an additional \hinl{mplus} function that is especially suitable for non-determinism.
-Using these monadically lifted functions, we are interested in a multi-set model of non-determinism using lists.
-We compare the monadic representation of non-determinism with the built-in non-determinism of Curry by means of these sorting functions to enumerate permutations.
+One possible model of non\--determinism in a functional language is to use lists to represent all non\--deterministic results as we discussed in \autoref{subsec:monadicAbstractions}.
+We go even one step further and generalise all functions to monadic functions and use a more specialised version of monads that have an additional \hinl{mplus} function that is especially suitable for non\--determinism.
+Using these monadically lifted functions, we are interested in a multi\--set model of non\--determinism using lists.
+We compare the monadic representation of non\--determinism with the built\--in non\--determinism of Curry by means of these sorting functions to enumerate permutations.
 
-The main observation of the comparison is that Curry's built-in non-determinism can be less strict than a naive monadic model in Haskell.
+The main observation of the comparison is that Curry's built\--in non\--determinism can be less strict than a naive monadic model in Haskell.
 This observation is not new, there are other applications that exploit this advantage as well.
-Using non-determinism to transform sorting functions into permutation functions is an interesting use case of this advantage nonetheless.
+Using non\--determinism to transform sorting functions into permutation functions is an interesting use case of this advantage nonetheless.
 
 %if False
 Last but not least, we leverage the monadic implementation of the sorting functions to discuss possibilities to get rid of duplicates when enumerating permutations.
-The main idea here is to enhance the underlying monad to track the decisions the non-deterministic comparison function makes when traversing the input list.
+The main idea here is to enhance the underlying monad to track the decisions the non\--deterministic comparison function makes when traversing the input list.
 %endif
 
 In summary, this chapter makes the following contributions.
 
 \begin{itemize}
-\item We inspect sorting functions implemented in Curry and apply these functions to a non-deterministic comparison function and a list to enumerate permutations of that list.
+\item We inspect sorting functions implemented in Curry and apply these functions to a non\--deterministic comparison function and a list to enumerate permutations of that list.
 \item When taking a closer look at the resulting lists, we observe that the functions enumerate every possible permutation of the input list at least once.
 \item Some sorting functions yield duplicate results. We investigate why these duplicates emerge.
 \item Furthermore, we discover that some sorting functions even enumerate lists that are not a permutation of the input list.
-\item As a second step, we transfer the sorting functions to Haskell and model non-determinism explicitly using monads.
-\item We investigate the difference between Curry's non-determinism and the list-based model in Haskell for the resulting permutation enumeration functions.
+\item As a second step, we transfer the sorting functions to Haskell and model non\--determinism explicitly using monads.
+\item We investigate the difference between Curry's non\--determinism and the list\--based model in Haskell for the resulting permutation enumeration functions.
 %if False
-\item Thanks to the flexibility of using monads, we can enrich the non-deterministic comparison function which necessary properties to eliminate duplicate results. We show three examples for properties that yield to an enumeration of the exact number of permutations for sorting functions that yield too many results with a simple non-deterministic comparison function.
+\item Thanks to the flexibility of using monads, we can enrich the non\--deterministic comparison function which necessary properties to eliminate duplicate results. We show three examples for properties that yield to an enumeration of the exact number of permutations for sorting functions that yield too many results with a simple non\--deterministic comparison function.
 %endif
 \end{itemize}
 
 At the end of the chapter, we discuss a variety of questions that follow from the results and observations presented above.
 
-\section{Non-deterministic Sorting Functions in Curry}
+\section{Non\--deterministic Sorting Functions in Curry}
 \label{sec:NDCurry}
 
 We start this chapter with an overview of common sorting functions, which we implement using a version that is parametrised by a comparison function.
 The main quest of this section is to document the behavior of these sorting functions when applied to a particular comparison function.
-Hereunto, consider the following non-deterministic comparison function that ignores both its arguments and non-deterministically yields \cyinl{True} and \cyinl{False}.
+Hereunto, consider the following non\--deterministic comparison function that ignores both its arguments and non\--deterministically yields \cyinl{True} and \cyinl{False}.
 
 %if False
 
@@ -69,13 +69,13 @@ coinCmp :: a -> a -> Bool
 coinCmp _ _ = True ? False
 \end{curry}
 
-The name \cyinl{coinCmp} suggests a similarity to the popular \cyinl{coin} definition as an example for non-determinism; the difference here is that we define a binary function with a non-deterministic result, whereas \cyinl{coin} is a nullary function.
+The name \cyinl{coinCmp} suggests a similarity to the popular \cyinl{coin} definition as an example for non\--determinism; the difference here is that we define a binary function with a non\--deterministic result, whereas \cyinl{coin} is a nullary function.
 
-In the remainder of this section we will apply all sorting functions to the non-deterministic comparison function \cyinl{coinCmp}.
-We can already anticipate here that the non-determinism introduced by \cyinl{coinCmp} will transform the sorting functions with resulting list type \cyinl{[a]} to functions that produce several lists non-deterministically.
-That is, the non-determinism of \cyinl{coinCmp} propagates to the result.
+In the remainder of this section we will apply all sorting functions to the non\--deterministic comparison function \cyinl{coinCmp}.
+We can already anticipate here that the non\--determinism introduced by \cyinl{coinCmp} will transform the sorting functions with resulting list type \cyinl{[a]} to functions that produce several lists non\--deterministically.
+That is, the non\--determinism of \cyinl{coinCmp} propagates to the result.
 
-The interesting thing about using these sorting functions with a non-deterministic comparison function like \cyinl{coinCmp} is that we expect that each permutation of the input list is part of the resulting lists.
+The interesting thing about using these sorting functions with a non\--deterministic comparison function like \cyinl{coinCmp} is that we expect that each permutation of the input list is part of the resulting lists.
 Why is it reasonable to expect to see all permutations?
 We expect the original sorting function, say \cyinl{sort :: (Int -> Int -> Bool) -> [Int] -> [Int]}, to actually sort a list in ascending order when we apply it to the comparison function \cyinl{(<=)}.
 If \cyinl{sort (<=)} is indeed such a sorting function, then every permutation of a sorted list \cyinl{[1..n]} of length $n$ can be sorted by \cyinl{sort (<=)}.
@@ -90,7 +90,7 @@ These integers are only meant to be placeholders for concrete values and represe
 That is, when we produce permutations of the input list, we can deduce the behaviour for a variety of input lists of other types, because we know where elements end up in the result based on their position in the input list.
 Moreover, when we describe how a function produces its results, we say that a value is \emph{less than or equal} to another value with respect to the comparison function in question.
 Considering that \cyinl{coinCmp} is a comparision function that does not have the usual property of order relations, not every usage of \emph{less than or equal} refers to the natural order on integer values (that is, the relation $\leq$).
-More particular, we will use the same terminology when describing the behaviour of the non-deterministic predicate \cyinl{coinCmp}.
+More particular, we will use the same terminology when describing the behaviour of the non\--deterministic predicate \cyinl{coinCmp}.
 We think, however, these descriptions are easier to read when we use \emph{less than or equal} in this overloaded manner.
 
 \subsection{Insertion Sort}
@@ -141,8 +141,8 @@ The following example sorts a list of integers in ascending order.
 \end{cyrepl}
 
 As the definition of \cyinl{insertionSort} is parametric over the comparison function, we can apply different orderings using the same function.
-Besides a deterministic order specified by \cyinl{(<=)} or \cyinl{(>=)}, there is nothing that stops us from using a non-deterministic comparison function instead.
-Consider the following example, where we apply \cyinl{insertionSort} to the non-deterministic comparison function \cyinl{coinCmp}.\footnote{If the result of an evaluated expression in the REPL yields more than four results, we will display the results side-by-side to ease readibility.}
+Besides a deterministic order specified by \cyinl{(<=)} or \cyinl{(>=)}, there is nothing that stops us from using a non\--deterministic comparison function instead.
+Consider the following example, where we apply \cyinl{insertionSort} to the non\--deterministic comparison function \cyinl{coinCmp}.\footnote{If the result of an evaluated expression in the REPL yields more than four results, we will display the results side\--by\--side to ease readibility.}
 
 \begin{cyrepl}
 \curryrepl insertionSort coinCmp [1,2,3]
@@ -151,7 +151,7 @@ Consider the following example, where we apply \cyinl{insertionSort} to the non-
 [2,3,1]  [3,2,1]
 \end{cyrepl}
 
-We see that the expression non-deterministically yields six different results.
+We see that the expression non\--deterministically yields six different results.
 All of these results are a permutation of the input list \cyinl{[1,2,3]}.
 Since a list of length $n$ has $n!$ number of permutations, the example above yields exactly all $3!=6$ permutations of the list.
 
@@ -172,11 +172,11 @@ insertCoin x []     = [x]
 insertCoin x (y:ys) = x:y:ys ? y : insertCoin x ys
 \end{curry}
 
-This variant of \cyinl{insert} is exactly the definition of a non-deterministic insertion that is used to define a permutation function, for example in the overview of Curry by \citet{hanus1994integration}.
-The attentive reader recognises the definition as the definition we discussed in \autoref{subsec:non-determinism} as well as its Hsakell equivalent \hinl{insertND} we defined using a representation for non-determinism in \autoref{subsec:monadicAbstractions}.
+This variant of \cyinl{insert} is exactly the definition of a non\--deterministic insertion that is used to define a permutation function, for example in the overview of Curry by \citet{hanus1994integration}.
+The attentive reader recognises the definition as the definition we discussed in \autoref{subsec:non-determinism} as well as its Hsakell equivalent \hinl{insertND} we defined using a representation for non\--determinism in \autoref{subsec:monadicAbstractions}.
 
 As a second step to better understand how \cyinl{insertSort} computes the permutations of its input list when applied to \cyinl{coinCmp}, we take a look at the decision tree for the exemplary call above on the left of \autoref{fig:dtInsert}.
-As the comparison function \cyinl{coinCmp} non-deterministically yields \cyinl{True} and \cyinl{False}, the decision tree of our example reflects all possible control flows for \cyinl{insertionSort} depending on the results of \cyinl{coinCmp}.
+As the comparison function \cyinl{coinCmp} non\--deterministically yields \cyinl{True} and \cyinl{False}, the decision tree of our example reflects all possible control flows for \cyinl{insertionSort} depending on the results of \cyinl{coinCmp}.
 
 \begin{figure}[t]
 \begin{center}
@@ -216,9 +216,9 @@ $\quad$ \vline $\quad$
 \label{fig:dtInsert}
 \end{figure}
 
-We already introduced the option to draw the decision tree for a non-deterministic expression in \autoref{ch:dp}.
+We already introduced the option to draw the decision tree for a non\--deterministic expression in \autoref{ch:dp}.
 Recall that we do not display labels for the branches if the evaluated expression does not make use of sharing.
-Moreover, all branches in this decision tree correspond to non-determinism spawned by \cyinl{coinCmp}.
+Moreover, all branches in this decision tree correspond to non\--determinism spawned by \cyinl{coinCmp}.
 
 An interesting insight that we, unfortunately, do not gain from the decision tree is \emph{how} exactly the permutations are computed on the way.
 In order to make the computation more transparent, we adjust the above decision tree and annotate each branch point with the comparison that takes place.
@@ -317,8 +317,8 @@ We are ready to take a look at the resulting permutations.
 \end{cyrepl}
 
 We see that \cyinl{selectionSort} yields exactly the permutations of the input list like our implementation \cyinl{insertionSort}.
-One difference of both implementations comes apparent when we look at the type: \cyinl{selectionSort} has an \cyinl{Eq}-constraint on the elements of the list.
-As the resulting \cyinl{Eq}-constraint breaks with the general scheme that we parametrise all functions with a comparison function, we define a function \cyinl{pickMin} that finds the minimum and yields the remaining list in one traversal of the input list.
+One difference of both implementations comes apparent when we look at the type: \cyinl{selectionSort} has an \cyinl{Eq}\--constraint on the elements of the list.
+As the resulting \cyinl{Eq}\--constraint breaks with the general scheme that we parametrise all functions with a comparison function, we define a function \cyinl{pickMin} that finds the minimum and yields the remaining list in one traversal of the input list.
 
 %if False
 
@@ -434,7 +434,7 @@ Using the adapted implementation \cyinl{selectionSortPick}, we sort the same exa
 
 %endif
 
-Due to the let-bindings used in the implementation of \cyinl{selectionSortPick} as well as the auxiliary function \cyinl{pickMin}, the corresponding decision tree is not as easy to look at as for \cyinl{insertionSort}.
+Due to the let\--bindings used in the implementation of \cyinl{selectionSortPick} as well as the auxiliary function \cyinl{pickMin}, the corresponding decision tree is not as easy to look at as for \cyinl{insertionSort}.
 Instead, we take a look at the decision tree for \cyinl{pickMin} and \cyinl{minList} in \autoref{fig:select1}.
 \noindent%
 \begin{figure}
@@ -472,10 +472,10 @@ $\quad\quad\quad$ \vline $\quad\quad\quad$
 \label{fig:select1}
 \end{figure}
 \noindent%
-Note that the decision tree for \cyinl{pickMin} is an example for the visualisation of sharing: the decision labeled \texttt{?6} occurs in each of the two subsequent sub-trees again.
-This decision originates from the usage of the let-binding for the recursive call in the second rule of \cyinl{pickMin}.
+Note that the decision tree for \cyinl{pickMin} is an example for the visualisation of sharing: the decision labeled \texttt{?6} occurs in each of the two subsequent sub\--trees again.
+This decision originates from the usage of the let\--binding for the recursive call in the second rule of \cyinl{pickMin}.
 The recursive call \cyinl{pickMin p xs} binds the minimum, and the list without that minimum to the variables \cyinl{m} and \cyinl{l}, respectively.
-In particular, we cannot use case-expressions without altering the non-strictness-property of the original definition using let-bindings.
+In particular, we cannot use case\--expressions without altering the non\--strictness property of the original definition using let\--bindings.
 Therefore, in the following, we represent decision trees in a reduced version, where we fuse shared decisions by only displaying the branches that would be considered in a search traversal.
 \autoref{fig:selectAndBubble} displays this reduced decision tree on the left --- with the additional modification that we label branches with the corresponding comparisons like before.
 %
@@ -524,7 +524,7 @@ $\quad$ \vline $\quad$ $\quad$
 As an interesting aside, note that we cannot give the second argument of the comparison for the first branch --- marked with \texttt{(*)} in \autoref{fig:selectAndBubble}.
 We do not have this information, because \cyinl{coinCmp} does not demand its second argument.
 In the example above the second argument is the expression \cyinl{pickMin coinCmp [2,3]}; a demand is only necessary if we want to compute the entire list structure of the first solution.
-We can observe this non-strict behaviour when computing only the head element of the resulting permutations.
+We can observe this non\--strict behaviour when computing only the head element of the resulting permutations.
 Consider the following expressions involving a list with \cyinl{failed} as element.
 
 \begin{cyrepl}
@@ -533,8 +533,8 @@ Consider the following expressions involving a list with \cyinl{failed} as eleme
 1
 \end{cyrepl}
 \noindent
-In theory, the permutations of the list \cyinl{[1,failed]} are \cyinl{[1,failed]} and \cyinl{[failed,1]}; in practice, the expression \cyinl{failed} is not a value like \cyinl{42} or \cyinl{True}, printing \cyinl{failed} in the REPL propagates the failure to the top-level, that is, there are no results to print.
-The first expression computes all possible permutations, but the expression does not have any result: \cyinl{failed} causes the computation to propagate the failure to the top-level.
+In theory, the permutations of the list \cyinl{[1,failed]} are \cyinl{[1,failed]} and \cyinl{[failed,1]}; in practice, the expression \cyinl{failed} is not a value like \cyinl{42} or \cyinl{True}, printing \cyinl{failed} in the REPL propagates the failure to the top\--level, that is, there are no results to print.
+The first expression computes all possible permutations, but the expression does not have any result: \cyinl{failed} causes the computation to propagate the failure to the top\--level.
 The second expression, however, computes only the head element and yields indeed a solution.
 That is, in order to yield the first element of the first list, we do not need to compute any further elements of the input list.
 
@@ -600,7 +600,7 @@ Bubbling the local minimum to the front yields, nevertheless, a sorted list for 
 This behaviour, however, is rather a lucky coincidence than the normal case for the usage of \cyinl{bubble}.
 The third and fourth lists are counterexamples: when bubbling \cyinl{1} (in the third example) and \cyinl{2} (in the fourth example), respectively, to the front of the list, \cyinl{3} is never picked as local minumum to bubble to the front.
 
-Using a non-deterministic comparison function like \cyinl{coinCmp}, \cyinl{bubble} enumerates all possible \emph{bubblings}.
+Using a non\--deterministic comparison function like \cyinl{coinCmp}, \cyinl{bubble} enumerates all possible \emph{bubblings}.
 Consider the following two examples.
 
 \begin{cyrepl}
@@ -632,7 +632,7 @@ bubbleSort p xs@@(_ : _) = let (y:ys) = bubble p xs
                           in y : bubbleSort p ys
 \end{curry}
 
-Finally, the application of a sorting function to the non-deterministic comparison function \cyinl{coinCmp} yields more results than expected.
+Finally, the application of a sorting function to the non\--deterministic comparison function \cyinl{coinCmp} yields more results than expected.
 
 \begin{cyrepl}
 \curryrepl bubbleSort coinCmp [1,2,3]
@@ -649,7 +649,7 @@ In order to understand why these duplicates occur, we take a look at the decisio
 \end{curry}
 listed in \autoref{fig:selectAndBubble}.
 Note that the second argument of the comparison function \cyinl{coinCmp} is, again, an unevaluated expression --- we have already seen a similar example when talking about \cyinl{selectionSort}.
-The computation of all results in the REPL as well as drawing the decision tree do not demand the evaluation of expressions like \cyinl{head (bubble [2,3])} until the corresponding list element will be printed.\footnote{The actual expression appearing in the evaluation steps is a let-binding that references the head element in the comparison. That is, \cyinl{let (x:xs) = bubble [2,3] in if 1 <= x then ... else ...} is closer to the expressions occurring during the evaluation.}
+The computation of all results in the REPL as well as drawing the decision tree do not demand the evaluation of expressions like \cyinl{head (bubble [2,3])} until the corresponding list element will be printed.\footnote{The actual expression appearing in the evaluation steps is a let\--binding that references the head element in the comparison. That is, \cyinl{let (x:xs) = bubble [2,3] in if 1 <= x then ... else ...} is closer to the expressions occurring during the evaluation.}
 
 The new observation about the decision tree for an application of \cyinl{bubbleSort} is that some results occur twice.
 The duplicated results are marked with \texttt{<+++} and \texttt{<++++}, respectively.
@@ -679,7 +679,7 @@ The connex property describes that any two pairs of elements of appropriate type
 \forall xy, x \leq y \vee y \leq x \tag*{(Connexity)}
 \]
 
-Binary relations that are total orders (like for example the less-than-or-equal-to-relation on integers) fulfil the connex property by definition.
+Binary relations that are total orders (like for example the less\--than\--or\--equal\--to\--relation on integers) fulfil the connex property by definition.
 This observation implies that the implementation of \cyinl{bubbleSort} needs to be used with a comparison function corresponding to a binary relation that is a total order, otherwise it cannot sort all lists correctly.
 
 \subsection{Quicksort}
@@ -870,7 +870,7 @@ merge p (x:xs) (y:ys) || p x y      = x : merge p xs (y:ys)
 \end{curry}
 
 The first two rules cover the case that it is not necessary to merge if one of the lists is empty: we just yield the other one.
-If both lists are non-empty, we decide based on the comparison function \cyinl{p} which element to put at the front of the resulting list and merge recursively with the remaining lists.
+If both lists are non\--empty, we decide based on the comparison function \cyinl{p} which element to put at the front of the resulting list and merge recursively with the remaining lists.
 Note that we assume that both list arguments of \cyinl{merge} are already sorted.
 Finally, we define the overall sorting function \cyinl{mergeSort} that uses \cyinl{divideN} to divide the lists into two sublists that are sorted recursively, and \cyinl{merge} to merge the sorted sublists.
 
@@ -882,7 +882,7 @@ mergeSort p l@@(_ : (_ : _)) = let (l1,l2) = divideN l
                               in merge p (mergeSort p l1) (mergeSort p l2)
 \end{curry}
 
-Once again we take a look at an exemplary application of \cyinl{mergeSort} to the non-deterministic comparison function \cyinl{coinCmp}.
+Once again we take a look at an exemplary application of \cyinl{mergeSort} to the non\--deterministic comparison function \cyinl{coinCmp}.
 
 \begin{cyrepl}
 \curryrepl mergeSort coinCmp [1,2,3]
@@ -895,7 +895,7 @@ We are pleased to observe that the resulting function enumerates exactly all per
 The procedure followed by \cyinl{mergeSort} does not make any redundant, and thus no inconsistent, comparisons.
 The first step of dividing the list into sublists is not based on the predicate but based on the length of the list only.
 The comparison takes place when using \cyinl{merge}.
-As \cyinl{merge} has the precondition that both argument lists are already sorted, it is sufficient to compare the lists element-by-element.
+As \cyinl{merge} has the precondition that both argument lists are already sorted, it is sufficient to compare the lists element\--by\--element.
 That is, if one head element is smaller than the other head element, we put the former in front of the list and do not need to consider it anymore.
 The utilisation of the precondition leads to an efficient sorting algorithm: no two elements are compared more than once.
 
@@ -903,22 +903,22 @@ The utilisation of the precondition leads to an efficient sorting algorithm: no 
 
 \section{Future Work}
 While we started first investigations to compare the strictness behaviour of different sorting functions, we think that a more rigorous investigation might lead to further interesting properties.
-For example, it would be interesting to analyse the run-time behaviour for the resulting permutation functions.
-As we only compared the non-deterministic version in Curry and the monadic version in Haskell, it would be interesting to compare the non-deterministic version with deterministic permutation algorithms as well.
+For example, it would be interesting to analyse the run\--time behaviour for the resulting permutation functions.
+As we only compared the non\--deterministic version in Curry and the monadic version in Haskell, it would be interesting to compare the non\--deterministic version with deterministic permutation algorithms as well.
 For example, according to \citet{sedgewick1977permutation} the classical permutation
 algorithm based on inserting an element at each possible position in a list was developed independently by \citet{trotter1962algorithm}
 and \citet{johnson1963generation}.
 The implementation of the \hinl{permutations :: [a] -> [[a]]} function in Haskell is also
 based on this approach but has been improved with respect to
-non-strictness via a mailing list discussion by
+non\--strictness via a mailing list discussion by
 \citet{vanlaarhoven2007haskell}.
-A comparison of the improved permutation algorithm used in Haskell and the best-performing non-deterministic Curry version would be an interesting topic for future work.
+A comparison of the improved permutation algorithm used in Haskell and the best\--performing non\--deterministic Curry version would be an interesting topic for future work.
 
 A different line of future work could be to focus more on the resulting permutations function.
-For example, we noticed only by chance that selection sort enumerates all permutation in lexicographic order when evaluated using depth-first search instead of the default behaviour of breadth-first search.
+For example, we noticed only by chance that selection sort enumerates all permutation in lexicographic order when evaluated using depth\--first search instead of the default behaviour of breadth\--first search.
 It would be interesting to analyse the order of results for all other sorting algorithms as well.
-This analysis can then be extended to other non-deterministic sorting functions, which are perhaps more strict than \cyinl{coinCmp}, but yield an interesting property.
-An example of an alternative non-deterministic comparison function is the following definition of \cyinl{liftCmp} that lifts a comparison function \cyinl{cmp} into a monadic context.
+This analysis can then be extended to other non\--deterministic sorting functions, which are perhaps more strict than \cyinl{coinCmp}, but yield an interesting property.
+An example of an alternative non\--deterministic comparison function is the following definition of \cyinl{liftCmp} that lifts a comparison function \cyinl{cmp} into a monadic context.
 
 \begin{curry}
 liftCmp :: (a -> a -> Bool) -> a -> a -> Bool
@@ -928,36 +928,36 @@ liftCmp cmp x y = p x y ? not (cmp x y)
 There are lots of other properties related to permutations.
 For example, enumerating derangements, that is, enumerating all permutations where an element does not appear at its original position, enumerating all permutations of a sublist of a given list, or analysing the resulting order of a permutation with respect to the parity for the transposition from one permutation to the next.
 
-Besides a further investigation of permutation enumeration functions, we are interested if there are other predicate-based functions that are useful when applied to a non-deterministic predicate.
+Besides a further investigation of permutation enumeration functions, we are interested if there are other predicate\--based functions that are useful when applied to a non\--deterministic predicate.
 The other example next to sorting we have discussed is filtering a list.
 Namely, we used \cyinl{filter} to implement quicksort in \ref{subsec:quicksort}.
-We have seen that using \cyinl{filter} with a non-deterministic predicate yields all sublists of the input list.
-It might be interesting to search for more predicate-based functions and their non-deterministic counterparts.
+We have seen that using \cyinl{filter} with a non\--deterministic predicate yields all sublists of the input list.
+It might be interesting to search for more predicate\--based functions and their non\--deterministic counterparts.
 The first other common functions that come to mind are \cyinl{takeWhile} and \cyinl{dropWhile} that drop and take elements from a list as long as the given predicate holds, respectively.
-We are keen to search for other functions that have interesting and useful non-deterministic counterparts.
+We are keen to search for other functions that have interesting and useful non\--deterministic counterparts.
 
 \section{Conclusion}
 In this chapter we implemented a variety of sorting functions parametrised over a comparison function in Curry as well as in Haskell.
-Instead of ordinary sorting tasks, we applied the sorting functions to a non-deterministic comparison function.
+Instead of ordinary sorting tasks, we applied the sorting functions to a non\--deterministic comparison function.
 The resulting function enumerates permutations of the input list.
 For the Curry implementation there are several sorting functions that compute only the permutations of the input list without any duplicates: insertion sort, selection sort, merge sort and a variant of quicksort that uses \cyinl{split} instead of two \cyinl{filter} calls.
 We then compared these Curry implementations to their Haskell counterparts.
-In order to mimic the non-deterministic component that Curry brings along out of the box, we use a monadic lifting to define potentially effectful computations in Haskell.
-In the end, the Haskell implementations use a monadic lifting of the ordinary, pure sorting function in order to use a non-deterministic comparison function and compute non-deterministic results.
+In order to mimic the non\--deterministic component that Curry brings along out of the box, we use a monadic lifting to define potentially effectful computations in Haskell.
+In the end, the Haskell implementations use a monadic lifting of the ordinary, pure sorting function in order to use a non\--deterministic comparison function and compute non\--deterministic results.
 One particularly interesting observation was that whereas the Curry version of selection sort computes only the permutations, the Haskell version does not.
 This difference was the main reason we investigated the difference of both implementations in the first place.
-The other sorting functions compute the same non-deterministic results: insertion sort, merge sort, and quicksort using \cyinl{partition} do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
-Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementations can exploit non-strictness better than their Haskell counterparts.
-As an example, we demanded the head elements of all permutations and counted the number of non-deterministic choices that were triggered in to compute the result.
-The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non-deterministic choices for a list of length $n$.
-On top of that, none of the Curry implementations need to trigger all $n!$ non-deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n!$ computations.
-This property for the Curry implementation feels impressive since $n!$ non-deterministic computations corresponds to evaluating all non-deterministic computations that occur for an implementation that yields exactly all permutations.
-That is, selecting only the head element of the permutations has no effect on the non-determinism that needs to be triggered.
+The other sorting functions compute the same non\--deterministic results: insertion sort, merge sort, and quicksort using \cyinl{partition} do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
+Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementations can exploit non\--strictness better than their Haskell counterparts.
+As an example, we demanded the head elements of all permutations and counted the number of non\--deterministic choices that were triggered in to compute the result.
+The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non\--deterministic choices for a list of length $n$.
+On top of that, none of the Curry implementations need to trigger all $n!$ non\--deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n!$ computations.
+This property for the Curry implementation feels impressive since $n!$ non\--deterministic computations corresponds to evaluating all non\--deterministic computations that occur for an implementation that yields exactly all permutations.
+That is, selecting only the head element of the permutations has no effect on the non\--determinism that needs to be triggered.
 
 \section{Final Remarks}
 
 The basis of the work discussed in this chapter has been published as functional pearl in the Proceedings of the 20th International Conference on Functional Programming \citep{christiansen2016all}.
-The conference paper motivates the investigation of non-deterministic sorting functions solely based on the monadic Haskell version.
+The conference paper motivates the investigation of non\--deterministic sorting functions solely based on the monadic Haskell version.
 The generic monadic interface allows for a more detailed investigation of the behaviour of the resulting permutation functions.
 We enhance the monadic comparison function \cyinl{coinCmp} with an additional state in order to mimic a comparison function that meets additional properties like consistency and totality.
 In case of consistency, for example, the state collects all compared value pairs and the corresponding decision of their comparison in order to repeat that decision when the same values are compared again.
@@ -966,10 +966,10 @@ On top of that, the conference paper formulates and proves a theorem stating tha
 In order to prove this statement, we use free theorems as presented by \citet{wadler1989theorems}, which are derived from the type of a function alone.
 
 The novelty of the content presented in this chapter lies in the comparison to a direct implementation in Curry.
-Instead of modelling non-determinism with monads, we reused Curry's built-in non-determinism.
-The main insight of this comparison is the advantage of Curry's built-in non-determinism as it can exploit non-strictness that a naive Haskell implementation using a list monad cannot.
-This monadic lifting in Haskell mimics flat non-determinism, whereas Curry's non-determinism can occur deep in arguments of constructors.
-Curry's deep non-determinism can have advantages with respect to non-strictness in comparison to this naive monadic lifting in Haskell.
-A more advanced representation for non-determinism that mimics Curry's behaviour more closely is presented by \citet{fischer2009purely}.
+Instead of modelling non\--determinism with monads, we reused Curry's built\--in non\--determinism.
+The main insight of this comparison is the advantage of Curry's built\--in non\--determinism as it can exploit non\--strictness that a naive Haskell implementation using a list monad cannot.
+This monadic lifting in Haskell mimics flat non\--determinism, whereas Curry's non\--determinism can occur deep in arguments of constructors.
+Curry's deep non\--determinism can have advantages with respect to non\--strictness in comparison to this naive monadic lifting in Haskell.
+A more advanced representation for non\--determinism that mimics Curry's behaviour more closely is presented by \citet{fischer2009purely}.
 The representation cannot, however, reuse ordinary data structures from Haskell.
-While we lift the resulting type of functions to model flat non-determinism, all arguments of constructors as well as functions need to take monadically lifted arguments when we want to model Curry's deep non-determinism.
+While we lift the resulting type of functions to model flat non\--determinism, all arguments of constructors as well as functions need to take monadically lifted arguments when we want to model Curry's deep non\--determinism.
