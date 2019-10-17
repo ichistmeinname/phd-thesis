@@ -140,6 +140,8 @@
 \appendix\cleardoublepage
 \input{content/appendix}
 
+\input{content/statement}
+        
 % **************************************************
 % End of Document CONTENT
 % **************************************************
