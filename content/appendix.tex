@@ -51,7 +51,7 @@ instance Functor (Const e) where
 The following code snippets present the translation of the Curry code discussed in \autoref{sec:applications} to WebPPL and ProbLog.
 The code is used to perform the benchmarks that we discuss in the corresponding sections.
 
-\subsection{WebPPL}
+\subsection*{WebPPL}
 
 \paragraph{Bayesian Network}
 \begin{minted}{javascript}
@@ -338,7 +338,8 @@ Infer({ model: function() { isInvalid(pickRound2(santaGame(len))) }
         , maxRuntimeInMS: Infinity});
 }
 \end{minted}
-\subsection{ProbLog}
+
+\subsection*{ProbLog}
 
 \paragraph{Bayesian Network}
 
@@ -501,7 +502,7 @@ query(santa2(3,X)).
 
 The following code provides proof scripts of lemmas that we omitted in the corresponding sections.
 
-\subsection{Non\--Determinism as Effect}
+\subsection*{Non\--Determinism as Effect}
 \label{subsec:appendix:nondet}
 
 We discussed the representation of non\--determinism as well as the definition of the corresponding container extension in \autoref{subsubsec:nondetContainter}.
@@ -526,7 +527,7 @@ Proof.
 Qed.
 \end{minted}
 
-\subsection{Proving Properties About Non\--deterministic Functions}
+\subsection*{Proving Properties About Non\--deterministic Functions}
 \label{subsec:appendix:proving}
 
 We discussed a variety of exemplary propositions about non\--deterministic programs in \autoref{subsubsec:nondetProving}.
@@ -580,7 +581,7 @@ Proof.
 Qed.
 \end{minted}
 
-\subsection{Sharing as Effect}
+\subsection*{Sharing as Effect}
 \label{subsec:appendix:sharing}
 
 We present the missing proof scripts for lemmas regarding to modelling sharing as discussed in \autoref{subsec:sharingEffect}.
