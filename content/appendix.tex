@@ -46,6 +46,9 @@ instance Functor (Const e) where
 \section{Example Programs in Probabilistic Programming Languages}
 \label{sec:appendix:ppl}
 
+The following code snippets present the translation of the Curry code discussed in \autoref{sec:applications} to WebPPL and ProbLog.
+The code is used to perform the benchmarks that we discuss in the corresponding sections.
+
 \subsection{WebPPL}
 
 \paragraph{Bayesian Network}
@@ -113,7 +116,6 @@ var replicateDist = function (n, dist) {
     }
 };
 
-// allSix n = all (== Six) ?? replicateDist n (\ () -> die)
 var allSix = function(n) {
     var list = replicateDist(n,die);
     all(function(x) { isSix(x) }, list);
@@ -302,7 +304,7 @@ var pickRound2 = function(hat) {
         var assgnmnt = pPicks(giver,newHat);
         if (assgnmnt.nothing) {
           return { failed : true
-                 , assignments : arrs // not necessary, but helpful for tests
+                 , assignments : arrs
                  };
         } else {
           pickRound3( ps
@@ -319,7 +321,9 @@ var pickRound2 = function(hat) {
 };
 
 var isInvalid = function(assgnmnt) {
-  return (assgnmnt.failed || any( function (a) { a.getter === a.giver }, assgnmnt.assignments));
+  return (assgnmnt.failed ||
+          any( function (a) { a.getter === a.giver }
+                            , assgnmnt.assignments));
 };
 \end{minted}
 
@@ -337,11 +341,11 @@ Infer({ model: function() { isInvalid(pickRound2(santaGame(len))) }
 \paragraph{Bayesian Network}
 
 \begin{minted}{prolog}
-0.2 :: raining.
+0.2  :: raining.
 0.01 :: sprinkler :- raining.
 0.04 :: sprinkler :- \+raining.
-0.8 :: grassWet :- \+sprinkler, raining.
-0.9 :: grassWet :- sprinkler, \+raining.
+0.8  :: grassWet :- \+sprinkler, raining.
+0.9  :: grassWet :- sprinkler, \+raining.
 0.99 :: grassWet :- sprinkler, raining.
 
 grassWetWhenRaining :- raining, grassWet.
@@ -350,7 +354,7 @@ query(grassWetWhenRaining).
 
 \paragraph{Replicate Die}
 \begin{minted}{prolog}
-% We need to add some kind of ID in order to "disable" tabling/memoisation.
+% We need to add some kind of ID in order to "disable" memoisation.
 (1/6)::die(D,1).
 (1/6)::die(D,2).
 (1/6)::die(D,3).
@@ -363,7 +367,8 @@ allSix([]).
 allSix([X|XS]) :- isSix(X), allSix(XS).
 
 replicateDie(0,[]).
-replicateDie(N,[X|XS]) :- N \== 0, die(N,X), N1 is N-1, replicateDie(N1,XS).
+replicateDie(N,[X|XS]) :- N \== 0, die(N,X), N1 is N-1,
+                          replicateDie(N1,XS).
 
 dieSix :- die(42,N), isSix(N).
 allRepSix(N) :- replicateDie(N,XS), allSix(XS).
@@ -410,30 +415,19 @@ query(string_is_palindrome(X)) :- len(X).
 0.5::pick(N, a) ; 0.5::pick(N,b).
 
 % a palindrome of length N spans positions 1 to N
-palindrome(N) :-
-      palindrome(1,N).
+palindrome(N) :- palindrome(1,N).
 
 % base case for even length: left and right crossed
-palindrome(A,B) :-
-      A > B.
+palindrome(A,B) :- A > B.
 % base case for uneven length: arbitrary middle character
-palindrome(N,N) :-
-      pick(N,X).
-% recursive case: add same character at both ends and move positions towards the middle
-palindrome(A,B) :-
-      A < B,
-      pick(A,X),
-      pick(B,X),
-      AA is A+1,
-      BB is B-1,
-      palindrome(AA,BB).
+palindrome(N,N) :- pick(N,X).
+% recursive case: add same character at both ends and move
+%  positions towards the middle
+palindrome(A,B) :- A < B, pick(A,X), pick(B,X),
+                AA is A+1, BB is B-1, palindrome(AA,BB).
 
-bb(N) :-
-      Max is N-1,
-      between(1,Max,I),
-      pick(I,b),
-      II is I+1,
-      pick(II,b).
+bb(N) :- Max is N-1, between(1,Max,I), pick(I,b),
+         II is I+1, pick(II,b).
 
 len(30).
 query(palindrome(X)) :- len(X).
@@ -451,15 +445,17 @@ pPicks(P,Hat,V) :- uniform(Hat,V), V \== P.
 
 pickRound(Hat,Arrs) :- pickRound(Hat,Hat,Arrs).
 pickRound([],_,[]).
-pickRound([P|Ps], Hat, [(P,V)|Arrs]) :- pPicks(P,Hat,V), delete(Hat,V,HatNew), pickRound(Ps,HatNew, Arrs).
+pickRound([P|Ps], Hat, [(P,V)|Arrs]) :-
+  pPicks(P,Hat,V), delete(Hat,V,HatNew), pickRound(Ps,HatNew, Arrs).
 
 ppPicks(P,Hat,just(V)) :- uniform(Hat,V), V \== P.
 ppPicks(P,Hat,nothing) :- uniform(Hat,V), V = P.
 
 ppickRound(Hat,Arrs) :- ppickRound(Hat,Hat,Arrs).
 ppickRound([],_,[]).
-ppickRound([P|Ps], Hat, [(P,V)|Arrs]) :- ppPicks(P,Hat,just(V)), delete(Hat,V,HatNew), ppickRound(Ps,HatNew, Arrs).
 ppickRound([P|Ps], Hat, [failedGame]) :- ppPicks(P,Hat,nothing).
+ppickRound([P|Ps], Hat, [(P,V)|Arrs]) :-
+  ppPicks(P,Hat,just(V)), delete(Hat,V,HatNew), ppickRound(Ps,HatNew, Arrs).
 
 is_pair((X,Y)).
 
@@ -475,18 +471,28 @@ hat(N,[N|Xs]) :- N > 1, M is N-1, hat(M,Xs).
 % invalid games are just `false`
 pickRound2(Hat,Arrs) :- pickRound2(Hat,Hat,Arrs).
 pickRound2([],_,[]).
-pickRound2([P|Ps], Hat, [(P,V)|Arrs]) :- delete(Hat,P,HatTemp), pPicks(P,HatTemp,V), delete(Hat,V,HatNew), pickRound2(Ps,HatNew, Arrs).
+pickRound2([P|Ps], Hat, [(P,V)|Arrs]) :-
+  delete(Hat,P,HatTemp), pPicks(P,HatTemp,V), delete(Hat,V,HatNew),
+  pickRound2(Ps,HatNew, Arrs).
 
 % clever pick: a person cannot pick herself
 % invalid games are tracked as well
 ppickRound2(Hat,Arrs) :- ppickRound2(Hat,Hat,Arrs).
 ppickRound2([],_,[]).
 ppickRound2([P],[P],[failedGame]).
-ppickRound2([P|Ps], Hat, [(P,V)|Arrs]) :- delete(Hat,P,HatTemp), pPicks(P,HatTemp,V), delete(Hat,V,HatNew), ppickRound2(Ps,HatNew, Arrs).
+ppickRound2([P|Ps], Hat, [(P,V)|Arrs]) :-
+  delete(Hat,P,HatTemp), pPicks(P,HatTemp,V), delete(Hat,V,HatNew),
+  ppickRound2(Ps,HatNew, Arrs).
 
 isValid([],true).
 isValid([X|Xs],false) :- X == failedGame.
 isValid([X|Xs],Bool) :- X \= failedGame, isValid(Xs,Bool).
+
+santa(N,Bool) :- hat(N,Xs), ppickRound(Xs,Arrs), isValid(Arrs,Bool).
+santa2(N,Bool) :- hat(N,Xs), ppickRound2(Xs,Arrs), isValid(Arrs,Bool).
+
+query(santa(3,X)).
+query(santa2(3,X)).
 \end{minted}
 
 \section{Formal Reasoning}
