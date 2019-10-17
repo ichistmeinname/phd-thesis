@@ -234,7 +234,8 @@ Fixpoint append' (A : Type) (xs : List A) (pys : partial (List A))
                             end)
   end.
 
-Definition append (A : Type) (pxs pys : partial (List A)) : partial (List A) :=
+Definition append (A : Type) (pxs pys : partial (List A))
+  : partial (List A) :=
   match oxs with
   | undefined  => undefined
   | defined xs => append' xs pys
