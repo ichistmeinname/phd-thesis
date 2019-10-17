@@ -582,7 +582,7 @@ For example, for $n=10$ there are $n! = 3 628 800$ permutations, whereas an appl
 \]
 results.
 
-More generally, for $n \geq 7$ we have that $n \leq 2^{\frac{n-1}{2}}$ such that we can make the following estimation.\footnote{We prove the first inequation by induction in \autoref{sec:appendix:inequation}}.
+More generally, for $n \geq 7$ we have that $n \leq 2^{\frac{n-1}{2}}$ such that we can make the following estimation.\footnote{We prove the first inequation by induction in \autoref{sec:appendix:inequation}.}.
 
 \[
 n! \leq n^n \leq {2^{\frac{n-1}{2}}}^n = 2^{\frac{n * (n-1)}{2}}
