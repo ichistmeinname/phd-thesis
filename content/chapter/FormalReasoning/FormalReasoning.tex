@@ -1369,6 +1369,8 @@ That is, we define a container representation and prove that this representation
 With these definitions at hand, we define simple non\--deterministic functions and prove exemplary properties.
 
 \subsubsection{Representing Non\--determinism using Containers}
+\label{subsubsec:nondetContainter}
+
 In Curry the built\--in non\--determinism effects comes with two primitives: a polymorphic value \hinl{failed :: a} to represent finite failures as known from logic programming as well as the operator \hinl{(?) :: a -> a -> a} to construct a non\--deterministic choice between two expressions.
 That is, we define the functor representing the non\--determinism effect using two constructors as follows. 
 
@@ -1422,7 +1424,8 @@ Since the code corresponding to \cinl{failed} resembles the implementation we ha
 In the definition of \cinl{from_ND} we decide between the left argument \cinl{x} and right argument \cinl{y} depending on the given position \cinl{p} that is of type \cinl{bool}.
 We then implement \cinl{to_ND} such that it complies with its counterpart \cinl{from_ND}, that is, we access the left argument using \cinl{true} and the right argument using \cinl{false}.
 
-These definitions indeed form an isomorphism; since we have already seen quite a few of these proofs, we refrain from showing the whole proof script here.
+These definitions indeed form an isomorphism; since we have already seen quite a few of these proofs, we refrain from showing the whole
+proof script here but provide the definition in \autoref{subsec:appendix:nondet}.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Lemma from_to_ND : !$\forall$! (A : Type) (e : Ext ND!$_\text{S}$! ND!$_\text{P}$! A),
@@ -1433,10 +1436,13 @@ Lemma to_from_ND : !$\forall$! (A : Type) (nd : ND A),
 \end{minted}
 
 \subsubsection{Proving Properties About Non\--deterministic Functions}
+\label{subsubsec:nondetProving}
 
 In the following sections the suffix \cinl{ND} for types is used as synonym for the concrete instantiation of data types with the non\--determinism effect, e.g., \cinl{FreeND = Free ND!$_\text{S}$! ND!$_\text{P}$!} and \cinl{ListND = List ND!$_\text{S}$! ND!$_\text{P}$!}.
 
 We define the following primitives \cinl{Failed} and \cinl{Choice} to construct values introduced by the non\--determinism effect; we use the operator \cinl{?} as notation for the latter primitive.
+Furthermore, most of the following lemmas are stated without the corresponding proof script.
+We provide these missing proofs scripts in \autoref{subsec:appendix:proving}.
 
 \begin{minted}[escapeinside=!!,mathescape=true]{coq}
 Definition Failed (A : Type) : FreeND A :=
@@ -1654,6 +1660,7 @@ Lemma ndInsert_inc :
 \end{minted}
 
 \subsection{Sharing as Effect}
+\label{subsec:sharingEffect}
 
 The preceding examples illustrate how to model simple non\--deterministic values and functions as well as how to prove properties about them.
 The model we use so far, however, is not a suitable model for Curry's call\--time choice semantics.
@@ -1662,6 +1669,8 @@ In the following, we first compare our example definition of doubling a number w
 We discuss an ad\--hoc solution to mimic call\--by\--need for concrete examples and give an example that shows the limitations of that idea.
 Secondly, we propose a combination of the underlying mechanism of the \emph{KiCS2} compiler with related work on algebraic effects with scoped operations to implement Curry's call\--time choice semantics.
 
+We only provide proof scripts of the stated propositions if we highlight a specific problem and discuss a peculiarity, respectively.
+Otherwise we refrain from showing the proof scripts here but provide the missing code in \autoref{subsec:appendix:sharing}.
 
 \subsubsection{Call\--by\--name vs. Call\--by\--need}
 \label{subsubsec:cbneed}

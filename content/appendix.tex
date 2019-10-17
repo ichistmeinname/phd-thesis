@@ -498,3 +498,144 @@ query(santa2(3,X)).
 \end{minted}
 
 \section{Formal Reasoning}
+
+The following code provides proof scripts of lemmas that we omitted in the corresponding sections.
+
+\subsection{Non\--Determinism as Effect}
+\label{subsec:appendix:nondet}
+
+We discussed the representation of non\--determinism as well as the definition of the corresponding container extension in \autoref{subsubsec:nondetContainter}.
+As we have seen isomorphism proofs for \cinl{Zero} and \cinl{One} in preceding sections, we omitted the proof for the isomorphism between the functor \cinl{ND} and the container extension.
+The following code proves that the functions \cinl{from_ND} and \cinl{to_ND} indeed form an isomorphism.
+
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma from_to_ND : !$\forall$! (A : Type) (e : Ext ND!$_{\text{S}}$! ND!$_{\text{P}}$! A),
+   from_ND (to_ND e) = e.
+Proof.
+  intros A e. destruct e as [s pf]; simpl.
+  dependent destruction s; simpl.
+  - f_equal; extensionality p; destruct p;
+    reflexivity.
+  - f_equal; extensionality p; destruct p.
+Qed.
+
+Lemma to_from_ND : !$\forall$! (A : Type) (nd : ND A),
+   to_ND (from_ND nd) = nd.
+Proof.
+  intros A nd. destruct nd; reflexivity.
+Qed.
+\end{minted}
+
+\subsection{Proving Properties About Non\--deterministic Functions}
+\label{subsec:appendix:proving}
+
+We discussed a variety of exemplary propositions about non\--deterministic programs in \autoref{subsubsec:nondetProving}.
+The following code provides the omitted proofs for these examples if not already discussed right away.
+
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma even_oneOrTwo :
+  even (liftM2 mult oneOrTwo (pure 2)) = TTrue ? TTrue.
+Proof.
+  simpl even.
+  f_equal; extensionality p.
+  destruct p; simpl liftM2, even; reflexivity.
+Qed.
+
+Lemma even_oneOrTwo_allND :
+  AllND (fun fb => fb = TTrue) (even (liftM2 mult oneOrTwo (pure 2))).
+Proof.
+  simpl; constructor.
+  intros p; destruct p; repeat constructor.
+Qed.
+
+Lemma pulltab_inc : !$\forall$! (fx fy : FreeND nat),
+   inc (fx ? fy) = inc fx ? inc fy.
+Proof.
+  intros fx fy; simpl.
+  f_equal; extensionality p.
+  destruct p; reflexivity.
+Qed.
+ 
+Lemma pulltab_f_strict : !$\forall$! (A B : Type)
+  (f : FreeND A -> FreeND B) (fx fy : FreeND A)
+  (Hstrict : forall fz, f fz = fz >>= fun z => f (pure z)) ->
+  f (fx ? fy) = f fx ? f fy.
+Proof.
+  intros A B f fx fy Hstrict.
+  rewrite (Hstrict (fx ? fy)); simpl.
+  f_equal; extensionality p.
+  destruct p; rewrite Hstrict; reflexivity.
+Qed.
+
+Lemma ndInsert_inc :
+  AllND (fun fxs => length fxs = pure 3)
+        (nfList (ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil))).
+Proof.
+  simpl; constructor.
+  intros p; destruct p; simpl.
+  - constructor; reflexivity.
+  - constructor; simpl.
+    intros p; destruct p; simpl;
+      constructor; reflexivity.
+Qed.
+\end{minted}
+
+\subsection{Sharing as Effect}
+\label{subsec:appendix:sharing}
+
+We present the missing proof scripts for lemmas regarding to modelling sharing as discussed in \autoref{subsec:sharingEffect}.
+
+\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+Lemma doublePlus_inline :
+  doublePlus oneOrTwo = liftM2 plus oneOrTwo oneOrTwo.
+Proof.
+  reflexivity.
+Qed.
+
+Lemma even_doublePlus_Choice :
+  even (doublePlus oneOrTwo) = (TTrue ? FFalse) ? (FFalse ? TTrue).
+Proof.
+  simpl. f_equal; extensionality p.
+  destruct p; simpl.
+  - f_equal; extensionality p.
+    destruct p; reflexivity.
+  - f_equal; extensionality p.
+    destruct p; reflexivity.
+Qed.
+
+Lemma doubleMult_inline :
+  doubleMult oneOrTwo = pure 2 ? pure 4.
+Proof.
+  simpl. f_equal. extensionality p.
+  destruct p; reflexivity.
+Qed.
+
+Lemma even_doublePlus_Failed :
+  even (doublePlus Failed) = Failed.
+Proof.
+  simpl. f_equal; extensionality p.
+  destruct p.
+Qed.
+
+Lemma even_doubleSharePos_Choice :
+  even (doubleSharePos oneOrTwo) = TTrue ? TTrue.
+Proof.
+  simpl. f_equal; extensionality p.
+  destruct p; reflexivity.
+Qed.
+
+Lemma even_doubleShare_Choice :
+  even (doubleShare oneOrTwo) = TTrue ? TTrue.
+Proof.
+  simpl. f_equal; extensionality p.
+  destruct p; reflexivity.
+Qed.
+
+Lemma share_with_const : !$\forall$! (A : Type) (fx : FreeND A),
+  (shareStrict oneOrTwo >>= fun fy => const (const fx fy) fy)
+  = fx ? fx.
+Proof.
+  intros A fx. simpl.
+  f_equal; extensionality p; destruct p; reflexivity.
+Qed.
+\end{minted}
