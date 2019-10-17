@@ -18,6 +18,31 @@ We show by induction that for $n \geq 7$, we have $n \leq 2^{\frac{n-1}{2}}$.
   \]
 \end{itemize}
 
+\section{Functor Type Class and Instances}
+\label{sec:appendix:functor}
+
+In \autoref{subsec:freeMonad} we used a functor constraint for the type parameter \hinl{f} in order to define a monad instance \hinl{Free}.
+The following code completes these examples as it shows the definition of the functor type class and defines instances for the functors we used.
+
+\begin{minted}{haskell}
+class Functor f where
+  fmap :: (a -> b) ->  f a -> f b
+\end{minted}
+
+\begin{minted}{haskell}
+instance Functor Zero where
+  fmap f z = case z of  
+
+instance Functor One where
+  fmap f One = One
+
+instance Functor Choice where
+  fmap f (Choice x y) = Choice (f x) (f y)
+
+instance Functor (Const e) where
+  fmap f (Const y) = Const y
+\end{minted}
+
 \section{Example Programs in Probabilistic Programming Languages}
 \label{sec:appendix:ppl}
 

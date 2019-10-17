@@ -10,6 +10,7 @@ import Prelude hiding (head)
 %endif
         
 \section{Functional Programming}
+\label{sec:Haskell}
 
 We present all concepts related to pure functional programming in this thesis using the language Haskell.
 As we assume a basic familiarity of the reader regarding functional programming in Haskell, we will focus on specific and advanced aspects we will make use of.
@@ -451,6 +452,8 @@ The key idea for \hinl{Partial} is that we represent \hinl{Undefined} as \hinl{I
 Note that the functor \hinl{Choice} for non\--determinism used in combination with \hinl{Free} resembles a tree rather than a list.
 A leaf corresponds to \hinl{det} while a branch with two sub\--trees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial sub\--trees.
 \autoref{tab:valueOverview} gives an overview of the value correspondences between the monadic representation and the representation using \hinl{Free} with the associated functor.
+The monad instance for \hinl{Free} demands the type parameter \hinl{f} to have a \hinl{Functor} constraint.
+We present the corresponding type class definition in Haskell as well as the definition of the instances for the concrete functors we use in this section in \autoref{sec:appendix:functor}.
 
 A variety of common monads are isomorphic to a representation using free monads.
 A counterexample, however, is the list monad; as \citet{swierstra2008data} states, there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]}.
