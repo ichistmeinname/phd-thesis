@@ -52,7 +52,7 @@ The network can answer the following exemplary questions.
 \path (ra) edge[-latex,thick] (sp)
 (sp) edge[-latex,thick,bend right=35] (gw)
 (gw) edge[latex-,thick,bend right=35] (ra);
-\node[left=0.5cm of sp]
+\node[left=0.4cm of sp]
 {
 \begin{tabular}{cM{2}M{2}}
 & \multicolumn{2}{c}{Sprinkler on} \\
@@ -84,7 +84,7 @@ T & T & 0.99 & 0.01
 \end{tabular}
 };
 \end{tikzpicture}
-\caption{A simple Bayesian network}
+\caption{A simple Bayesian network with associated probability tables}
 \label{fig:bayes}
 \end{figure}
 
@@ -695,7 +695,7 @@ in if all isSix (x:xs) then Dist (x:xs) (p * (q * 1.0)) else failed
 == {- Definition of |all| and |isSix| -}
 let  Dist x p = Dist One (frac 1 6)
      Dist xs q = dist
-in if False && all (==Six) xs then Dist (x:xs) (p * (q * 1.0)) else failed
+in if False && all isSix xs then Dist (x:xs) (p * (q * 1.0)) else failed
 == {- Definition of |(&&)| -}
 let  Dist x p = Dist One (frac 1 6)
      Dist xs q = d
@@ -913,7 +913,7 @@ Fortunately, the query operation \cyinl{(??)} calculates the total probability o
 
 \begin{cyrepl}
 \curryrepl not ?? (coin >>>= (\func x -> coin >>>= (\func y -> certainly (x && y))))
-0.75
+|(frac 3 4)|
 \end{cyrepl}
 
 We calculate the probability of the event \cyinl{False} and while there are only two \cyinl{False} events, the total probability is still \cyinl{0.75}, i.e., three times \cyinl{0.25}.
@@ -1001,21 +1001,21 @@ Therefore, we lose probabilities we would like to sum up.
 \begin{spec}
  (const True) ?? die2
 == {- definition of |(??)| -}
- foldValues (+.) 0.0 (allValues (prob (filterDist (const True) die2)))
+ foldValues (+.) 0 (allValues (prob (filterDist (const True) die2)))
 == {- definition of |die2| -}
- foldValues (+.) 0.0 (allValues (prob (filterDist (const True) (enum [side] [frac 1 6]))))
+ foldValues (+.) 0 (allValues (prob (filterDist (const True) (enum [side] [frac 1 6]))))
 == {- definition of |enum| -}
- foldValues (+.) 0.0 (allValues (prob (filterDist (const True) (Dist side (frac 1 6)))))
+ foldValues (+.) 0 (allValues (prob (filterDist (const True) (Dist side (frac 1 6)))))
 == {- definition of |filterDist| -}
- foldValues (+.) 0.0 (allValues (prob (if const True side then Dist side (frac 1 6) else failed)))
+ foldValues (+.) 0 (allValues (prob (if const True side then Dist side (frac 1 6) else failed)))
 == {- definition of |const| -}
- foldValues (+.) 0.0 (allValues (prob (if True then Dist side (frac 1 6) else failed)))
+ foldValues (+.) 0 (allValues (prob (if True then Dist side (frac 1 6) else failed)))
 == {- evaluate |if-then-else| -}
- foldValues (+.) 0.0 (allValues (prob (Dist side (frac 1 6))))
+ foldValues (+.) 0 (allValues (prob (Dist side (frac 1 6))))
 == {- definition of |prob| -}
- foldValues (+.) 0.0 (allValues (frac 1 6))
+ foldValues (+.) 0 (allValues (frac 1 6))
 == {- definition of |allValues| -}
- foldValues (+.) 0.0 {frac 1 6}
+ foldValues (+.) 0 {frac 1 6}
 == {- definition of |foldValues| -}
  frac 1 6
 \end{spec}

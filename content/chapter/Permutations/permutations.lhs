@@ -350,9 +350,9 @@ Now we can apply \hinl{filterM} to our non\--determinism\--tracking comparison f
 
 \begin{hrepl}
 \haskellrepl filterM (coinCmpFree 42) [1,2]
-Impure (Choice  (Just ("42","1"))
-                (Impure (Choice (Just ("42","2")) (Pure [1,2])  (Pure [1])))
-                (Impure (Choice (Just ("42","2")) (Pure [2])    (Pure []))))
+Impure (Choice (Just ("42","1"))
+         (Impure (Choice (Just ("42","2")) (Pure [1,2]) (Pure [1])))
+         (Impure (Choice (Just ("42","2")) (Pure [2])   (Pure []))))
 \end{hrepl}
 
 Since this term representation looks more complicated than helpful, as last step, we define a pretty\--printing function for \hinl{Free Sort}.
@@ -562,9 +562,10 @@ The application of \hinl{selectionSortM} to \hinl{coinCmpND} yields more results
 
 \begin{hrepl}
 \haskellrepl selectionSortM coinCmpND [1,2,3]
-\{ [1,2,3], [1,3,2], [2,1,3], [2,3,1], [1,2,3], [1,3,2], [3,1,2], [3,2,1] \}
+\{ [1,2,3], [1,3,2], [2,1,3], [2,3,1]
+, [1,2,3], [1,3,2], [3,1,2], [3,2,1] \}
 
-\haskellrepl all (\func n -> length (selectionSortM coinCmpND [1..n]) == $2^(\frac{n (n-1)}{2})$)
+\haskellrepl all (\func n -> length (selectionSortM coinCmpND [1..n]) == $2^{(\frac{n (n-1)}{2})}$)
                  [1..7]
 True
 \end{hrepl}

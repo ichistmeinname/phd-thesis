@@ -316,7 +316,7 @@ In case of Curry non\--determinism emerges as effect: we can observe sharing of 
 We take a look at the corresponding tree visualisations for both expressions.
 
 \begin{figure}[h]
-\begin{minipage}{0.5\textwidth}
+\begin{minipage}{0.49\textwidth}
 \centering
 \begin{BVerbatim}
 ?2
@@ -328,7 +328,7 @@ We take a look at the corresponding tree visualisations for both expressions.
         └── R: 86
 \end{BVerbatim}
 \end{minipage}
-\begin{minipage}{0.5\textwidth}
+\begin{minipage}{0.49\textwidth}
 \centering
 \begin{BVerbatim}
 ?1

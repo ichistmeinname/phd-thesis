@@ -63,7 +63,7 @@ The following implementation is part of Coq's predefined library for lists.
 \begin{minted}{coq}
 Definition hd (A : Type) (default : A) (l : list A) : A = 
   match l with
-  | nil      => Default
+  | nil      => default
   | cons x _ => x
   end.
 \end{minted}
@@ -1598,7 +1598,7 @@ We make a case distinction on that decision to proceed, which results in two sub
 For the first subgoal, we use the first rule of the \cinl{ForFree}\--proposition to handle the pure list constructor and then only need to show that the list has indeed \cinl{pure 3} elements.
 
 \begin{minted}{coq}
-- apply forPure. reflexivity.
+  - apply forPure. reflexivity.
 \end{minted}
 
 In the second subgal the outermost constructor is the pure list constructor \cinl{Cons}, that is, we use the first rule of the \cinl{ForFree}\--proposition again to process the goal.
