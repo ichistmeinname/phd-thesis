@@ -1059,7 +1059,7 @@ The operator \cyinl{($##)} evaluates its second argument to normal form, instant
 This approach works out fine, however, we also need to consider that users of the library might define a uniform distribution without using \cyinl{enum2}.
 For example, \cite{gibbons2011just} define a uniform distribution using the monadic function \cyinl{return} and a second primitive called \cyinl{choice}.
 
-\begin{minted}[style=tango]{haskell}
+\begin{haskellcode}
 class Monad m => MonadProb m where
   choice :: Prob -> m a -> m a -> m a
 
@@ -1068,7 +1068,7 @@ uniformGibbons [x] = return x
 uniformGibbons (x : xs) = choice (1 / length (x:xs))
                                  (return x)
                                  (uniformGibbons xs')
-\end{minted}
+\end{haskellcode}
 
 In order to translate this definition to our library, we need to define a primitive like \cyinl{choice}.
 The basic idea behind \cyinl{choice} is, given a probability $p$ as first argument, it associates the second argument with probability $p$ and the third argument with probability $1-p$.

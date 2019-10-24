@@ -22,14 +22,14 @@ In a pure functional language like Haskell, we can express non\--deterministic f
 That is, we reuse the type synonym \hinl{ND} in order to distinguish between list values that are used to model non\--determinism and list values in the common sense.
 Recall that we use the monadic operations \hinl{return} and \hinl{(>>=)} for lists when working with \hinl{ND} as well as the convenience operator \hinl{(?)} to combine multiple non\--deterministic results.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 instance Monad ND where
   return x = [x]
   xs >>= f = concat (map f xs)
 
 (?) :: ND a -> ND a -> ND a
 (?) = (++)
-\end{minted}
+\end{haskellcode}
      
 Using the monadic abstraction and the helper function, we can define the non\--deterministic comparison function \hinl{coinCmpND} --- corresponding to the function \hinl{coinCmp} that we have used in Curry before, which transfers easily to the list model in Haskell.
 
@@ -40,10 +40,10 @@ Using the monadic abstraction and the helper function, we can define the non\--d
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 coinCmpND :: a -> a -> ND Bool
 coinCmpND _ _ = [True] ? [False]
-\end{minted}
+\end{haskellcode}
 
 \paragraph{Example: Non\--deterministic application of filter}
 Equipped with these auxiliary functions, let us consider the Haskell function \hinl{filterND :: (a -> ND Bool) -> [a] -> ND [a]}, which is a non\--deterministic extension of the higher\--order function \hinl{filter}.
@@ -58,12 +58,12 @@ Equipped with these auxiliary functions, let us consider the Haskell function \h
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 filterND _ []     = return []
 filterND p (x:xs) = p x >>= \b ->
                     if b then filterND p xs >>= \ys -> return (x:ys)
                          else filterND p xs
-\end{minted}
+\end{haskellcode}
 
 Note that the potentially non\--deterministic values occur in the result of the predicate and in the resulting type of the overall function \hinl{filterND}; moreover, the input list is a deterministic argument.
 We need to process the potentially non\--deterministic computation resulting from the predicate check \hinl{p x} and the recursive call \hinl{filterND p xs} using \hinl{(>>=)} to handle each possible value of the computation.
@@ -102,13 +102,13 @@ As a side note, consider the following urge to outsource the duplicate call to \
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 filterM' :: Monad m => (a -> m Bool) -> [a] -> m [a]
 filterM' _ []     = return []
 filterM' f (x:xs) = f x >>= \p ->
                     filterM' f xs >>= \ys ->
                     return (if p then x:ys else ys)
-\end{minted}
+\end{haskellcode}
 
 This transformation, which computes the non\--deterministic computation \hinl{filterM p xs} only once, is still equivalent to the original implementation of \hinl{filterM}.
 
@@ -139,7 +139,7 @@ Consider the following two monadic versions of the function \cyinl{insert} we de
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 insertM :: Monad m => (a -> a -> m Bool) -> a -> [a] -> m [a]
 insertM _ x []     = return [x]
 insertM p x (y:ys) = p x y >>= \b ->
@@ -151,7 +151,7 @@ insertM' _ x []     = return [x]
 insertM' p x (y:ys) = p x y >>= \b ->
                       insertM' p x ys >>= \zs ->
                       return (if b then x:y:ys else y:zs)
-\end{minted}
+\end{haskellcode}
 
 The alternative version \hinl{insertM'} computes the potentially non\--deterministic computation of the recursive call to \hinl{insertM' p x ys} before checking the condition \hinl{b} such that it does not behave as the original version of \hinl{insertM} anymore.
  
@@ -186,18 +186,18 @@ That is, if we have an expression \hinl{mx >>= f}, we cannot proceed with \hinl{
 In order to check the claim about the strictness of \hinl{(>>=)} in case of \hinl{ND}, recall that the corresponding \hinl{Monad} instance for \hinl{ND} is the one for lists based on \hinl{concat} and \hinl{map}
 That is, let us retake a look at the definition of \hinl{concat} to see that the resulting function is indeed strict in its argument of type \hinl{ND a}.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 concat :: [[a]] -> [a]
 concat []     = []
 concat (xs:xss) = xs ++ xxss
-\end{minted}
+\end{haskellcode}
 
 The function definition of \hinl{concat} makes a case distinction on its first argument.
 That is, in order to evaluate an expression like
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 insertM' p x ys >>= \zs -> return (if b then x:y:ys else y:zs)
-\end{minted}
+\end{haskellcode}
 
 \noindent we need to evaluate \hinl{insertM' p x ys} first.
 In this example, we trigger the evaluation of the non\--deterministic comparison function \hinl{coinCmpND} although we do not need the result \hinl{zs} if the condition \hinl{b} is \hinl{True}.
@@ -259,11 +259,11 @@ Thanks to the generic implementation using a monadic interface, we are free to u
 For example, we can generate decision trees like in Curry by using a monad that keeps track of all operations and pretty\--prints the non\--deterministic parts of our computation.
 As first step to define such a pretty\--printing function, we generalise the comparison function \hinl{coinCmpND} to \hinl{MonadPlus}, which is an extension of the \hinl{Monad} type class that introduces an additional function \hinl{mplus} to combine monadic computations and \hinl{mzero} as neutral element for the function \hinl{mplus}.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 class Monad m => MonadPlus m where
   mplus :: m a -> m a -> m a
   mzero :: m a
-\end{minted}
+\end{haskellcode}
 
 The idea of the non\--deterministic comparison function \hinl{coinCmpND} is to yield two results non\--deterministically.
 In the concrete implementation using lists, we define \hinl{coinCmpND} based on singleton lists \hinl{[True]} and \hinl{[False]} that are combined using the concatenation operator \hinl{(++)}.
@@ -276,10 +276,10 @@ A generalisation using \hinl{MonadPlus} replaces the concatenation operator by \
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 coinCmp :: MonadPlus m => a -> a -> m Bool
 coinCmp _ _ = return True `mplus` return False
-\end{minted}
+\end{haskellcode}
   
 As second step, we use a monad instance that can interpret all monadic
 operations in an abstract way: the free monad \citep{swierstra2008data} we introduced in \autoref{subsec:freeMonad}.
@@ -294,9 +294,9 @@ Since we want to print the arguments the non\--deterministic comparison function
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 data Sort a = Choice (Maybe (String,String)) a a || Fail deriving Show
-\end{minted}
+\end{haskellcode}
 
 In order to use \hinl{Free Sort} as underlying monad in a non\--deterministic application of, for example, \hinl{filterM coinCmp}, we need to define a functor instance for \hinl{Sort} and a \hinl{MonadPlus} instance for \hinl{Free Sort}.
 
@@ -318,7 +318,7 @@ In order to use \hinl{Free Sort} as underlying monad in a non\--deterministic ap
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 instance Functor Sort where
  fmap f (Choice id m1 m2 ) = Choice id (f m1) (f m2)
  fmap _ Fail               = Fail
@@ -326,7 +326,7 @@ instance Functor Sort where
 instance MonadPlus (Free Sort) where
  mzero       = Impure Fail
  mplus m1 m2 = Impure (Choice Nothing m1 m2)
-\end{minted}
+\end{haskellcode}
 
 Note that, initially, we do not have any information about the arguments of the \hinl{mplus} operator, so we use \hinl{Nothing}.
 We add information to the structure when we apply the function that introduces non\--determinism.
@@ -340,11 +340,11 @@ For example, we define the non\--deterministic function \hinl{cmpCoinFree} that 
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 coinCmpFree :: Show a => a -> a -> Free Sort Bool
 coinCmpFree x y =
   Impure (Choice (Just (show x,show y)) (return True) (return False))
-\end{minted}
+\end{haskellcode}
 
 Now we can apply \hinl{filterM} to our non\--determinism\--tracking comparison function \hinl{cmpCoinFree} and get a \hinl{Free Sort}\--term that contains information about the arguments that need to be compared.
 
@@ -357,9 +357,9 @@ Impure (Choice (Just ("42","1"))
 
 Since this term representation looks more complicated than helpful, as last step, we define a pretty\--printing function for \hinl{Free Sort}.
 The function
-\begin{minted}{haskell}
+\begin{haskellcode}
 pretty :: Show a => Free Sort a -> String
-\end{minted}
+\end{haskellcode}
 produces a decision tree similar to the one we got to know from Curry.
 Now we take a look at the well\--arranged decision tree resulting from the above call.
 
@@ -424,11 +424,11 @@ As we have just seen the definition of \hinl{insertM}, we start with \hinl{inser
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 insertionSortM :: Monad m => (a -> a -> m Bool) -> [a] -> m [a]
 insertionSortM _ []     = return []
 insertionSortM p (x:xs) = insertionSortM p xs >>= \ys -> insertM p x ys
-\end{minted}
+\end{haskellcode}
 
 Note that is again crucial to introduce potentially non\--deterministic values only as result of the comparison function and the result of the function itself.
 This observation also applies to the definition of \hinl{insertM}: the input list \hinl{ys} needs to be deterministic.
@@ -544,7 +544,7 @@ We directly define the version of selection sort that uses \hinl{pickMinM} inste
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 pickMinM :: Monad m => (a -> a -> m Bool) -> [a] -> m (a, [a])
 pickMinM _ [x]    = return (x,[])
 pickMinM p (x:xs) = pickMinM p xs >>= \(m,l) ->
@@ -556,7 +556,7 @@ selectionSortM _ [] = return []
 selectionSortM p xs = pickMinM p xs >>= \(m,l) ->
                       selectionSortM p l >>= \ys ->
                       return (m:ys)
-\end{minted}
+\end{haskellcode}
 
 The application of \hinl{selectionSortM} to \hinl{coinCmpND} yields more results than expected, the resulting function enumerates some permutations multiple times.
 

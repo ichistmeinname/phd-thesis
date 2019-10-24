@@ -145,14 +145,16 @@ Languages and Compiler Construction}
 \hyphenation{non-de-ter-mi-nis-tic}
 
 % minted-related definitions
-\newminted[curry]{haskell}{style=friendly,mathescape=true,escapeinside=<>}
+\newminted{haskell}{style=bw,frame=lines,framerule=0.05pt, framesep=7.5pt,mathescape=true,escapeinside=<>}
+\newminted{coq}{style=bw,mathescape=true,escapeinside=!!}
+\newminted[curry]{haskell}{style=bw,mathescape=true,escapeinside=<>}
 \newmintinline[cyinl]{haskell}{style=bw}
 \newmintinline[hinl]{haskell}{style=bw}
 \newmintinline[cinl]{coq}{escapeinside=!!,mathescape=true,style=bw}
 
-\usemintedstyle[curry]{friendly}
-\usemintedstyle[haskell]{trac}
-\usemintedstyle[coq]{tango}
+% \usemintedstyle[curry]{friendly}
+% \usemintedstyle[haskell]{trac}
+% \usemintedstyle[coq]{tango}
 
 \newenvironment{excursus}[1]
 {\vspace{0.5cm}
@@ -220,7 +222,7 @@ Languages and Compiler Construction}
 {%
   \vspace{0.25cm}%
   \begin{minipage}[t]{0.45\textwidth}%
-    \mintinline{coq}{#1}%
+    \cinl{#1}%
   \end{minipage}%s
   \minipage[t]{0.55\textwidth}%
   \begin{alltt}%
@@ -235,7 +237,7 @@ Languages and Compiler Construction}
 {%
   \vspace{0.25cm}%
   \begin{minipage}[t]{#2\textwidth}%
-    \mintinline{coq}{#1}%
+    \cinl{#1}%
   \end{minipage}%
   \minipage[t]{#3\textwidth}%
   \begin{alltt}%

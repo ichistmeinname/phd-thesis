@@ -20,11 +20,11 @@ We can define a lot of common functions we know from functional programming lang
 As a code convention, we will start data type and constructor names with lower\--case letters as many standard types in Coq follow the same convention.
 Consider the following data type definition for Peano numbers.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Inductive nat : Type :=
 | z : nat
 | s : nat -> nat.
-\end{minted}
+\end{coqcode}
 
 Note that the data type declaration for \cinl{nat} is annotated with \cinl{Type}.
 Coq is build upon a sophisticated type hierarchy; for us it is enough to know that we will use \cinl{Type} for inductive data types and type synonyms.
@@ -34,7 +34,7 @@ Furthermore, we list all constructors line\--by\--line and each line begins with
 Next, we define a function to check if a Nat number is zero as well as a function for addition on Nat numbers using pattern matching.
 Note that both definitions have explicit type annotations for the argument and return types, although Coq could infer all of them.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Definition isZero (p : nat) : bool :=
   match p with
   | z  _ => true
@@ -46,7 +46,7 @@ Fixpoint add (p1 p2 : nat) : nat :=
   | z   => p2
   | s p => s (add p p2)
   end.
-\end{minted}
+\end{coqcode}
 
 The pipe symbole \cinl{|} is again used as a delimiter: this time to list all patterns we want to distinguish in a \cinl{match ... with}\--expression that corresponds to Haskell's \hinl{case ... of}\--expressions.
 Note that the definition of \cinl{isZero} uses the predefined \cinl{bool} type as result, and that we can group successive arguments of the same type in the type signature.
@@ -58,14 +58,14 @@ In our example definition \cinl{add}, the argument \cinl{p} of the recursive cal
 
 As an example for a recursive function that Coq's termination checker fails to accept, we try to define the following artificial definition that decreases on one of its arguments at each recursive call, but does not have one designated argument that decreases for each call.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Fail Fixpoint test (b : bool) (n m : nat) : bool :=
   match (n,m) with
   | (z,_)      => true
   | (_,z)      => false
   | (s p, s q) => if b then test b p m else test b n q
   end.
-\end{minted}
+\end{coqcode}
 
 The keyword \cinl{Fail} indicates that the definition was not accepted by Coq without an error.
 Here, the command has failed with the error message \texttt{Cannot guess decreasing argument of fix}.
@@ -75,9 +75,9 @@ In this thesis, we will not use capabilities like \cinl{Program Fixpoint} to def
 Moving on with our definitions on Peano numbers above, we can introduce a \cinl{Notation} that allows us to write more natural expressions like \cinl{p1 + p2} for the expression \cinl{(add p1 p2)}.
 We also provide an associativity for the newly introduced operator syntax as well as a fixity level.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Notation "p1 + p2" := (add p1 p2) (left associativity, at level 50).
-\end{minted}
+\end{coqcode}
 
 In Coq we can check types, print definitions and evaluate expressions directly in the Coq\--file using so\--called \emph{Vernacular}\--commands like \cinl{Check}, \cinl{Print} and \cinl{Compute} that will print the information on the console.
 Since we are used to having a REPL from languages like Haskell and Curry, we will write these commands and the printed answer in a REPL\--style as follows.
@@ -91,11 +91,11 @@ Since we are used to having a REPL from languages like Haskell and Curry, we wil
 Let us now consider a polymorphic data type definition as well as polymorphic functions using lists as example.
 We use the predefined definition for lists defined as follows.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Inductive list (A : Type) : Type :=
 | nil  : list A
 | cons : A -> list A -> list A.
-\end{minted}
+\end{coqcode}
 
 As a code convention we use upper\--case letters for type variables.
 In case of polymorphic functions, including constructors of datas types, we need to pass the instantiation of the type arguments explicitly.
@@ -140,7 +140,7 @@ Instead of applying type arguments explicitly, we can tweak some settings in ord
 
 Next, we define the recursive functions \cinl{length} and \cinl{map} as exemplary functions on lists.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Fixpoint length (A : Type) (xs : list A) : nat :=
   match xs with
   | nil       => z
@@ -152,25 +152,25 @@ Fixpoint map (A B : Type) (f : A -> B) (xs : list A) : list B :=
   | nil => nil
   | cons y ys => cons (f y) (map f ys)
   end.
-\end{minted}
+\end{coqcode}
 
 A rather obvious property of a combination of these function states that mapping over a list does not change its length.
 In Coq we can define such a proposition mostly consisting of language features we have used so far.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Lemma map_length (A B : Type) (f : A -> B) (xs : list A)
   : length xs = length (map f xs).
-\end{minted}
+\end{coqcode}
 
 First, instead of using the \cinl{Definition} or \cinl{Fixpoint} keyword, we use \cinl{Lemma} that has the same purpose as the former.
 That is, the definition \cinl{map_length} is a function.
 While the arguments of the function \cinl{map_length} look as usual, the resulting type involves a dependent type.
 The symbol \cinl{=} on the right\--hand side of the type signature is just a notation for the type \cinl{eq} that is defined as follows.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Inductive eq (A : Type) (x : A) : A -> Prop :=
 | eq_refl : eq x x.
-\end{minted}
+\end{coqcode}
 
 The data type \cinl{eq} is a propositional type, indicated by the resulting type \cinl{Prop}.
 Intuitively, Coq distinguishes between ordinary programs that are of type \cinl{Type} while proofs are of type \cinl{Prop}.
@@ -206,7 +206,7 @@ Taking a look at the goal, we realise that we cannot simplify neither the left\-
 In order to argue about these two different cases separately, we start by doing an induction on \cinl{xs}.
 Using the \cinl{induction}\--tactic on a list generates two new goals: one for \cinl{nil} and one for \cinl{cons}.
 
-\begin{cproof}{induction xs as [ | y ys H ]}
+\begin{cproof}{induction xs as [ | y ys H ].}
   ...
   f : A -> B
   ============================
@@ -264,7 +264,7 @@ We then finish the proof by using the keyword \cinl{Qed}.
 At that point, Coq provides the information that the lemma \cinl{map_length} was successfully defined and can be used in future proofs and definitions.
 In order to give a better overview of the proof in its entirety, we restate the proposition as lemma including the complete proof script.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Lemma map_length (A B : Type) (f : A -> B) (xs : list A)
   : length xs = length (map f xs).
 Proof.
@@ -272,7 +272,7 @@ Proof.
   - simpl. reflexivity.
   - simpl. rewrite -> H. reflexivity.
 Qed.
-\end{minted}
+\end{coqcode}
 
 \subsubsection{Induction Principle}
 \label{subsub:induction}
@@ -302,7 +302,7 @@ As an example, we reprove the lemma above: \cinl{map} retains the length of its 
 Instead of using the dedicated \cinl{induction}\--tactic, we use the induction principle directly.
 We adapt the above proof as follows.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Lemma map_length' (A B : Type) (f : A -> B) (xs : list A)
   : length xs = length (map f xs).
 Proof.
@@ -310,7 +310,7 @@ Proof.
   - simpl. reflexivity.
   - intros y ys H. simpl. rewrite -> H; reflexivity.
 Qed.
-\end{minted}
+\end{coqcode}
 
 When using backward\--reasoning, we have to use the function \cinl{list_ind} on a function of type \cinl{l -> P  l}, which is the type of our lemma, when we instantiate the argument list \cinl{l} with the concrete list \cinl{xs}.
 Since \cinl{list_ind} has three arguments, these arguments are now the new subgoals we need to prove.
@@ -320,11 +320,11 @@ That is, we end up with only two subgoals: we need to prove that the proposition
 We can prove the first goal for the \cinl{nil}\--constructor using the same tactics as before: after simplification of the involved functions, both sides of the equation are already equal.
 The second goal looks as follows.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{coqcode}
   !$\forall$! (y : A) (ys : list A),
     length ys = length (map f ys) ->
     length (cons y ys) = length (map f (cons y ys))
-\end{minted}
+\end{coqcode}
 
 Given an element \cinl{y},  a list \cinl{ys}, and the induction hypothesis that the proposition already holds for that \cinl{ys}, we need to prove that the proposition holds for \cinl{cons y ys} as well.
 While Coq's \cinl{induction} tactic introduces these universally quantified variables for us, the direct variant is not as convenient.
@@ -340,10 +340,10 @@ A container is described as a product of shapes and a position function.
 The shape is a type \cinl{Shape} and the position type \cinl{Pos} is a type function that maps shapes to types.
 Using these two components we can define a container extension that gives access to values of type \cinl{A}.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{coqcode}
 Inductive Ext (Shape : Type) (Pos : Shape -> Type) (A : Type) : Type :=
 | ext : !$\forall$! s, (Pos s -> A) -> Ext Pos A.
-\end{minted}
+\end{coqcode}
 
 A container extension \cinl{Ext Shape Pos} is then isomorphic to a type constructor \cinl{F}, where \cinl{F A} represents the polymorphic data type.
 The position type \cinl{Pos} is a dependent type: the type depends on a value of type \cinl{Shape}.
@@ -354,17 +354,17 @@ That is, given one concrete position of type \cinl{Pos s} for a shape \cinl{s}, 
 As an example, let us consider the polymorphic data type \cinl{One} we discussed in \autoref{subsec:freeMonad} in the context of free monads.
 Recall that the definition was used by \citet{swierstra2008data} and that the name captures the number of representable values quite well.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Inductive One (A : Type) : Type :=
 | one : One A.
-\end{minted}
+\end{coqcode}
 
 Now we want to represent \cinl{One} as a container described as a type of shapes and a position type function.
 The data type \cinl{One} has only one constructor, that is, there is only one shape that we need to represent.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{coqcode}
 Definition One!$_\text{S}$! := unit.
-\end{minted}
+\end{coqcode}
 
 Intuitively, the shape type represents the different constructors of a data type.
 Note that instead of introducing a new type with one value, we reuse Coq's \cinl{unit} type.
@@ -377,10 +377,10 @@ More precisely, there are no possible positions for polymorphic argument for any
 In order to represent that there are no possible positions, we use an empty type.
 An empty type is a data type without any values, that is, we cannot construct values of that type.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{coqcode}
 Inductive Empty : Type := .
 Definition One!$_\text{P}$! (s : One!$_\text{S}$!) := Empty.
-\end{minted}
+\end{coqcode}
 \label{code:one_container}
 
 Recall that the position type function depends on the corresponding shape.
@@ -389,32 +389,32 @@ Here, however, the shape does not matter as we do not have any position anyhow.
 Using Coq's ability to prove properties about programs, we can show that the container representation is isomorphic to the original data type.
 More precisely, we define two functions \cinl{from_One} and \cinl{to_One}, and show that both compositions yield the identity.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{coqcode}
 Definition from_One A (o : One A) : Ext One!$_\text{S}$! One!$_\text{P}$! A :=
   ext tt (fun (p : One!$_\text{P}$! tt) => match p with end).
 
 Definition to_One A (e : Ext One!$_\text{S}$! One!$_\text{P}$! A) : One A :=
   one.
-\end{minted}
+\end{coqcode}
 
 The definition of \cinl{from_One} uses an empty pattern match, because there are no possible values of type \cinl{One!$_{\text{P}}$! tt} --- recall that the type is just a synonym for \cinl{Empty}.
 Since the argument \cinl{p} is of type \cinl{Empty} and \cinl{Empty} has no constructors to match on, Coq realises that we cannot have a value of type \cinl{Empty} in the first place and accepts the definition.
 That is, we can define a function that yields an arbitrary polymorphic value given an empty type as argument.
 
-\begin{minted}{coq}
+\begin{coqcode}
 Definition bogus (A : Type) (em : Empty) : A :=
   match em with end.
-\end{minted}
+\end{coqcode}
 
 The definition of \cinl{to_One}, on the other hand, is straightforward, because there is only one way to construct the value \cinl{one}.
 Note that we do not need to access a polymorphic component of type \cinl{A} in order to construct a value of type \cinl{One}.
 
 An alternative definition of the above function displays the components of the argument type \cinl{Ext One!$_{\text{S}}$! One!$_{\text{P}}$! A} more explicitly.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{coqcode}
 Definition to_One A (e : Ext One!$_\text{S}$! One!$_\text{P}$! A) : One A :=
   let '(ext tt pf) := e in one.
-\end{minted}
+\end{coqcode}
 
 Since \cinl{Ext} has only one constructor, Coq allows a let\--binding for such irrefutable patterns with the above syntax using a tick \cinl{'}.
 The function \cinl{pf} is of type \cinl{One!$_\text{P}$! tt -> A}, which becomes a function of type \cinl{Empty -> A} after inlining the definition of \cinl{One!$_\text{P}$! tt}.
@@ -423,10 +423,10 @@ As a side note, we could not produce a value of type \cinl{A} using the function
 With these definitions at hand, we can prove that \cinl{from_One} and \cinl{to_One} form an isomorphism.
 We start with the more involved proof \cinl{from_to_One} first.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{coqcode}
 Lemma from_to_One : !$\forall$! (A : Type) (e : Ext One!$_\text{S}$! One!$_\text{P}$! A),
     from_One (to_One e) = e.
-\end{minted}
+\end{coqcode}
 
 \begin{cproof1}{Proof. intros A e; simpl.}{0.4}{0.6}
   e : Ext One\(\sb{\text{S}}\) One\(\sb{\text{P}}\) A
@@ -496,10 +496,10 @@ The second direction of the isomorphism proof is straightforward.
 After introducing all variables and destructing the argument \cinl{o : One A}, we simplify the left\--hand side of the equation using the function definitions of \cinl{from_One} and \cinl{to_One}.
 The simplification already leads to the value \cinl{one : One A} on the left\--hand side as well as on the right\--hand side.
 
-\begin{minted}[escapeinside=!!,mathescape=true]{coq}
+\begin{coqcode}
 Lemma to_from_One : !$\forall$! (A : Type) (o : One A),
     to_One (from_One o) = o.
 Proof.
   intros A o; destruct o; reflexivity.
 Qed.
-\end{minted}
+\end{coqcode}

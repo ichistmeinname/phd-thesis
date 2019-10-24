@@ -45,11 +45,11 @@ head (x : _) = x
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 head :: [a] -> a
 head []      = undefined
 head (x : _) = x
-\end{minted}
+\end{haskellcode}
 \label{code:haskell_head}
 
 Let us compute the head of a partial list: the head element is defined but the remaining list is not.
@@ -94,11 +94,11 @@ In the second example, we do not observe any logging message, because, again, th
 
 In order to observe that we shared an expression, we consider the following two expressions that double a value that is traced with a message.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 test1, test2 :: Int -> Int
 test1 n = trace "msg" n + trace "msg" n
 test2 n = let x = trace "msg" n in x + x
-\end{minted}
+\end{haskellcode}
 
 \begin{hrepl}
 \haskellrepl test1 42
@@ -154,10 +154,10 @@ data Partial a = Undefined
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 data Partial a = Undefined
                || Defined a
-\end{minted}
+\end{haskellcode}
 \label{code:partial_haskell}
 
 These constructors represent undefined and defined values, respectively.
@@ -185,11 +185,11 @@ headPartial (x:_) = Defined x
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 headPartial :: [a] -> Partial a
 headPartial []    = Undefined
 headPartial (x:_) = Defined x
-\end{minted}
+\end{haskellcode}
 
 The evaluation of the exemplary expressions from above represent the undefined value explicitly using the appropriate constructor.
 
@@ -206,9 +206,9 @@ Before we talk about this downside of the model, let us take look at a represent
 We model functions that possibly produce several results using lists.
 In order to not confuse the representation of non\--determinism using lists with lists that we use as algebraic datatypes in type signatures of functions, we use a type synonym \hinl{ND}.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 type ND a = [a]
-\end{minted}
+\end{haskellcode}
 
 On top of that, we use the following convenience functions to yield a deterministic result and combine two potentially non\--deterministic results.
 
@@ -225,13 +225,13 @@ det x = [x]
 \end{code}
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 det :: a -> ND a
 det x = [x]
 
 (?) :: ND a -> ND a -> ND a
 (?) = (++)
-\end{minted}
+\end{haskellcode}
 
 The former function yields a singleton list whereas the latter corresponds to the concatenation of the two lists.
 Using this representation of non\--determinism and these convience functions, we define the function \hinl{insertND} that non\--deterministically inserts a given element at all possible positions of a list.
@@ -246,11 +246,11 @@ insertND x (y:ys) = det (x : y : ys) ? map (y:) (insertND x ys)
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 insertND :: a -> [a] -> ND [a]
 insertND x []     = det [x]
 insertND x (y:ys) = det (x : y : ys) ? map (y:) (insertND x ys)
-\end{minted}
+\end{haskellcode}
 
 The first rule is deterministic, it yields one list as result that contains just the element \hinl{x} we want to insert to the list.
 The second rule yields at least two results.
@@ -271,11 +271,11 @@ Note that we manipulate the output for the REPL to use set\--like parentheses fo
 A commonly used abstraction to model all these explicit effects are monads: the most common monadic abstraction is the \hinl{IO} type mentioned in the beginning.
 Using a type constructor class, a monad provides the following two operations.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 class Monad m where
   return :: a -> m a
   (>>=)  :: m a -> (a -> m b) -> m b
-\end{minted}
+\end{haskellcode}
 
 A type constructor class allows to define overloaded functions for type constructors like \hinl{IO}, \hinl{Partial}, and \hinl{[]}.
 Note that we define an instance for \hinl{[]} instead of \hinl{ND}, because we can define type class instances for data types only, not for type synonyms\footnote{Note that we can define such instances using \hinl{TypeSynonymInstances} if these instances do not overlap with predefined ones}.
@@ -301,7 +301,7 @@ instance Monad Partial where
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 instance Monad Partial where
   return          = Defined
   Defined x >>= f = f x
@@ -310,7 +310,7 @@ instance Monad Partial where
 instance Monad [] where
   return   = det
   xs >>= f = concat (map f xs)
-\end{minted}
+\end{haskellcode}
 
 We reimplement the definition of \hinl{insertND} using \hinl{(>>=)} as follows, which leads to a more natural implementation concerning the separation of operation on lists as data structures and lists as model for non\--determinism.
 More precisely, instead of using \hinl{map}, the usage of \hinl{(>>=)}\--operator gives us access to each list of the non\--deterministic result.
@@ -325,12 +325,12 @@ insertM x (y:ys) = return (x : y : ys) ? (insertM x ys >>= \zs -> return (y:zs))
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 insertND :: a -> [a] -> ND [a]
 insertND x []     = return [x]
 insertND x (y:ys) = return (x : y : ys)
                   ? (insertND x ys >>= \zs -> return (y:zs))
-\end{minted}
+\end{haskellcode}
 
 Now recall the example for partiality again and let us define the \hinl{tail} function using \hinl{Partial}, analogue to \hinl{headPartial}.
 
@@ -344,11 +344,11 @@ tailPartial (_:xs) = Defined xs
 
 %endif
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 tailPartial :: [a] -> Partial [a]
 tailPartial []     = Undefined
 tailPartial (_:xs) = Defined xs
-\end{minted}
+\end{haskellcode}
 
 As already noted above, the composition \hinl{headPartial . tailPartial} is not possible although we can compose \hinl{head . tail} in the original Haskell code.
 
@@ -400,21 +400,21 @@ One observation that leads to the other abstraction is that all representations 
 This observation finally leads to a monad instance that can interpret all monadic operations in an abstract way: the free monad \citep{swierstra2008data}.
 Consider the following data type \hinl{Free} that is parametrised by a type constructor \hinl{f} and a value type \hinl{a}.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 data Free f a = Pure a
               || Impure (f (Free f a))
-\end{minted}
+\end{haskellcode}
 
 The general idea behind free monads is the observation that monadic computations are either pure values or impure effects.
 We represent the impure effect using the type constructor \hinl{f} and pure values are of type \hinl{a}.
 The nice property of the \hinl{Free} data type is that \hinl{Free f} is a monad, if \hinl{f} is a functor.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 instance Functor f => Monad (Free f) where
   return          = Pure
   Pure x    >>= f = f x
   Impure fx >>= f = Impure (fmap (>>= f) fx)
-\end{minted}
+\end{haskellcode}
 
 We represent all impure operations we need to model using the functor \hinl{f}.
 In case of \hinl{Partial}, we have one operation, namely \hinl{Undefined} that corresponds to the Haskell's \hinl{undefined} value associated with partiality.
@@ -425,10 +425,10 @@ The corresponding functor, thus, needs to make use of the recursive type argumen
 More concretely, since \hinl{Free} already models the constructor for defined and deterministic values using \hinl{Pure}, the functor takes care of the values constructed using \hinl{Undefined} for \hinl{Partial} and \hinl{(?)} for \hinl{ND}, respectively.
 The functors corresponding to the nullary operation \hinl{Undefined} and to the binary operation \hinl{(?)} look as follows\footnote{In the former case we follow the same naming conventions as \citet{swierstra2008data}.}.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 data One a    = One
 data Choice a = Choice a a
-\end{minted}
+\end{haskellcode}
 
 \begin{table*}[t]
 \begin{tabular}{llll}
@@ -461,10 +461,10 @@ Due to this counterexample, we rather chose a tree encoding to represent non\--d
 In \autoref{ch:reasoning} we restate this isomorphism property and will show that the free monad applied to the functors \hinl{One} and \hinl{Choice} are isomorphic to \hinl{Maybe} and the common representation binary tree, respectively.
 Other popular representations are the identity monad and the error monad using the following functors.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 data Zero a
 data Const e a = Const e
-\end{minted}
+\end{haskellcode}
 
 Using the types as underlying effect, we get the identity monad using \hinl{Free Zero} and the error monad can be represented using \hinl{Free (Const e)}, where \hinl{e} is the type of the error.
 \autoref{tab:effectOverview} gives an overview of different monads and their representation using \hinl{Free}.
@@ -485,19 +485,19 @@ Non\--determinism & \hinl{data Tree a     = Leaf a || Branch a a} & \hinl{Free C
 
 Our running example from the preceding section for non\--deterministically inserting an element at each possibile position in a list looks as follows using a representation based on \hinl{Free Choice}.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 insertFree :: a -> [a] -> Free Choice [a]
 insertFree x []     = return [x]
 insertFree x (y:ys) = return (x : y : ys)
                     ?? (insertFree x ys >>= \zs -> return (y:zs))
-\end{minted}
+\end{haskellcode}
 
 We define the smart constructor for choices \hinl{(??)} as indicated above and can, thus, nearly reuse the implementation from before, because we already rely on the monadic abstraction.
 
-\begin{minted}{haskell}
+\begin{haskellcode}
 (??) :: Free Choice a -> Free Choice a -> Free Choice a
 (??) fx fy = Impure (Choice fx fy)
-\end{minted}              
+\end{haskellcode}              
 
 Note that the underlying representation of non\--determinism changed from lists to trees, but otherwise the functions behave the same.
 The exemplary call also reveals five resulting lists.
