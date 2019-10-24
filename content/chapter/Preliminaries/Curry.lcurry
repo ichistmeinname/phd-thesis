@@ -13,6 +13,7 @@ On top of these functional features, Curry adds non\--determinism as a built\--i
 There are two maintained implementations of Curry: KiCS2 \citep{hanus2014kics2} and PAKCS \citep{hanus2017pakcs}.
 In the remainder of this thesis, we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.\footnote{More precisely, all source code was tested with version \verb+2.0.0-b14+ of KiCS2.}
 All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile --- ~\curryrepl~ --- prompt.
+In order to simplify the distinction between Haskell and Curry code, we use framed code snippets for Haskell as seen in the preceding section and code snippets without framing for Curry.
 
 \subsection{Non\--determinism}
 \label{subsec:non-determinism}

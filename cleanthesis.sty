@@ -151,6 +151,7 @@
 		\colorlet{ctcolorsubsection}{ctcolorblack}
 		\colorlet{ctcolorpartnum}{ctcolorblack}
 		% --> text colors
+		\colorlet{ctcolorfloatlabel}{ctcolorblack}
 		\colorlet{ctcolorlistlabel}{ctcolorblack}
 	\or
 		% case = 2 (colorize == bw)
@@ -197,12 +198,13 @@
 \ifcase\cthesis@colortheme
 	% case 0 (colortheme == bluemagenta)
 	\cthesissetcolorbluemagenta
+	% \cthesissetcolor{named}{ctcolorblack}{ctcolorgray}%
 \or
 	% case 1 (colortheme == bluegreen)
 	\cthesissetcolorbluegreen
 \else
 	% all other cases
-	\cthesissetcolorbluemagenta
+	\cthesissetcolor{named}{ctcolorblack}{ctcolorgray}%
 \fi
 
 
