@@ -1077,8 +1077,8 @@ We can define this function using \cyinl{enum2}.
 
 %if False
 
-> flip :: Probability -> a -> a -> Dist a
-> flip p x y = enum2 [x,y] [p, 1 - p]
+> flipBool :: Probability -> a -> a -> Dist a
+> flipBool p x y = enum2 [x,y] [p, 1 - p]
 
 %endif
 
@@ -1094,7 +1094,7 @@ We can then translate the above definition of \mintinline{haskell}{uniformGibbon
 > uniform2 :: [a] -> Dist a
 > uniform2 [x] = certainly x
 > uniform2 (x : xs) =  uniform2 xs >>>= \ xs' ->
->                      flip (frac 1 (length (x:xs))) x xs'
+>                      flipBool (frac 1 (length (x:xs))) x xs'
 
 %endif
 
