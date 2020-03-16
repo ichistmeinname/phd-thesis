@@ -14,9 +14,9 @@ Among functional languages, the superset of declarative languages also includes 
 Features associated with logic programming like non\--determinism, free variables and constraint solving have not caught on mainstream languages such as the functional features we mentioned above --- yet.
 One part of this thesis illustrates the advantages of a functional logic programming language, which combines both of these paradigms, over encoding logic features in a functional language.
 These advantages we discuss in this thesis are specific to non\--strict non\--determinism.
-The first application considers permutation enumeration function.
-More precisely, the permutation functions arises from sorting functions that are parametrised by a comparison function.
-The clue is to apply such sorting functions with a non\--deterministic comparison function that produces all possible rearrangements of the input list, leading to a permutation enumeration function.
+The first application considers permutation enumeration functions.
+More precisely, the permutation functions arise from sorting functions that are parametrised by a comparison function.
+The trick is to apply such sorting functions with a non\--deterministic comparison function that produces all possible rearrangements of the input list, leading to a permutation enumeration function.
 The advantages of the functional logic programming language become apparent when comparing the implementation against an implementation in a functional language that uses lists to model the non\--determinism.
 The second application is an implementation of a library for probabilistic programming.
 The key ingredient of probabilistic programs are distributions that are most commonly modeled as pairs of events and their corresponding probabilities.
@@ -25,7 +25,7 @@ An implementation that represents distributions using non\--strict non\--determi
 
 Moreover, pure functional programming languages are said to be particularly well\--suited for equational reasoning.
 Most equational reasoning efforts do not bother about disruptive properties like partiality that may occur in programs we want to prove properties about.
-Partial programs are allowed in both of these languages and complicate equational reasoning.
+Partial programs are usualu allowed in both of these paradigms and complicate equational reasoning.
 In case of partiality, we can argue that a total subset is reasonable, because functional programmers are interested in preventing the possibility of run\--time errors anyway.
 In case of a functional logic language, however, partiality comes in a different flavour: non\--determinism consists of a non\--deterministic choice operator as well as a failure value that behaves as neutral element with respect to the choice operator.
 More precisely, we would exclude all programs except the ones that would also compile in a functional language.
@@ -37,5 +37,5 @@ The advantages of non\--strict non\--determinism are illustrated using the examp
 We then switch the focus from applications to formal reasoning and present a framework to model non\--strict functional programs that come with effects like partiality and non\--determinism as well as prove exemplary properties about programs using the framework (\autoref{ch:reasoning}).
 Finally, we give a summary of the presented work (\autoref{ch:conclusion}) and collect additional source code in the appendix.
 
-As some contributions presented in this thesis have been already published, the related chapters (Chapter 3--5) each inform about the previously published work as well.
+As some contributions presented in this thesis have been already published, the related chapters (Section 3--5) each inform about the previously published work as well.
 Furthermore, we highlight the changes and additions with respect to the published version, and present related work as well as a summary for each chapter individually.
