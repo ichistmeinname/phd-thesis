@@ -60,6 +60,7 @@
 % --------------------------
 
 \addto\extrasenglish{%
+  \renewcommand{\chapterautorefname}{Chapter}
   \renewcommand{\sectionautorefname}{Section}
   \renewcommand{\subsectionautorefname}{Section}
   \renewcommand{\subsubsectionautorefname}{Section}
