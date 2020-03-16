@@ -919,7 +919,7 @@ It would be interesting to analyse the order of results for all other sorting al
 This analysis can then be extended to other non\--deterministic sorting functions, which are perhaps more strict than \cyinl{coinCmp}, but yield an interesting property.
 An example of an alternative non\--deterministic comparison function is the following definition of \cyinl{liftCmp} that lifts a comparison function \cyinl{cmp} into a monadic context.
 
-% if False
+%if False
 
 > liftCmp :: (a -> a -> Bool) -> a -> a -> Bool
 > liftCmp cmp x y = cmp x y ? not (cmp x y)
