@@ -36,23 +36,23 @@ Therefore, we finally discuss why the current representation that models call\--
 
 Diese Arbeit besch\"aftigt sich mit der deklarativen Programmierung mit Effekten und legt dabei besonderen Fokus auf Nichtdeterminismus als Effekt.
 
-Einerseits m\"ochten wir Anwendungen entwicklen, dessen zugrundeliegende Implementierunsidee auf Nichtdeterminismus basiert.
+Einerseits m\"ochten wir Anwendungen entwickeln, deren zugrundeliegende Implementierunsidee auf Nichtdeterminismus basiert.
 Wir stellen dazu zwei beispielhafte Anwendungen vor, die in der funktional logischen Programmiersprache Curry implementiert sind.
 Die Kernidee dieser Implementierungen ist dabei die Kombination von Nichtstriktheit und Nichtdeterminismus, die Curry unterliegen, gewinnbringend auszunutzen.
 
-F\"uer die erste Anwendung untersuchen wir Sortierfunktionen, die \"uber eine Vergleichsfunktion parametrisiert sind, und wenden diese Funktionen auf ein nichtdeterministisches Pr\"adikat an.
+F\"ur die erste Anwendung untersuchen wir Sortierfunktionen, die \"uber eine Vergleichsfunktion parametrisiert sind, und wenden diese Funktionen auf ein nichtdeterministisches Pr\"adikat an.
 Dabei entsteht eine Funktion, die Permutationen der Eingabeliste berechnet.
 Wir vergleichen unsere Implementierung in Curry mit einer Implementierung in Haskell, die den Nichtdeterminismus monadisch modelliert.
 
 Als zweite Anwendung werden wir \"uber eine Bibliothek zur probabilistischen Programmierung diskutieren.
-Statt der \"ublichen Modellierung von Wahrscheinlichkeitsverteilungen als Liste von Paaren von Ereignis- und korrespondierenden Wahrscheinlichtkeitswerten modellieren wir diese Verteilungen mithilfe von Currys eingebauten Nichtdeterminismus.
+Statt der \"ublichen Modellierung von Wahrscheinlichkeitsverteilungen als Liste von Paaren von Ereignis- und korrespondierenden Wahrscheinlichtkeitswerten modellieren wir diese Verteilungen mithilfe von Currys nativem Nichtdeterminismus.
 
-Beide Implementierung haben durch die Kombination von Nichtdeterminismus und Nichtstriktheit Vorteile geben\"uber einer Implementierung, die den Nichtdeterminismus durch Listen repr\"asentiert.
+Beide Implementierungen haben durch die Kombination von Nichtdeterminismus und Nichtstriktheit Vorteile geben\"uber einer Implementierung, die den Nichtdeterminismus durch Listen repr\"asentiert.
 
 Andererseits m\"ochten wir eine M\"oglichkeit schaffen, \"uber die Programme, die wir in effektbehafteten deklarativen Programmiersprachen entwickelt haben, in einem formalen Rahmen zu argumentieren.
-Dabei fangen wir mit der Teilmenge der rein funktionalen Effekten, das hei\ss{}t, wir interessieren uns zun\"achst f\"ur totale und partielle Programme.
+Dabei fangen wir mit der Teilmenge der rein funktionalen Effekte an, das hei\ss{}t, wir interessieren uns zun\"achst f\"ur totale und partielle Programme.
 Die zugrundeliegende Idee zur Modellierung dieser zwei Effekte kann dann auch f\"ur weitere Effekte genutzt werden.
 Als nat\"urlichen n\"achsten Schritt betrachten wir den Effekt, der bei der Sprache Curry zus\"atzlich hinzukommt: nicht\--strikter Nichtdeterminismus mit \emph{call\--time choice} Semantik.
-Dabei geben wir eine \"Ubersicht dar\"uber, warum die aktuelle Repr\"asentation \emph{call\--by\--name} modelliert, sowie erste Ideen, wie die f\"ur Curry erforderliche \emph{call\--by\--name} Semantik modelliert werden k\"onnte.
+Dabei geben wir eine \"Ubersicht dar\"uber, warum die aktuelle Repr\"asentation \emph{call\--by\--name} modelliert, sowie erste Ideen, wie die f\"ur Curry erforderliche \emph{call\--by\--need} Semantik modelliert werden k\"onnte.
 
 \endgroup
