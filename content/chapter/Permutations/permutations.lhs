@@ -4,6 +4,8 @@
 
 > import Control.Monad (MonadPlus(..))
 > import Control.Applicative (Alternative(..))
+>
+> import Preliminaries.Haskell hiding (Fail, Choice, insertM)
 
 %endif
 
@@ -185,6 +187,15 @@ That is, if we have an expression \hinl{mx >>= f}, we cannot proceed with \hinl{
 
 In order to check the claim about the strictness of \hinl{(>>=)} in case of \hinl{ND}, recall that the corresponding \hinl{Monad} instance for \hinl{ND} is the one for lists based on \hinl{concat} and \hinl{map}
 That is, let us retake a look at the definition of \hinl{concat} to see that the resulting function is indeed strict in its argument of type \hinl{ND a}.
+
+
+%if False
+         
+> concat2 :: [[a]] -> [a]
+> concat2 []     = []
+> concat2 (xs:xss) = xs ++ concat2 xss
+
+%endif
 
 \begin{haskellcode}
 concat :: [[a]] -> [a]

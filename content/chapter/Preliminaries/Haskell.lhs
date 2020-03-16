@@ -3,6 +3,8 @@
 \begin{code}
 {-# LANGUAGE StandaloneDeriving, FlexibleInstances #-}
 
+module Preliminaries.Haskell where
+
 import Debug.Trace
 import Prelude hiding (head)
 \end{code}
