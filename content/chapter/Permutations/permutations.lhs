@@ -16,11 +16,11 @@ We reimplement a selection of the sorting functions introduced in \autoref{sec:N
 As we want to test out different models later, we refactor the list\--specific implementations to monad\--generic implementations for the sorting algorithm.
 
 We will notice a difference between the Curry and the Haskell implementation when testing the sorting functions on concrete lists.
-This difference is not a new insight, but interesting nonetheless: Curry's non\--determinism can exploit non\--strictness in a way the Haskell model of non\--determinism using a monadic interface cannot.
+This difference is not a new insight, but interesting nonetheless: Curry's non\--determinism can exploit non\--strictness in a way the common Haskell model of non\--determinism using a monadic interface cannot.
 
 \subsection{Modeling Non\--determinism}
 
-In a pure functional language like Haskell, we can express non\--deterministic function using lists to represent multiple non\--deterministic results as we have already introduced and discussed in \autoref{subsec:monadicAbstractions}.
+In a pure functional language like Haskell, we can express non\--deterministic functions using lists to represent multiple non\--deterministic results as we have already introduced and discussed in \autoref{subsec:monadicAbstractions}.
 That is, we reuse the type synonym \hinl{ND} in order to distinguish between list values that are used to model non\--determinism and list values in the common sense.
 Recall that we use the monadic operations \hinl{return} and \hinl{(>>=)} for lists when working with \hinl{ND} as well as the convenience operator \hinl{(?)} to combine multiple non\--deterministic results.
 
@@ -180,12 +180,12 @@ The application \hinl{insertM' coinCmpND}, however, yields $2^n$ results.
 1024
 \end{hrepl}
 
-Due to the call to \hinl{insertM' p x ys} before checking the Boolean value \hinl{b}, we need to evaluate the recursive call, even though we do not need the resulting variable binding \hinl{zs} when taking the else\--branch.
+Due to the call to \hinl{insertM' p x ys} before checking the Boolean value \hinl{b}, we need to evaluate the recursive call, even though we do not need the resulting variable binding \hinl{zs} when taking the then\--branch.
 The important insight is that we need to be careful when using the \hinl{(>>=)}\--operator.
 In most settings, and the list instance is no exception, \hinl{(>>=)} needs to be interpreted as a sequencing operator that is strict in its first argument.
 That is, if we have an expression \hinl{mx >>= f}, we cannot proceed with \hinl{f} without evaluating \hinl{mx} first.
 
-In order to check the claim about the strictness of \hinl{(>>=)} in case of \hinl{ND}, recall that the corresponding \hinl{Monad} instance for \hinl{ND} is the one for lists based on \hinl{concat} and \hinl{map}
+In order to check the claim about the strictness of \hinl{(>>=)} in case of \hinl{ND}, recall that the corresponding \hinl{Monad} instance for \hinl{ND} is the one for lists based on \hinl{concat} and \hinl{map}.
 That is, let us retake a look at the definition of \hinl{concat} to see that the resulting function is indeed strict in its argument of type \hinl{ND a}.
 
 
@@ -200,7 +200,7 @@ That is, let us retake a look at the definition of \hinl{concat} to see that the
 \begin{haskellcode}
 concat :: [[a]] -> [a]
 concat []     = []
-concat (xs:xss) = xs ++ xxss
+concat (xs:xss) = xs ++ concat xss
 \end{haskellcode}
 
 The function definition of \hinl{concat} makes a case distinction on its first argument.
@@ -441,11 +441,11 @@ insertionSortM _ []     = return []
 insertionSortM p (x:xs) = insertionSortM p xs >>= \ys -> insertM p x ys
 \end{haskellcode}
 
-Note that is again crucial to introduce potentially non\--deterministic values only as result of the comparison function and the result of the function itself.
+Note that it is again crucial to introduce potentially non\--deterministic values only as result of the comparison function and the result of the function itself.
 This observation also applies to the definition of \hinl{insertM}: the input list \hinl{ys} needs to be deterministic.
 That is, in order to insert the head element \hinl{x} into the already sorted tail, we unwrap the monadic context using \hinl{(>>=)} and apply \hinl{insertM} to each possible value of the computation \hinl{insertionSortM p xs}.
 
-Applying \hinl{insertionSortM} to \hinl{coinCmpND} and exemplary list values yields the expected permutations, more precisely, exact the permutations of the input list.
+Applying \hinl{insertionSortM} to \hinl{coinCmpND} and exemplary list values yields the expected permutations, more precisely, exactly the permutations of the input list.
 
 \begin{hrepl}
 \haskellrepl insertionSortM coinCmpND [1..3]

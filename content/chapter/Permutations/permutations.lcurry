@@ -83,7 +83,7 @@ That is, there are decisions of \cyinl{(<=)} that result in a sorted list.
 If we apply \cyinl{sort coinCmp} to a list, then \cyinl{coinCmp} tries every possible decision when comparing two elements.
 Hence, there is a sequence of decisions that leads to a specific permutation of the input list.
 As we are trying every possible decision, we expect all possible permutations to be part of the result.
-Otherwise, if a specific permutation is not part of the result, we can deduce that \cyinl{sort (<=)} does not correctly sort this permutation.
+Otherwise, if a permutation is not part of the result, we can deduce that there is an input list such that \cyinl{sort (<=)} does not correctly sort this list.
 
 In the following all of our examples use lists of integer, more particular, we use lists of the shape \cyinl{[1..n]} with $n$ as length of the list.
 These integers are only meant to be placeholders for concrete values and represent the position of the element within the original list.
@@ -98,7 +98,7 @@ We think, however, these descriptions are easier to read when we use \emph{less 
 The first sorting function we take a look at is insertion sort.
 The key idea behind the sorting algorithm is to traverse the input list and insert each element in the right position within the resulting list.
 That is, the element in focus is inserted in front of the first element of the list that is greater than or equal to the former.
-In order to implement \cyinl{insertionSort}, we implement a function \cyinl{insert} first that does exactly that task: it inserts an element in a list with respect to the given comparison function.
+In order to implement \cyinl{insertionSort}, we implement a function \cyinl{insert} first that does exactly that task: it inserts an element in an already sorted list with respect to the given comparison function.
 
 %if False
 
@@ -155,8 +155,7 @@ We see that the expression non\--deterministically yields six different results.
 All of these results are a permutation of the input list \cyinl{[1,2,3]}.
 Since a list of length $n$ has $n!$ number of permutations, the example above yields exactly all $3!=6$ permutations of the list.
 
-In order to demystify the generation of permutations using \cyinl{coinCmp} as predicate.
-Let us revise the implementation of \cyinl{insert} by inlining the applied predicate \cyinl{coinCmp}.
+In order to demystify the generation of permutations using \cyinl{coinCmp} as predicate, let us revise the implementation of \cyinl{insert} by inlining the applied predicate \cyinl{coinCmp}.
 
 %if False
 
@@ -173,7 +172,7 @@ insertCoin x (y:ys) = x:y:ys ? y : insertCoin x ys
 \end{curry}
 
 This variant of \cyinl{insert} is exactly the definition of a non\--deterministic insertion that is used to define a permutation function, for example in the overview of Curry by \citet{hanus1994integration}.
-The attentive reader recognises the definition as the definition we discussed in \autoref{subsec:non-determinism} as well as its Hsakell equivalent \hinl{insertND} we defined using a representation for non\--determinism in \autoref{subsec:monadicAbstractions}.
+The attentive reader recognises the definition as the definition we discussed in \autoref{subsec:non-determinism} as well as its Haskell equivalent \hinl{insertND} we defined using a representation for non\--determinism in \autoref{subsec:monadicAbstractions}.
 
 As a second step to better understand how \cyinl{insertSort} computes the permutations of its input list when applied to \cyinl{coinCmp}, we take a look at the decision tree for the exemplary call above on the left of \autoref{fig:dtInsert}.
 As the comparison function \cyinl{coinCmp} non\--deterministically yields \cyinl{True} and \cyinl{False}, the decision tree of our example reflects all possible control flows for \cyinl{insertionSort} depending on the results of \cyinl{coinCmp}.
@@ -317,7 +316,7 @@ We are ready to take a look at the resulting permutations.
 \end{cyrepl}
 
 We see that \cyinl{selectionSort} yields exactly the permutations of the input list like our implementation \cyinl{insertionSort}.
-One difference of both implementations comes apparent when we look at the type: \cyinl{selectionSort} has an \cyinl{Eq}\--constraint on the elements of the list.
+One difference of both implementations becomes apparent when we look at the type: \cyinl{selectionSort} has an \cyinl{Eq}\--constraint on the elements of the list.
 As the resulting \cyinl{Eq}\--constraint breaks with the general scheme that we parametrise all functions with a comparison function, we define a function \cyinl{pickMin} that finds the minimum and yields the remaining list in one traversal of the input list.
 
 %if False
@@ -664,7 +663,7 @@ Note that there is no deterministic comparison function that yields \cyinl{True}
 In the following we reference the following property as \emph{behaving consistently}: a predicate behaves consistently, if it yields the same Boolean value for every application to the same values.
 
 The other result marked with $\text{\texttt{<++++}}$ is the second occurence of \cyinl{[1,2,3]}.
-Here, the relevant comparisons taken on the path are mark with \texttt{****}: \cyinl{2 <= head (bubble [3])} and \cyinl{3 <= head (bubble [2])}.
+Here, the relevant comparisons taken on the path are marked with \texttt{****}: \cyinl{2 <= head (bubble [3])} and \cyinl{3 <= head (bubble [2])}.
 Note that the expression \cyinl{head (bubble [x])} evaluates to \cyinl{x} for all \cyinl{x} of appropriate type.
 In our concrete cases, we have \cyinl{head (bubble [3]) = 3} and \cyinl{head (bubble [2]) = 2}.
 Below we only reference the comparisons with the evaluated function calls to simplify the reasoning.
@@ -672,7 +671,7 @@ As the second comparison takes place in the second branch of the decision corres
 That is, \cyinl{2} is not smaller than or equal to \cyinl{3}, \cyinl{2} is greater than \cyinl{3}.
 For the result marked with $\text{\texttt{<++++}}$ we then, however, take the second branch for the decision \cyinl{3 <= 2}: \cyinl{2} is greater than \cyinl{3}.
 Again, this decision does not make sense when using \cyinl{bubbleSort} with a reasonable comparison function like \cyinl{(<=)} on integer values.
-The important property missing here is that the relation described by \cyinl{<=} needs is \emph{connexity}.
+The important property missing here is that the relation described by \cyinl{<=} needs \emph{connexity}.
 The connex property describes that any two pairs of elements of appropriate type are comparable with respect to an ordering relation $\leq$.
 
 \[
@@ -920,10 +919,19 @@ It would be interesting to analyse the order of results for all other sorting al
 This analysis can then be extended to other non\--deterministic sorting functions, which are perhaps more strict than \cyinl{coinCmp}, but yield an interesting property.
 An example of an alternative non\--deterministic comparison function is the following definition of \cyinl{liftCmp} that lifts a comparison function \cyinl{cmp} into a monadic context.
 
+% if False
+
+> liftCmp :: (a -> a -> Bool) -> a -> a -> Bool
+> liftCmp cmp x y = cmp x y ? not (cmp x y)
+
+%endif
+
 \begin{curry}
 liftCmp :: (a -> a -> Bool) -> a -> a -> Bool
-liftCmp cmp x y = p x y ? not (cmp x y)
+liftCmp cmp x y = cmp x y ? not (cmp x y)
 \end{curry}
+
+When using the function \cyinl{liftCmp} with a deterministic predicate like \cyinl{(<=)} on numbers, the arguments \cyinl{x} and \cyinl{y} need to be evaluated, whereas the predicate \cyinl{coinCmp} yields a non-deterministic result without demanding any of its arguments.
 
 There are lots of other properties related to permutations.
 For example, enumerating derangements, that is, enumerating all permutations where an element does not appear at its original position, enumerating all permutations of a sublist of a given list, or analysing the resulting order of a permutation with respect to the parity for the transposition from one permutation to the next.
