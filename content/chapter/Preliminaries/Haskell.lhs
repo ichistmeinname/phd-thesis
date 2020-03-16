@@ -88,7 +88,7 @@ fortytwo
 103
 \end{hrepl}
 
-In both cases we want to log the message \hinl{"fortytwo"} when the variable \hinl{log42} is used and \hinl{42} is the actual value that is used to compute with.
+In both cases we want to log the message \texttt{"fortytwo"} when the variable \hinl{log42} is used and \hinl{42} is the actual value that is used to compute with.
 The first example logs the message during evaluation and then yields \hinl{145} as result.
 In the second example, we do not observe any logging message, because, again, the second argument of \hinl{const} does not need to be computed.
 
@@ -111,7 +111,7 @@ msg
 84
 \end{hrepl}
 
-The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \hinl{trace "msg" 42} by binding it to a variable \hinl{x} and doubles the pure value \hinl{42} only.
+The first example logs the message two times for each call to \hinl{trace} whereas the second example shares the effectful expression \texttt{trace "msg" 42} by binding it to a variable \hinl{x} and doubles the pure value \hinl{42} only.
 Although the first example \hinl{test1} looks like an inlined version of \hinl{test2}, due to Haskell's call\--by\--need semantics these expressions have different results when used in combination with a side effect like tracing.
 
 %if False
@@ -135,14 +135,14 @@ test4 n = doubleMult (trace "msg" n)
 \subsection{Monadic Abstractions}
 \label{subsec:monadicAbstractions}
 
-As a pure language, Haskell does not allow any side effects unless they are explicitly modelled.
+As a pure language, Haskell does not allow any side effects conceptually, unless they are explicitly modelled.
 Such an explicit model becomes visibile at the type\--level.
 For example, Haskell models the interaction with the user through reading input and printing output explicitly with the type \hinl{IO} \citep{wadler1997declare}.
 Haskell's notion of purity, however, allows side effects like tracing and partiality --- in the form of \hinl{trace} and \hinl{undefined}, respectively --- that we discussed above.
-These effects are sometimes called ambient or implicit effects \citep{filinski1996controlling}, because their usage is not visibile in the type signature.
+Effects that do not have explicit constructs for propagation and representation are sometimes called ambient or implicit effects \citep{filinski1996controlling}; in Haskell these example instance, thus, are usually not visibile in the type signature.
 
 In this thesis, we are interested in explicit representations of effects like partiality as well as non\--determinism.
-We can, for example, explicitly model partiality using the following data type.\footnote{Note that the definition is equivalent to the \hinl{Maybe} type, here, we decide for a aptronym using a custom definition \hinl{Partial} instead.}
+We can, for example, explicitly model partiality using the following data type.\footnote{Note that the definition is equivalent to the \hinl{Maybe} type, here, we decide for an aptronym using a custom definition \hinl{Partial} instead.}
 
 %if False
 
@@ -191,7 +191,7 @@ headPartial []    = Undefined
 headPartial (x:_) = Defined x
 \end{haskellcode}
 
-The evaluation of the exemplary expressions from above represent the undefined value explicitly using the appropriate constructor.
+The representation of the exemplary expressions from above evaluates the undefined value explicitly using the appropriate constructor.
 
 \begin{hrepl}
 \haskellrepl headPartial []
@@ -201,8 +201,8 @@ Undefined
 Undefined
 \end{hrepl}
 
-Note that the an implementation of \hinl{tailPartial} would not compose with \hinl{headPartial} anymore as in the original example above.
-Before we talk about this downside of the model, let us take look at a representation for non\--determinism as effect.
+Note that the implementation of \hinl{tailPartial} would not compose with \hinl{headPartial} anymore as in the original example above.
+Before we talk about this downside of the model, let us take a look at a representation for non\--determinism as effect.
 We model functions that possibly produce several results using lists.
 In order to not confuse the representation of non\--determinism using lists with lists that we use as algebraic datatypes in type signatures of functions, we use a type synonym \hinl{ND}.
 
@@ -254,8 +254,9 @@ insertND x (y:ys) = det (x : y : ys) ? map (y:) (insertND x ys)
 
 The first rule is deterministic, it yields one list as result that contains just the element \hinl{x} we want to insert to the list.
 The second rule yields at least two results.
-The left expression of the \hinl{(?)}\--operator inserts the element in front of the list and yields the deterministic result.
-For right expression, we produce all non\--deterministic lists for the recursive call \hinl{insertND x ys} and insert the first element \hinl{y} to the front of all these resulting lists.
+The left argument of the \hinl{(?)}\--operator inserts the element in front of the list and yields the deterministic result.
+For the right argument, we map over all lists for the recursive call \hinl{insertND x ys} by non\--deterministically inserting the first element \hinl{y} to the front of all these resulting lists.
+Note that the \hinl{map} functions transforms elements of type \hinl{ND [a]} to \hinl{ND [a]}, since \hinl{ND} is just a type synonym for lists.
 
 As an example, we non\--deterministically insert \hinl{1} into the list \hinl{[2..5]}.
 Note that we manipulate the output for the REPL to use set\--like parentheses for the lists that correspond to the modelled non\--determinism of type \hinl{ND}.
@@ -313,7 +314,7 @@ instance Monad [] where
 \end{haskellcode}
 
 We reimplement the definition of \hinl{insertND} using \hinl{(>>=)} as follows, which leads to a more natural implementation concerning the separation of operation on lists as data structures and lists as model for non\--determinism.
-More precisely, instead of using \hinl{map}, the usage of \hinl{(>>=)}\--operator gives us access to each list of the non\--deterministic result.
+More precisely, instead of using \hinl{map}, the usage of the \hinl{(>>=)}\--operator gives us access to each list of the non\--deterministic result.
 
 %if False
 
@@ -332,7 +333,7 @@ insertND x (y:ys) = return (x : y : ys)
                   ? (insertND x ys >>= \zs -> return (y:zs))
 \end{haskellcode}
 
-Now recall the example for partiality again and let us define the \hinl{tail} function using \hinl{Partial}, analogue to \hinl{headPartial}.
+Now recall the example for partiality again and let us define the \hinl{tail} function using \hinl{Partial}, analogous to \hinl{headPartial}.
 
 %if False
 
@@ -365,12 +366,12 @@ The problem of this composition is that the resulting type of \hinl{tailPartial}
 We can circumvent the typing problem using the operator \hinl{(>>=)} to access the list within the \hinl{Partial}\--result of \hinl{tailPartial}, which yields the expected result \hinl{Undefined}, as follows.
 
 \begin{hrepl}
-\haskellrepl tailPartial [] >>= headPartial
+\haskellrepl tailPartial [1] >>= headPartial
 Undefined
 \end{hrepl}
 
 A second example, we can also use \hinl{(>>=)} if we want to compose a pure and an effectful function.
-Since the \hinl{(>>=)} operator needs an monadic function as second argument, we use \hinl{return} to lift the pure function into the monadic context.
+Since the \hinl{(>>=)} operator needs a monadic function as second argument, we use \hinl{return} to lift the pure function into the monadic context.
 Consider the following example: we compute the head element of all the lists resulting from the usage of \hinl{insertND}.
 
 \begin{hrepl}
@@ -384,7 +385,7 @@ Hence, we expect the corresponding usage of \hinl{tailPartial} to yield \hinl{De
 
 \begin{hrepl}
 \haskellrepl const 42 (tail [])
-
+42
 \haskellrepl tailPartial [] >>= return . const 42
 Undefined
 \end{hrepl}
@@ -440,17 +441,17 @@ Totality                         & \hinl{Zero}                     & \hinl{Ident
 \multirow{2}{*}{Error}           & \multirow{2}{*}{\hinl{Const e}} & \hinl{Right x}      & \hinl{Pure x}\\
                                  &                                 & \hinl{Left y}       & \hinl{Impure (Const y)}\\[0.5em]
 \multirow{2}{*}{Non\--determinism} & \multirow{2}{*}{\hinl{Choice}}  & \hinl{Leaf x}       & \hinl{Pure x}\\
-                                 &                                 & \hinl{Choice t1 t2} & \hinl{Impure (Choice t1' t2')}\\
+                                 &                                 & \hinl{Branch t1 t2} & \hinl{Impure (Choice t1' t2')}\\
 \bottomrule
 \end{tabular}
 \caption{Overview of values represented using the direct interpretion as monad and using \hinl{Free} with the corresponding functor}
 \label{tab:valueOverview}
 \end{table*}
 
-Intuitively, the number of constructors of the functor corresponds to the number of operations the effect introduces and the arguments of each constructor indicates the arity of the corresponding operations.
+Intuitively, the number of constructors of the functor corresponds to the number of operations the effect introduces and the arguments of each constructor indicate the arity of the corresponding operations.
 The key idea for \hinl{Partial} is that we represent \hinl{Undefined} as \hinl{Impure One}; together with \hinl{Pure} corresponding to \hinl{Defined}, we can represent the same programs as before.
 Note that the functor \hinl{Choice} for non\--determinism used in combination with \hinl{Free} resembles a tree rather than a list.
-A leaf corresponds to \hinl{det} while a branch with two sub\--trees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial sub\--trees.
+A leaf corresponds to \hinl{det} while a branch with two sub\--trees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial sub\--trees \hinl{t1} and \hinl{t2}.
 \autoref{tab:valueOverview} gives an overview of the value correspondences between the monadic representation and the representation using \hinl{Free} with the associated functor.
 The monad instance for \hinl{Free} demands the type parameter \hinl{f} to have a \hinl{Functor} constraint.
 We present the corresponding type class definition in Haskell as well as the definition of the instances for the concrete functors we use in this section in \autoref{sec:appendix:functor}.
@@ -474,9 +475,9 @@ Using the types as underlying effect, we get the identity monad using \hinl{Free
 Description & Monadic Representation & Free Representation \\
 \toprule
 Totality        & \hinl{data Identity a = Identity a}            & \hinl{Free Zero a}\\[0.25em]
-Partiality      & \hinl{data Maybe a    = Just a || Nothing}    & \hinl{Free One a}\\[0.25em]
-Error           & \hinl{data Either b a = Left a || Right b}    & \hinl{Free (Const b) a}\\[0.25em]
-Non\--determinism & \hinl{data Tree a     = Leaf a || Branch a a} & \hinl{Free Choice a}\\
+Partiality      & \hinl{data Maybe a = Just a || Nothing}    & \hinl{Free One a}\\[0.25em]
+Error           & \hinl{data Either b a = Right a || Left b}    & \hinl{Free (Const b) a}\\[0.25em]
+Non\--det. & \hinl{data Tree a = Leaf a || Branch (Tree a) (Tree a)} & \hinl{Free Choice a}\\
 \bottomrule
 \end{tabular}
 \caption{Overview of monads and the corresponding representation using \hinl{Free} and the associated functor}

@@ -56,7 +56,7 @@ The same applies for non\--determinism in the form of choices constructed by \cy
 [2,3]
 \end{cyrepl}
 
-As the REPL evaluates to normal form, the first example just yields one result, because the left argument of the \cyinl{?}\--operator evaluates to \cyinl{failed}.
+As the REPL evaluates expressions to normal form, the first example just yields one result, because the left argument of the \cyinl{?}\--operator evaluates to \cyinl{failed}.
 Note that KiCS2 displays a failure within a deterministic and non\--deterministic value differently.
 On the one hand, a failed branch is not printed at all in case of non\--determinism like in the first exemplary expression.
 On the other hand, in case of determinism the REPL displays a head normal form with \cyinl{!} as representation for \cyinl{failed} as the following examples show.
@@ -138,9 +138,9 @@ We evaluate the expression using breadth\--first search again.
 \begin{cyrepl}
 \curryrepl :set bfs
 \curryrepl 1 ? (2 ? 3)
-3
 1
 2
+3
 \end{cyrepl}
 
 That is, the order of results is not stable with respect to associativity in case of breadth\--first search.
@@ -237,7 +237,7 @@ Next, we evaluate the two functions above passing \cyinl{failed} as argument in 
 
 \begin{cyrepl}
 \curryrepl null (fromJustToList failed)
-failed
+!
 
 \curryrepl null (fromJustToListLet failed)
 False

@@ -31,7 +31,7 @@ Coq is build upon a sophisticated type hierarchy; for us it is enough to know th
 The syntax to define constructors for data types resembles GADT\--style definitions in Haskell, that is, we specify the full type signature for each constructor, as we are used to for function definitions.
 Furthermore, we list all constructors line\--by\--line and each line begins with a pipe \cinl{|} as delimiter.
 
-Next, we define a function to check if a Nat number is zero as well as a function for addition on Nat numbers using pattern matching.
+Next, we define a function to check if a natural number \cinl{nat} is zero as well as a function for addition on natural numbers using pattern matching.
 Note that both definitions have explicit type annotations for the argument and return types, although Coq could infer all of them.
 
 \begin{coqcode}
@@ -48,9 +48,9 @@ Fixpoint add (p1 p2 : nat) : nat :=
   end.
 \end{coqcode}
 
-The pipe symbole \cinl{|} is again used as a delimiter: this time to list all patterns we want to distinguish in a \cinl{match ... with}\--expression that corresponds to Haskell's \hinl{case ... of}\--expressions.
+The pipe symbol \cinl{|} is again used as a delimiter: this time to list all patterns we want to distinguish in a \cinl{match ... with}\--expression that corresponds to Haskell's \hinl{case ... of}\--expressions.
 Note that the definition of \cinl{isZero} uses the predefined \cinl{bool} type as result, and that we can group successive arguments of the same type in the type signature.
-The functions definitions above represent two different kinds of functions: \cinl{isZero} is a non\--recursive function, whereas \cinl{add} is a representative for recursive functions.
+The function definitions above represent two different kinds of functions: \cinl{isZero} is a non\--recursive function, whereas \cinl{add} is a representative for recursive functions.
 In Coq it is crucial to define recursive functions using the keyword \cinl{Fixpoint}.
 Definitions that are marked as \cinl{Fixpoint}s need to pass an additional check: as a total language, all functions in Coq have to terminate.
 In case of recursive functions, Coq checks if there is one argument that is structurally smaller than the original argument passed to the function for each recursive call.
@@ -79,7 +79,7 @@ We also provide an associativity for the newly introduced operator syntax as wel
 Notation "p1 + p2" := (add p1 p2) (left associativity, at level 50).
 \end{coqcode}
 
-In Coq we can check types, print definitions and evaluate expressions directly in the Coq\--file using so\--called \emph{Vernacular}\--commands like \cinl{Check}, \cinl{Print} and \cinl{Compute} that will print the information on the console.
+In Coq we can check types, print definitions and evaluate expressions directly in the Coq\--file using so\--called \emph{Vernacular}\--commands like \texttt{Check}, \texttt{Print} and \texttt{Compute} that will print the information on the console.
 Since we are used to having a REPL from languages like Haskell and Curry, we will write these commands and the printed answer in a REPL\--style as follows.
 
 \begin{crepl}
@@ -108,7 +108,7 @@ Error: The term "z" has type "nat" while it is expected to have type
 \end{crepl}
 
 When using Coq, constructors of polymorphic functions need to be applied to more arguments than we are used to from functional languages such as Haskell.
-More precisely, all constructors of a polymorphic data type --- like \cinl{list} as well as polymorphic functions in general --- have additional type arguments.
+More precisely, all constructors of a polymorphic data type --- like \cinl{list} --- have additional type arguments.
 In our case, \cinl{cons} and \cinl{nil} have the following types.
 
 \begin{crepl}
@@ -179,7 +179,7 @@ Here, \cinl{eq} is a dependent type: the type of the constructor \cinl{eq_refl} 
 The type \cinl{eq} can only be instantiated with arguments \cinl{x} and \cinl{y} if they evaluate to the same value.
 That is, a value of type \cinl{eq} is the proof that two expressions are structurally equal.
 
-The type of lemmas like \cinl{map_length} correspond to the proposition we want to prove and the implementation is one concrete proof.
+The type of lemmas like \cinl{map_length} corresponds to the proposition we want to prove and the implementation is one concrete proof.
 That is, if we can implement \cinl{map_length} with type \cinl{length xs = length (map f xs)}, we have proven the corresponding proposition.
 
 \subsection{Proving in Coq: A Step\--by\--Step Introduction}
@@ -289,14 +289,14 @@ Let us take a look at an example: the induction principle for Coq's predefined l
 \coqrepl Check list_ind.
   list_ind : \(\forall\) (A : Type) (P : list A -> Prop),
     P nil ->
-    (\(\forall\) (x : A) (xs : list A), P xs -> P (cons x xs)) ->
-    \(\forall\) (xs : list A), P xs
+    (\(\forall\) (e : A) (l : list A), P l -> P (cons e l)) ->
+    \(\forall\) (l : list A), P xs
 \end{crepl}
 
-Dissecting this type signatures gives us the following parts: given a proposition \cinl{P} on lists, we need to supply two proofs.
-A proof of type \cinl{P nil} in case of an empty list and a proof of type \cinl{P (cons x xs} otherwise, where \cinl{x} and \cinl{xs} are universally quantified.
+Dissecting this type signature gives us the following parts: given a proposition \cinl{P} on lists, we need to supply two proofs.
+A proof of type \cinl{P nil} in case of an empty list and a proof of type \cinl{P (cons e l)} otherwise, where \cinl{e} and \cinl{l} are universally quantified.
 The first proof is the base case of the induction principle for lists, while the second proof is the inductive case.
-That is, in the second proof we assume that the proposition already holds for an arbitrary but fixed list \cinl{xs} and can then prove that the proposition also holds for \cinl{cons x xs}.
+That is, in the second proof we assume that the proposition already holds for an arbitrary but fixed list \cinl{l} and can then prove that the proposition also holds for \cinl{cons e l}.
 
 As an example, we reprove the lemma above: \cinl{map} retains the length of its input list.
 Instead of using the dedicated \cinl{induction}\--tactic, we use the induction principle directly.
@@ -314,7 +314,7 @@ Qed.
 
 When using backward\--reasoning, we have to use the function \cinl{list_ind} on a function of type \cinl{l -> P  l}, which is the type of our lemma, when we instantiate the argument list \cinl{l} with the concrete list \cinl{xs}.
 Since \cinl{list_ind} has three arguments, these arguments are now the new subgoals we need to prove.
-One of these arguments is the proposition \cinl{P : list A -> Prop} of the induction principle, which Coq proves automatically because it can be inferred from the goal we apply the function to.
+One of these arguments is the proposition \cinl{P : list A -> Prop} of the induction principle, which Coq infers automatically from the goal we apply the function to.
 In this case, the proposition is the function \cinl{fun xs => length xs = length (map f xs)}.
 That is, we end up with only two subgoals: we need to prove that the proposition holds for an empty and a non\--empty list.
 We can prove the first goal for the \cinl{nil}\--constructor using the same tactics as before: after simplification of the involved functions, both sides of the equation are already equal.
@@ -342,13 +342,13 @@ Using these two components we can define a container extension that gives access
 
 \begin{coqcode}
 Inductive Ext (Shape : Type) (Pos : Shape -> Type) (A : Type) : Type :=
-| ext : !$\forall$! s, (Pos s -> A) -> Ext Pos A.
+| ext : !$\forall$! s, (Pos s -> A) -> Ext Shape Pos A.
 \end{coqcode}
 
 A container extension \cinl{Ext Shape Pos} is then isomorphic to a type constructor \cinl{F}, where \cinl{F A} represents the polymorphic data type.
 The position type \cinl{Pos} is a dependent type: the type depends on a value of type \cinl{Shape}.
 The general idea is that the position type specialised to a shape \cinl{Pos s} describes all the possible positions of a data structure.
-A container extension of type \cinl{Ext Shape Pos} consists of a function \cinl{Pos s -> A} for all shapes \cinl{s : Shape} that gives access to the polymorphic components of the data type it describes.
+A container extension of type \cinl{Ext Shape Pos A} consists of a function \cinl{Pos s -> A} for all shapes \cinl{s : Shape} that gives access to the polymorphic components of the data type it describes.
 That is, given one concrete position of type \cinl{Pos s} for a shape \cinl{s}, one value of type \cinl{A} can be accessed.
 
 As an example, let us consider the polymorphic data type \cinl{One} we discussed in \autoref{subsec:freeMonad} in the context of free monads.
