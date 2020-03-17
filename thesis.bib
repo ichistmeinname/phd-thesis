@@ -1,589 +1,98 @@
 
-@inproceedings{wadler1989theorems,
-  title = {Theorems for Free!},
-  booktitle = {Proceedings of the Fourth International Conference on {{Functional}} Programming Languages and Computer Architecture},
-  publisher = {{ACM}},
-  author = {Wadler, Philip},
-  year = {1989},
-  keywords = {free theorems,Haskell},
-  pages = {347--359}
+@misc{2019reasonml,
+  title = {{{ReasonML}}},
+  year = {2019},
+  abstract = {Simple, fast \& type safe code that leverages the JavaScript \& OCaml ecosystems},
+  howpublished = {https://reasonml.github.io/}
 }
 
-@inproceedings{hudak2007history,
-  series = {{{HOPL III}}},
-  title = {A {{History}} of {{Haskell}}: {{Being Lazy}} with {{Class}}},
-  booktitle = {Proceedings of the {{Third ACM SIGPLAN Conference}} on {{History}} of {{Programming Languages}}},
-  author = {Hudak, Paul and Hughes, John and Peyton Jones, Simon and Wadler, Philip},
-  year = {2007},
-  pages = {12-1--12-55}
-}
-
-@book{jones2002haskell,
-  title = {Haskell 98 {{Language}} and {{Libraries}}: {{The Revised Report}}},
-  editor = {Jones, Simon Peyton},
-  month = sep,
-  year = {2002},
-  keywords = {functional-programming haskell}
-}
-
-@inproceedings{brassel2011kics2,
-  address = {{Odense, Denmark}},
-  series = {{{WFLP}} '11},
-  title = {{{KiCS2}}: {{A New Compiler}} from {{Curry}} to {{Haskell}}},
-  isbn = {978-3-642-22530-7},
-  booktitle = {Proceedings of the 20th {{International Conference}} on {{Functional}} and {{Constraint Logic Programming}}},
-  publisher = {{Springer-Verlag}},
-  author = {Bra{\ss}el, Bernd and Hanus, Michael and Peem{\"o}ller, Bj{\"o}rn and Reck, Fabian},
-  editor = {Kuchen, Herbert},
-  year = {2011},
-  pages = {1--18}
-}
-
-@book{hanus2014kics2,
-  title = {{{KiCS2}} - {{The Kiel Curry System User Manual Version}} 0.3.2 of 2014-07-30},
-  author = {Hanus, Michael and Bra{\ss}el, Bernd and Peem{\"o}ller, Bj{\"o}rn and Reck, Fabian},
-  year = {2014}
-}
-
-@inproceedings{kiselyov2009embedded,
-  title = {Embedded {{Probabilistic Programming}}},
-  abstract = {Two general techniques for implementing a domain-specific language (DSL) with less overhead are the finally-tagless embedding of object programs and the direct-style representation of side effects. We use these techniques to build a DSL for probabilistic programming, for expressing countable probabilistic models and performing exact inference and importance sampling on them. Our language is embedded as an ordinary OCaml library and represents probability distributions as ordinary OCaml programs. We use delimited continuations to reify probabilistic programs as lazy search trees, which inference algorithms may traverse without imposing any interpretive overhead on deterministic parts of a model. We thus take advantage of the existing OCaml implementation to achieve competitive performance and ease of use. Inference algorithms can easily be embedded in probabilistic programs themselves.},
-  booktitle = {Domain-{{Specific Languages}}},
+@incollection{abbott2003categories,
+  title = {Categories of {{Containers}}},
+  booktitle = {Foundations of {{Software Science}} and {{Computation Structures}}},
+  author = {Abbott, Michael and Altenkirch, Thorsten and Ghani, Neil},
+  year = {2003},
+  volume = {2620},
+  pages = {23--38},
   publisher = {{Springer Berlin Heidelberg}},
-  doi = {10.1007/978-3-642-03034-5_17},
-  author = {Kiselyov, Oleg and Shan, Chung-chieh},
-  year = {2009},
-  pages = {360--384}
+  address = {{Berlin, Heidelberg}},
+  abstract = {We introduce the notion of containers as a mathematical formalisation of the idea that many important datatypes consist of templates where data is stored. We show that containers have good closure properties under a variety of constructions including the formation of initial algebras and final coalgebras. We also show that containers include strictly positive types and shapely types but that there are containers which do not correspond to either of these. Further, we derive a representation result classifying the nature of polymorphic functions between containers. We finish this paper with an application to the theory of shapely types and refer to a forthcoming paper which applies this theory to differentiable types.},
+  language = {English}
 }
 
-@inproceedings{kiselyov2015freer,
-  title = {Freer {{Monads}}, {{More Extensible Effects}}},
-  booktitle = {Proceedings of the 2015 {{ACM SIGPLAN Symposium}} on {{Haskell}}},
-  publisher = {{ACM}},
-  doi = {10.1145/2804302.2804319},
-  author = {Kiselyov, Oleg and Ishii, Hiromi},
-  year = {2015},
-  keywords = {Kan extension,coroutine,effect handler,effect interaction,free monad,open union,type and effect system},
-  pages = {94--105}
-}
-
-@inproceedings{nampally2015constraintbased,
-  title = {Constraint-{{Based Inference}} in {{Probabilistic Logic Programs}}.},
-  booktitle = {Workshop on {{Probabilistic Programming}}},
-  author = {Nampally, Arun and Ramakrishnan, Cartic R},
-  year = {2015},
-  pages = {46--56}
-}
-
-@book{hanus2017pakcs,
-  title = {{{PAKCS}}: {{The Portland Aachen Kiel Curry System}}},
-  author = {Hanus, Michael},
-  year = {2017}
-}
-
-@inproceedings{paige2014compilation,
-  address = {{Beijing, China}},
-  title = {A {{Compilation Target}} for {{Probabilistic Programming Languages}}},
-  booktitle = {Proceedings of the {{International Conference}} on {{Machine Learning}}},
-  author = {Paige, Brooks and Wood, Frank},
-  year = {2014}
-}
-
-@inproceedings{deraedt2007problog,
-  address = {{Hyderabad, India}},
-  series = {{{IJCAI}} '07},
-  title = {{{ProbLog}}: {{A Probabilistic Prolog}} and {{Its Application}} in {{Link Discovery}}},
-  booktitle = {Proceedings of the 20th {{International Joint Conference}} on {{Artifical Intelligence}}},
-  publisher = {{Morgan Kaufmann Publishers Inc.}},
-  author = {De Raedt, Luc and Kimmig, Angelika and Toivonen, Hannu},
-  year = {2007},
-  pages = {2468--2473}
-}
-
-@article{goodman2008church,
-  title = {Church: A {{Language}} for {{Generative Models}}},
-  journal = {CoRR},
-  author = {Goodman, Noah D. and Mansinghka, Vikash K. and Roy, Daniel M. and Bonawitz, Keith and Tenenbaum, Joshua B.},
-  year = {2008},
-  pages = {220--229}
-}
-
-@article{brassel2009technique,
-  title = {A {{Technique}} to {{Build Debugging Tools}} for {{Lazy Functional Logic Languages}}},
-  volume = {246},
-  journal = {Electronic Notes in Theoretical Computer Science},
-  author = {Bra{\ss}el, Bernd},
-  year = {2009},
-  pages = {63--76}
-}
-
-@article{hanus1994integration,
-  title = {The {{Integration}} of {{Functions}} into {{Logic Programming}}: {{From Theory}} to {{Practice}}},
-  journal = {Journal of Logic Programming},
-  author = {Hanus, Michael},
-  year = {1994},
-  pages = {583--628}
-}
-
-@phdthesis{fischer2010functional,
-  type = {Dissertation Zur {{Erlangung}} Des Akademischen {{Grades Doktor}} Der {{Naturwissenschaften}} ({{Dr}}.Rer.Nat.)},
-  title = {On {{Functional Logic Programming}} and Its {{Application}} to {{Testing}}},
-  school = {Christian-Albrechts University of Kiel, Germany},
-  author = {Fischer, Sebastian},
-  year = {2010}
-}
-
-@book{vanlaarhoven2007haskell,
-  title = {Haskell Mailing List},
-  author = {{van Laarhoven}, Twan and others},
-  month = dec,
-  year = {2007}
-}
-
-@inproceedings{gibbons2011just,
-  series = {{{ICFP}}'11},
-  title = {Just Do It: {{Simple Monadic Equational Reasoning}}},
-  publisher = {{ACM}},
-  author = {Gibbons, Jeremy and Hinze, Ralf},
-  year = {2011},
-  pages = {2--14}
-}
-
-@article{johnson1963generation,
-  title = {Generation of {{Permutations}} by {{Adjacent Transposition}}},
-  journal = {Mathematics of computation},
-  author = {Johnson, Selmer M},
-  year = {1963},
-  pages = {282--285}
-}
-
-@article{sedgewick1977permutation,
-  title = {Permutation {{Generation Methods}}},
-  journal = {ACM Computing Surveys (CSUR)},
-  author = {Sedgewick, Robert},
-  year = {1977},
-  pages = {137--164}
-}
-
-@article{trotter1962algorithm,
-  title = {Algorithm 115: {{Perm}}},
-  journal = {Commun. ACM},
-  author = {Trotter, H. F.},
-  year = {1962},
-  pages = {434--435}
-}
-
-@inproceedings{uustalu2017container,
-  title = {Container {{Combinatorics}}: {{Monads}} and {{Lax Monoidal Functors}}},
-  booktitle = {Topics in {{Theoretical Computer Science}}},
-  publisher = {{Springer International Publishing}},
-  doi = {10.1007/978-3-319-68953-1},
-  author = {Uustalu, Tarmo},
-  year = {2017},
-  pages = {91-105}
-}
-
-@book{chlipala2011certified,
-  title = {Certified {{Programming}} with {{Dependent Types}}},
-  isbn = {978-0-262-02665-9},
-  publisher = {{MIT Press New York}},
-  author = {Chlipala, Adam},
-  year = {2011}
-}
-
-@inproceedings{christiansen2010free,
-  title = {Free {{Theorems For Functional Logic Programs}}},
-  booktitle = {Proceedings of the 4th {{ACM SIGPLAN Workshop}} on {{Programming Languages Meets Program Verification}}},
-  publisher = {{ACM}},
-  doi = {10.1145/1707790.1707797},
-  author = {Christiansen, Jan and Seidel, Daniel and Voigtl{\"a}nder, Janis},
-  year = {2010},
-  pages = {39-48},
-  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QJy4uLy4uL1BhcGVycy9DdXJyeS9wMzktY2hyaXN0aWFuc2VuLnBkZtIXCxgZV05TLmRhdGFPEQGyAAAAAAGyAAIAAAxNYWNpbnRvc2ggSEQAAAAAAAAAAAAAAAAAAADSvOLdSCsAAAAWx3oUcDM5LWNocmlzdGlhbnNlbi5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGpsUNNr0sYAAAAAAAAAAAACAAMAAAkgAAAAAAAAAAAAAAAAAAAABUN1cnJ5AAAQAAgAANK81M0AAAARAAgAANNrtqYAAAABABQAFsd6ABbHdgAJXXYACV11AAYsowACAEdNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AEN1cnJ5OgBwMzktY2hyaXN0aWFuc2VuLnBkZgAADgAqABQAcAAzADkALQBjAGgAcgBpAHMAdABpAGEAbgBzAGUAbgAuAHAAZABmAA8AGgAMAE0AYQBjAGkAbgB0AG8AcwBoACAASABEABIANVVzZXJzL2phYy9Eb2N1bWVudHMvUGFwZXJzL0N1cnJ5L3AzOS1jaHJpc3RpYW5zZW4ucGRmAAATAAEvAAAVAAIACv//AACABtIbHB0eWiRjbGFzc25hbWVYJGNsYXNzZXNdTlNNdXRhYmxlRGF0YaMdHyBWTlNEYXRhWE5TT2JqZWN00hscIiNcTlNEaWN0aW9uYXJ5oiIgXxAPTlNLZXllZEFyY2hpdmVy0SYnVHJvb3SAAQAIABEAGgAjAC0AMgA3AEAARgBNAFUAYABnAGoAbABuAHEAcwB1AHcAhACOALgAvQDFAnsCfQKCAo0ClgKkAqgCrwK4Ar0CygLNAt8C4gLnAAAAAAAAAgEAAAAAAAAAKAAAAAAAAAAAAAAAAAAAAuk=}
-}
-
-@inproceedings{mehner2014parametricity,
-  title = {Parametricity and {{Proving Free Theorems}} for {{Functional}}-{{Logic Languages}}},
-  booktitle = {Proceedings of the 16th {{International Symposium}} on {{Principles}} and {{Practice}} of {{Declarative Programming}}},
-  publisher = {{ACM}},
-  doi = {10.1145/2643135.2643147},
-  author = {Mehner, Stefan and Seidel, Daniel and Stra{\ss}burger, Lutz and Voigtl{\"a}nder, Janis},
-  year = {2014},
-  keywords = {free theorems,Curry,functional logic programming},
-  pages = {19-30},
-  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QZS4uLy4uL1BhcGVycy9GcmVlIFRoZW9yZW1zL1BhcmFtZXRyaWNpdHkgYW5kIFByb3ZpbmcgRnJlZSBUaGVvcmVtcyBmb3IgRnVuY3Rpb25hbC1Mb2dpYyBMYW5ndWFnZXMucGRm0hcLGBlXTlMuZGF0YU8RAnYAAAAAAnYAAgAADE1hY2ludG9zaCBIRAAAAAAAAAAAAAAAAAAAANK84t1IKwAAAG4hpB9QYXJhbWV0cmljaXR5IGFuZCBQIzExMjBBQjcucGRmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEgq31MMfBVBERiAAAAAAAAIAAwAACSAAAAAAAAAAAAAAAAAAAAANRnJlZSBUaGVvcmVtcwAAEAAIAADSvNTNAAAAEQAIAADUwxD1AAAAAQAUAG4hpAAWx3YACV12AAlddQAGLKMAAgBaTWFjaW50b3NoIEhEOlVzZXJzOgBqYWM6AERvY3VtZW50czoAUGFwZXJzOgBGcmVlIFRoZW9yZW1zOgBQYXJhbWV0cmljaXR5IGFuZCBQIzExMjBBQjcucGRmAA4AlgBKAFAAYQByAGEAbQBlAHQAcgBpAGMAaQB0AHkAIABhAG4AZAAgAFAAcgBvAHYAaQBuAGcAIABGAHIAZQBlACAAVABoAGUAbwByAGUAbQBzACAAZgBvAHIAIABGAHUAbgBjAHQAaQBvAG4AYQBsAC0ATABvAGcAaQBjACAATABhAG4AZwB1AGEAZwBlAHMALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAHNVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9GcmVlIFRoZW9yZW1zL1BhcmFtZXRyaWNpdHkgYW5kIFByb3ZpbmcgRnJlZSBUaGVvcmVtcyBmb3IgRnVuY3Rpb25hbC1Mb2dpYyBMYW5ndWFnZXMucGRmAAATAAEvAAAVAAIACv//AACABtIbHB0eWiRjbGFzc25hbWVYJGNsYXNzZXNdTlNNdXRhYmxlRGF0YaMdHyBWTlNEYXRhWE5TT2JqZWN00hscIiNcTlNEaWN0aW9uYXJ5oiIgXxAPTlNLZXllZEFyY2hpdmVy0SYnVHJvb3SAAQAIABEAGgAjAC0AMgA3AEAARgBNAFUAYABnAGoAbABuAHEAcwB1AHcAhACOAPYA+wEDA30DfwOEA48DmAOmA6oDsQO6A78DzAPPA+ED5APpAAAAAAAAAgEAAAAAAAAAKAAAAAAAAAAAAAAAAAAAA+s=}
-}
-
-@inproceedings{coquand1988inductively,
-  series = {Lecture {{Notes}} in {{Computer Science}}},
-  title = {Inductively {{Defined Types}}},
-  volume = {417},
-  isbn = {978-3-540-46963-6},
-  booktitle = {Proceedings of the {{International Conference}} on {{Computer Logic}}},
-  publisher = {{Springer-Verlag}},
-  doi = {10.1007/3-540-52335-9_47},
-  author = {Coquand, Thierry and Paulin, Christine},
-  year = {1988},
-  pages = {50-66}
-}
-
-@inproceedings{danielsson2006fast,
-  title = {Fast and {{Loose Reasoning}} Is {{Morally Correct}}},
-  booktitle = {Conference {{Record}} of the 33rd {{ACM SIGPLAN}}-{{SIGACT Symposium}} on {{Principles}} of {{Programming Languages}}},
-  publisher = {{ACM}},
-  doi = {10.1145/1111320.1111056},
-  author = {Danielsson, Nils Anders and Hughes, John and Jansson, Patrik and Gibbons, Jeremy},
-  year = {2006},
-  pages = {206-217},
-  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QRi4uLy4uL1BhcGVycy9SZWFzb25pbmcvRmFzdCBhbmQgTG9vc2UgUmVhc29uaW5nIGlzIE1vcmFsbHkgQ29ycmVjdC5wZGbSFwsYGVdOUy5kYXRhTxECGAAAAAACGAACAAAMTWFjaW50b3NoIEhEAAAAAAAAAAAAAAAAAAAA0rzi3UgrAAACNWYvH0Zhc3QgYW5kIExvb3NlIFJlYXMjMjM1NjYwRS5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI1Zg7WxViqUERGIAAAAAAAAgADAAAJIAAAAAAAAAAAAAAAAAAAAAlSZWFzb25pbmcAABAACAAA0rzUzQAAABEACAAA1sVKmgAAAAEAFAI1Zi8AFsd2AAlddgAJXXUABiyjAAIAVk1hY2ludG9zaCBIRDpVc2VyczoAamFjOgBEb2N1bWVudHM6AFBhcGVyczoAUmVhc29uaW5nOgBGYXN0IGFuZCBMb29zZSBSZWFzIzIzNTY2MEUucGRmAA4AYAAvAEYAYQBzAHQAIABhAG4AZAAgAEwAbwBvAHMAZQAgAFIAZQBhAHMAbwBuAGkAbgBnACAAaQBzACAATQBvAHIAYQBsAGwAeQAgAEMAbwByAHIAZQBjAHQALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAFRVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9SZWFzb25pbmcvRmFzdCBhbmQgTG9vc2UgUmVhc29uaW5nIGlzIE1vcmFsbHkgQ29ycmVjdC5wZGYAEwABLwAAFQACAAr//wAAgAbSGxwdHlokY2xhc3NuYW1lWCRjbGFzc2VzXU5TTXV0YWJsZURhdGGjHR8gVk5TRGF0YVhOU09iamVjdNIbHCIjXE5TRGljdGlvbmFyeaIiIF8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAtADIANwBAAEYATQBVAGAAZwBqAGwAbgBxAHMAdQB3AIQAjgDXANwA5AMAAwIDBwMSAxsDKQMtAzQDPQNCA08DUgNkA2cDbAAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAANu}
+@article{abbott2005containers,
+  title = {Containers: {{Constructing}} Strictly Positive Types},
+  author = {Abbott, Michael and Altenkirch, Thorsten and Ghani, Neil},
+  year = {2005},
+  volume = {342},
+  pages = {3--27},
+  issn = {0304-3975},
+  doi = {https://doi.org/10.1016/j.tcs.2005.06.002},
+  abstract = {We introduce the notion of a Martin-L{\"o}f category\textemdash{}a locally cartesian closed category with disjoint coproducts and initial algebras of container functors (the categorical analogue of W-types)\textemdash{}and then establish that nested strictly positive inductive and coinductive types, which we call strictly positive types, exist in any Martin-L{\"o}f category. Central to our development are the notions of containers and container functors. These provide a new conceptual analysis of data structures and polymorphic functions by exploiting dependent type theory as a convenient way to define constructions in Martin-L{\"o}f categories. We also show that morphisms between containers can be full and faithfully interpreted as polymorphic functions (i.e.natural transformations) and that, in the presence of W-types, all strictly positive types (including nested inductive and coinductive types) give rise to containers.},
+  journal = {Theoretical Computer Science},
+  keywords = {Category theory,Coinduction,Container functors,Final coalgebras,Induction,Initial algebras,Type theory,W-Types},
+  number = {1}
 }
 
 @inproceedings{abel2005verifying,
   title = {Verifying {{Haskell Programs Using Constructive Type Theory}}},
   booktitle = {Proceedings of the 2005 {{ACM SIGPLAN Workshop}} on {{Haskell}}},
-  publisher = {{ACM}},
-  doi = {10.1145/1088348.1088355},
   author = {Abel, Andreas and Benke, Marcin and Bove, Ana and Hughes, John and Norell, Ulf},
   year = {2005},
-  pages = {62-73},
+  pages = {62--73},
+  publisher = {{ACM}},
+  doi = {10.1145/1088348.1088355},
   bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QWy4uLy4uL1BhcGVycy9UaGVvcmVtIFByb3ZpbmcvVmVyaWZ5aW5nIEhhc2tlbGwgcHJvZ3JhbXMgdXNpbmcgY29uc3RydWN0aXZlIHR5cGUgdGhlb3J5IC5wZGbSFwsYGVdOUy5kYXRhTxECWAAAAAACWAACAAAMTWFjaW50b3NoIEhEAAAAAAAAAAAAAAAAAAAA0rzi3UgrAAAAxsF3H1ZlcmlmeWluZyBIYXNrZWxsIHByIzE2Qzc5RS5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWx57SOaQOAAAAAAAAAAAAAgADAAAJIAAAAAAAAAAAAAAAAAAAAA9UaGVvcmVtIFByb3ZpbmcAABAACAAA0rzUzQAAABEACAAA0jmH7gAAAAEAFADGwXcAFsd2AAlddgAJXXUABiyjAAIAXE1hY2ludG9zaCBIRDpVc2VyczoAamFjOgBEb2N1bWVudHM6AFBhcGVyczoAVGhlb3JlbSBQcm92aW5nOgBWZXJpZnlpbmcgSGFza2VsbCBwciMxNkM3OUUucGRmAA4AfgA+AFYAZQByAGkAZgB5AGkAbgBnACAASABhAHMAawBlAGwAbAAgAHAAcgBvAGcAcgBhAG0AcwAgAHUAcwBpAG4AZwAgAGMAbwBuAHMAdAByAHUAYwB0AGkAdgBlACAAdAB5AHAAZQAgAHQAaABlAG8AcgB5ACAALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAGlVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9UaGVvcmVtIFByb3ZpbmcvVmVyaWZ5aW5nIEhhc2tlbGwgcHJvZ3JhbXMgdXNpbmcgY29uc3RydWN0aXZlIHR5cGUgdGhlb3J5IC5wZGYAABMAAS8AABUAAgAK//8AAIAG0hscHR5aJGNsYXNzbmFtZVgkY2xhc3Nlc11OU011dGFibGVEYXRhox0fIFZOU0RhdGFYTlNPYmplY3TSGxwiI1xOU0RpY3Rpb25hcnmiIiBfEA9OU0tleWVkQXJjaGl2ZXLRJidUcm9vdIABAAgAEQAaACMALQAyADcAQABGAE0AVQBgAGcAagBsAG4AcQBzAHUAdwCEAI4A7ADxAPkDVQNXA1wDZwNwA34DggOJA5IDlwOkA6cDuQO8A8EAAAAAAAACAQAAAAAAAAAoAAAAAAAAAAAAAAAAAAADww==}
 }
 
-@inproceedings{fischer2009purely,
-  title = {Purely {{Functional Lazy Non}}-Deterministic {{Programming}}},
-  booktitle = {Proceedings of the 14th {{ACM SIGPLAN International Conference}} on {{Functional Programming}}},
-  publisher = {{ACM}},
-  doi = {10.1145/1596550.1596556},
-  author = {Fischer, Sebastian and Kiselyov, Oleg and Shan, Chung-chieh},
-  year = {2009},
-  keywords = {monads,call-time choice,continuations,side effects},
-  pages = {11-22},
-  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QSy4uLy4uL1BhcGVycy9DdXJyeS9QdXJlbHkgRnVuY3Rpb25hbCBMYXp5IE5vbi1kZXRlcm1pbmlzdGljIFByb2dyYW1taW5nLnBkZtIXCxgZV05TLmRhdGFPEQIoAAAAAAIoAAIAAAxNYWNpbnRvc2ggSEQAAAAAAAAAAAAAAAAAAADSvOLdSCsAAAAWx3ofUHVyZWx5IEZ1bmN0aW9uYWwgTCMxMUQ1RTBCLnBkZgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR1eC9TTajVQREYgAAAAAAACAAMAAAkgAAAAAAAAAAAAAAAAAAAABUN1cnJ5AAAQAAgAANK81M0AAAARAAgAANTTXCUAAAABABQAFsd6ABbHdgAJXXYACV11AAYsowACAFJNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AEN1cnJ5OgBQdXJlbHkgRnVuY3Rpb25hbCBMIzExRDVFMEIucGRmAA4AcgA4AFAAdQByAGUAbAB5ACAARgB1AG4AYwB0AGkAbwBuAGEAbAAgAEwAYQB6AHkAIABOAG8AbgAtAGQAZQB0AGUAcgBtAGkAbgBpAHMAdABpAGMAIABQAHIAbwBnAHIAYQBtAG0AaQBuAGcALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAFlVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9DdXJyeS9QdXJlbHkgRnVuY3Rpb25hbCBMYXp5IE5vbi1kZXRlcm1pbmlzdGljIFByb2dyYW1taW5nLnBkZgAAEwABLwAAFQACAAr//wAAgAbSGxwdHlokY2xhc3NuYW1lWCRjbGFzc2VzXU5TTXV0YWJsZURhdGGjHR8gVk5TRGF0YVhOU09iamVjdNIbHCIjXE5TRGljdGlvbmFyeaIiIF8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAtADIANwBAAEYATQBVAGAAZwBqAGwAbgBxAHMAdQB3AIQAjgDcAOEA6QMVAxcDHAMnAzADPgNCA0kDUgNXA2QDZwN5A3wDgQAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAAOD}
+@article{abramsky1994domain,
+  title = {Domain Theory},
+  author = {Abramsky, Samson and Jung, Achim},
+  year = {1994},
+  publisher = {{Oxford University Press}}
 }
 
-@inproceedings{johann2004free,
-  title = {Free {{Theorems}} in the {{Presence}} of Seq},
-  booktitle = {Proceedings of the 31st {{ACM SIGPLAN}}-{{SIGACT Symposium}} on {{Principles}} of {{Programming Languages}}},
-  publisher = {{ACM}},
-  doi = {10.1145/982962.964010},
-  author = {Johann, Patricia and Voigtl{\"a}nder, Janis},
-  year = {2004},
-  keywords = {Haskell,controlling strict evaluation,correctness proofs,denotational semantics,logical relations,parametricity,program transformations,short cut fusion,theorems for free},
-  pages = {99-110},
-  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QQy4uLy4uL1BhcGVycy9GcmVlIFRoZW9yZW1zL0ZyZWUgVGhlb3JlbXMgaW4gdGhlIFByZXNlbmNlIG9mIHNlcS5wZGbSFwsYGVdOUy5kYXRhTxECEAAAAAACEAACAAAMTWFjaW50b3NoIEhEAAAAAAAAAAAAAAAAAAAA0rzi3UgrAAAAbiGkH0ZyZWUgVGhlb3JlbXMgaW4gdGgjMUVEQzFENS5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHtwdXWIl3uAAAAAAAAAAAAAgADAAAJIAAAAAAAAAAAAAAAAAAAAA1GcmVlIFRoZW9yZW1zAAAQAAgAANK81M0AAAARAAgAANYiT94AAAABABQAbiGkABbHdgAJXXYACV11AAYsowACAFpNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AEZyZWUgVGhlb3JlbXM6AEZyZWUgVGhlb3JlbXMgaW4gdGgjMUVEQzFENS5wZGYADgBSACgARgByAGUAZQAgAFQAaABlAG8AcgBlAG0AcwAgAGkAbgAgAHQAaABlACAAUAByAGUAcwBlAG4AYwBlACAAbwBmACAAcwBlAHEALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAFFVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9GcmVlIFRoZW9yZW1zL0ZyZWUgVGhlb3JlbXMgaW4gdGhlIFByZXNlbmNlIG9mIHNlcS5wZGYAABMAAS8AABUAAgAK//8AAIAG0hscHR5aJGNsYXNzbmFtZVgkY2xhc3Nlc11OU011dGFibGVEYXRhox0fIFZOU0RhdGFYTlNPYmplY3TSGxwiI1xOU0RpY3Rpb25hcnmiIiBfEA9OU0tleWVkQXJjaGl2ZXLRJidUcm9vdIABAAgAEQAaACMALQAyADcAQABGAE0AVQBgAGcAagBsAG4AcQBzAHUAdwCEAI4A1ADZAOEC9QL3AvwDBwMQAx4DIgMpAzIDNwNEA0cDWQNcA2EAAAAAAAACAQAAAAAAAAAoAAAAAAAAAAAAAAAAAAADYw==}
-}
-
-@article{swierstra2008data,
-  title = {Data {{Types}} {\`a} La {{Carte}}},
-  volume = {18},
-  number = {4},
-  journal = {Journal of Functional Programming},
-  doi = {10.1017/S0956796808006758},
-  author = {Swierstra, Wouter},
-  year = {2008},
-  pages = {423-436},
-  publisher = {Cambridge University Press},
-  location = {New York, NY, USA},
-  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QMi4uLy4uL1BhcGVycy9EYXRhIFN0cnVjdHVyZXMvRGF0YVR5cGVzQUxhQ2FydGUucGRm0hcLGBlXTlMuZGF0YU8RAdIAAAAAAdIAAgAADE1hY2ludG9zaCBIRAAAAAAAAAAAAAAAAAAAANK84t1IKwAAAKjdYhVEYXRhVHlwZXNBTGFDYXJ0ZS5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqYCM1A/uGgAAAAAAAAAAAAIAAwAACSAAAAAAAAAAAAAAAAAAAAAPRGF0YSBTdHJ1Y3R1cmVzAAAQAAgAANK81M0AAAARAAgAANQP0foAAAABABQAqN1iABbHdgAJXXYACV11AAYsowACAFJNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AERhdGEgU3RydWN0dXJlczoARGF0YVR5cGVzQUxhQ2FydGUucGRmAA4ALAAVAEQAYQB0AGEAVAB5AHAAZQBzAEEATABhAEMAYQByAHQAZQAuAHAAZABmAA8AGgAMAE0AYQBjAGkAbgB0AG8AcwBoACAASABEABIAQFVzZXJzL2phYy9Eb2N1bWVudHMvUGFwZXJzL0RhdGEgU3RydWN0dXJlcy9EYXRhVHlwZXNBTGFDYXJ0ZS5wZGYAEwABLwAAFQACAAr//wAAgAbSGxwdHlokY2xhc3NuYW1lWCRjbGFzc2VzXU5TTXV0YWJsZURhdGGjHR8gVk5TRGF0YVhOU09iamVjdNIbHCIjXE5TRGljdGlvbmFyeaIiIF8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAtADIANwBAAEYATQBVAGAAZwBqAGwAbgBxAHMAdQB3AIQAjgDDAMgA0AKmAqgCrQK4AsECzwLTAtoC4wLoAvUC+AMKAw0DEgAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAAMU}
-}
-
-@inproceedings{christiansen2008easycheck,
-  address = {{Berlin, Heidelberg}},
-  title = {{{EasyCheck}} --- {{Test Data}} for {{Free}}},
-  booktitle = {Proceedings of the {{International Symposium}} on {{Functional}} and {{Logic Programming}}},
-  publisher = {{Springer}},
-  author = {Christiansen, Jan and Fischer, Sebastian},
-  year = {2008},
-  pages = {322--336},
-  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QNy4uLy4uL1BhcGVycy9UZXN0aW5nL0Vhc3lDaGVjayAtIFRlc3QgRGF0YSBmb3IgRnJlZS5wZGbSFwsYGVdOUy5kYXRhTxEB7AAAAAAB7AACAAAMTWFjaW50b3NoIEhEAAAAAAAAAAAAAAAAAAAA0rzi3UgrAAAAqOwCH0Vhc3lDaGVjayAtIFRlc3QgRGEjMjMxRjYyMy5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIx9iPWvJlCUERGIAAAAAAAAgADAAAJIAAAAAAAAAAAAAAAAAAAAAdUZXN0aW5nAAAQAAgAANK81M0AAAARAAgAANa8izIAAAABABQAqOwCABbHdgAJXXYACV11AAYsowACAFRNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AFRlc3Rpbmc6AEVhc3lDaGVjayAtIFRlc3QgRGEjMjMxRjYyMy5wZGYADgBGACIARQBhAHMAeQBDAGgAZQBjAGsAIAAtACAAVABlAHMAdAAgAEQAYQB0AGEAIABmAG8AcgAgAEYAcgBlAGUALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAEVVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9UZXN0aW5nL0Vhc3lDaGVjayAtIFRlc3QgRGF0YSBmb3IgRnJlZS5wZGYAABMAAS8AABUAAgAK//8AAIAG0hscHR5aJGNsYXNzbmFtZVgkY2xhc3Nlc11OU011dGFibGVEYXRhox0fIFZOU0RhdGFYTlNPYmplY3TSGxwiI1xOU0RpY3Rpb25hcnmiIiBfEA9OU0tleWVkQXJjaGl2ZXLRJidUcm9vdIABAAgAEQAaACMALQAyADcAQABGAE0AVQBgAGcAagBsAG4AcQBzAHUAdwCEAI4AyADNANUCxQLHAswC1wLgAu4C8gL5AwIDBwMUAxcDKQMsAzEAAAAAAAACAQAAAAAAAAAoAAAAAAAAAAAAAAAAAAADMw==}
-}
-
-@inproceedings{dylus2018probabilistic,
-  title = {Probabilistic {{Functional Logic Programming}}},
-  booktitle = {Practical {{Aspects}} of {{Declarative Languages}}},
-  publisher = {{Springer International Publishing}},
-  doi = {10.1007/978-3-319-73305-0},
-  author = {Dylus, Sandra and Christiansen, Jan and Teegen, Finn},
+@inproceedings{affeldt2018experimenting,
+  title = {Experimenting with {{Monadic Equational Reasoning}} in {{Coq}}},
+  booktitle = {Proceedings of the 35th {{Meeting}} of the {{Japan Society}} for {{Software Science}} and {{Technology}}},
+  author = {Affeldt, Reynald and Nowak, David},
   year = {2018},
-  pages = {3-19},
-  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QWC4uLy4uL1BhcGVycy9GdW5jdGlvbmFsIExvZ2ljIFByb2dyYW1taW5nL1Byb2JhYmlsaXN0aWMgRnVuY3Rpb25hbCBMb2dpYyBQcm9ncmFtbWluZy5wZGbSFwsYGVdOUy5kYXRhTxECTgAAAAACTgACAAAMTWFjaW50b3NoIEhEAAAAAAAAAAAAAAAAAAAA0rzi3UgrAAACJsASH1Byb2JhYmlsaXN0aWMgRnVuY3QjMjI2QkZGNy5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAImv/fWm3heUERGIAAAAAAAAgADAAAJIAAAAAAAAAAAAAAAAAAAABxGdW5jdGlvbmFsIExvZ2ljIFByb2dyYW1taW5nABAACAAA0rzUzQAAABEACAAA1ptqTgAAAAEAFAImwBIAFsd2AAlddgAJXXUABiyjAAIAaU1hY2ludG9zaCBIRDpVc2VyczoAamFjOgBEb2N1bWVudHM6AFBhcGVyczoARnVuY3Rpb25hbCBMb2dpYyBQcm9ncmFtbWluZzoAUHJvYmFiaWxpc3RpYyBGdW5jdCMyMjZCRkY3LnBkZgAADgBeAC4AUAByAG8AYgBhAGIAaQBsAGkAcwB0AGkAYwAgAEYAdQBuAGMAdABpAG8AbgBhAGwAIABMAG8AZwBpAGMAIABQAHIAbwBnAHIAYQBtAG0AaQBuAGcALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAGZVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9GdW5jdGlvbmFsIExvZ2ljIFByb2dyYW1taW5nL1Byb2JhYmlsaXN0aWMgRnVuY3Rpb25hbCBMb2dpYyBQcm9ncmFtbWluZy5wZGYAEwABLwAAFQACAAr//wAAgAbSGxwdHlokY2xhc3NuYW1lWCRjbGFzc2VzXU5TTXV0YWJsZURhdGGjHR8gVk5TRGF0YVhOU09iamVjdNIbHCIjXE5TRGljdGlvbmFyeaIiIF8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAtADIANwBAAEYATQBVAGAAZwBqAGwAbgBxAHMAdQB3AIQAjgDpAO4A9gNIA0oDTwNaA2MDcQN1A3wDhQOKA5cDmgOsA68DtAAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAAO2}
+  pages = {14},
+  language = {English}
 }
 
-@inproceedings{wadler1985replace,
-  address = {{New York, NY, USA}},
-  title = {How to {{Replace Failure}} by a {{List}} of {{Successes}}},
-  booktitle = {Proceedings of the {{International Conference}} on {{Functional Programming Languages}} and {{Computer Architecture}}},
-  publisher = {{ACM}},
-  author = {Wadler, Philip},
-  year = {1985},
-  pages = {113-128},
-  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QTi4uLy4uL1BhcGVycy9Ob24tRGV0ZXJtaW5pc20vSG93IHRvIHJlcGxhY2UgZmFpbHVyZSBieSBhIGxpc3Qgb2Ygc3VjY2Vzc2VzLnBkZtIXCxgZV05TLmRhdGFPEQIwAAAAAAIwAAIAAAxNYWNpbnRvc2ggSEQAAAAAAAAAAAAAAAAAAADSvOLdSCsAAAImrNofSG93IHRvIHJlcGxhY2UgZmFpbCMyMjZBQ0I5LnBkZgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiasudaaXN9QREYgAAAAAAACAAMAAAkgAAAAAAAAAAAAAAAAAAAAD05vbi1EZXRlcm1pbmlzbQAAEAAIAADSvNTNAAAAEQAIAADWmk7PAAAAAQAUAias2gAWx3YACV12AAlddQAGLKMAAgBcTWFjaW50b3NoIEhEOlVzZXJzOgBqYWM6AERvY3VtZW50czoAUGFwZXJzOgBOb24tRGV0ZXJtaW5pc206AEhvdyB0byByZXBsYWNlIGZhaWwjMjI2QUNCOS5wZGYADgBkADEASABvAHcAIAB0AG8AIAByAGUAcABsAGEAYwBlACAAZgBhAGkAbAB1AHIAZQAgAGIAeQAgAGEAIABsAGkAcwB0ACAAbwBmACAAcwB1AGMAYwBlAHMAcwBlAHMALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAFxVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9Ob24tRGV0ZXJtaW5pc20vSG93IHRvIHJlcGxhY2UgZmFpbHVyZSBieSBhIGxpc3Qgb2Ygc3VjY2Vzc2VzLnBkZgATAAEvAAAVAAIACv//AACABtIbHB0eWiRjbGFzc25hbWVYJGNsYXNzZXNdTlNNdXRhYmxlRGF0YaMdHyBWTlNEYXRhWE5TT2JqZWN00hscIiNcTlNEaWN0aW9uYXJ5oiIgXxAPTlNLZXllZEFyY2hpdmVy0SYnVHJvb3SAAQAIABEAGgAjAC0AMgA3AEAARgBNAFUAYABnAGoAbABuAHEAcwB1AHcAhACOAN8A5ADsAyADIgMnAzIDOwNJA00DVANdA2IDbwNyA4QDhwOMAAAAAAAAAgEAAAAAAAAAKAAAAAAAAAAAAAAAAAAAA44=}
+@article{affeldtmonadic,
+  title = {Monadic {{Equational Reasoning}} in {{Coq}}},
+  author = {Affeldt, Reynald and Nowak, David},
+  pages = {18},
+  abstract = {One can perform equational reasoning about computational effects with a purely functional programming language thanks to monads. Even though ``monadic equational reasoning'' sounds natural, it is not mainstream. This is mostly because, on the practical side, it is difficult to maintain pencil-and-paper proofs of large examples, and, on the theoretical side, the algebraic laws resulting from the combination of effects are tricky to get right. We propose a mechanization of monadic equational reasoning in the Coq proof assistant that addresses these problems. Our main idea is to formalize the hierarchy of effects and algebraic laws like it is done for mathematical structures. We can then take advantage of the advanced rewriting capabilities of Coq to achieve concise proof scripts while still being able to reason rigorously about models. We explain the various techniques we use to formalize a rich hierarchy of effects (with nondeterminism, state, probability, and more) and to mechanize numerous examples from the literature. As an original application, we also explore the application of monadic equational approach to reason about the semantic of programs.},
+  language = {English}
 }
 
-@inproceedings{spector-zabusky2018total,
-  address = {{New York, NY, USA}},
-  series = {{{CPP}} 2018},
-  title = {Total {{Haskell}} Is {{Reasonable Coq}}},
-  isbn = {978-1-4503-5586-5},
-  abstract = {We would like to use the Coq proof assistant to mechanically verify properties of Haskell programs. To that end, we present a tool, named {$<$}tt{$>$}hs-to-coq{$<$}/tt{$>$}, that translates total Haskell programs into Coq programs via a shallow embedding. We apply our tool in three case studies \textendash{} a lawful {$<$}tt{$>$}Monad{$<$}/tt{$>$} instance, ``Hutton's razor'', and an existing data structure library \textendash{} and prove their correctness. These examples show that this approach is viable: both that {$<$}tt{$>$}hs-to-coq{$<$}/tt{$>$} applies to existing Haskell code, and that the output it produces is amenable to verification.},
-  booktitle = {Proceedings of the 7th {{ACM SIGPLAN International Conference}} on {{Certified Programs}} and {{Proofs}}},
-  publisher = {{ACM}},
-  doi = {10.1145/3167092},
-  author = {{Spector-Zabusky}, Antal and Breitner, Joachim and Rizkallah, Christine and Weirich, Stephanie},
-  year = {2018},
-  keywords = {Haskell,Coq,verification},
-  pages = {14--27},
-  file = {/Users/sad/Zotero/storage/Z5QLKAF6/Spector-Zabusky et al. - 2018 - Total Haskell is Reasonable Coq.pdf}
-}
-
-@misc{goodman2014design,
-  title = {The {{Design}} and {{Implementation}} of {{Probabilistic Programming Languages}}},
-  howpublished = {http://dippl.org},
-  author = {Goodman, Noah D. and Stuhlm{\"u}ller, Andreas},
-  year = {2014}
-}
-
-@inproceedings{gordon2014probabilistic,
-  address = {{Hyderabad, India}},
-  series = {{{FOSE}} '14},
-  title = {Probabilistic {{Programming}}},
-  booktitle = {Proceedings of the on {{Future}} of {{Software Engineering}}},
-  publisher = {{ACM}},
-  doi = {10.1145/2593882.2593900},
-  author = {Gordon, Andrew D. and Henzinger, Thomas A. and Nori, Aditya V. and Rajamani, Sriram K.},
-  year = {2014},
-  pages = {167--181}
-}
-
-@article{antoy2005evaluation,
-  title = {Evaluation {{Strategies}} for {{Functional Logic Programming}}},
-  volume = {40},
-  number = {1},
-  journal = {Journal of Symbolic Computation},
-  author = {Antoy, Sergio},
-  year = {2005},
-  pages = {875--903}
-}
-
-@inproceedings{runciman2008smallcheck,
-  address = {{Victoria, BC, Canada}},
-  series = {Haskell '08},
-  title = {{{SmallCheck}} and {{Lazy SmallCheck}}: {{Automatic Exhaustive Testing}} for {{Small Values}}},
-  booktitle = {Proceedings of the {{First ACM SIGPLAN Symposium}} on {{Haskell}}},
-  publisher = {{ACM}},
-  doi = {10.1145/1411286.1411292},
-  author = {Runciman, Colin and Naylor, Matthew and Lindblad, Fredrik},
-  year = {2008},
-  pages = {37--48}
-}
-
-@article{brassel2004encapsulating,
-  title = {Encapsulating {{Non}}-{{Determinism}} in {{Functional Logic Computations}}},
-  volume = {2004},
-  number = {6},
-  journal = {Journal of Functional and Logic Programming},
-  author = {Bra{\ss}el, Bernd and Hanus, Michael and Huch, Frank},
-  year = {2004}
-}
-
-@inproceedings{mccallum2009factorie,
-  address = {{Vancouver, British Columbia, Canada}},
-  title = {{{FACTORIE}}: {{Probabilistic Programming}} via {{Imperatively Defined Factor Graphs}}},
-  booktitle = {Proceedings of the {{International Conference}} on {{Neural Information Processing Systems}}},
-  author = {McCallum, Andrew and Schultz, Karl and Singh, Sameer},
-  year = {2009}
-}
-
-@article{deraedt2013probabilistic,
-  title = {Probabilistic {{Programming Concepts}}},
-  journal = {arXiv:1312.4328 (preprint)},
-  author = {De Raedt, Luc and Kimmig, Angelika},
-  year = {2013}
-}
-
-@article{erwig2006functional,
-  title = {Functional {{Pearls}}: {{Probabilistic Functional Programming}} in {{Haskell}}},
-  volume = {16},
-  number = {1},
-  journal = {Journal of Functional Programming},
-  author = {Erwig, Martin and Kollmansberger, Steve},
-  year = {2006},
-  pages = {21 -- 34}
-}
-
-@inproceedings{scibior2015practical,
-  address = {{Vancouver, BC, Canada}},
-  series = {Haskell '15},
-  title = {Practical {{Probabilistic Programming}} with {{Monads}}},
-  booktitle = {Proceedings of the 2015 {{ACM SIGPLAN Symposium}} on {{Haskell}}},
-  publisher = {{ACM}},
-  doi = {10.1145/2804302.2804317},
-  author = {{\'S}cibior, Adam and Ghahramani, Zoubin and Gordon, Andrew D.},
-  year = {2015},
-  pages = {165--176}
-}
-
-@article{antoy2010functional,
-  title = {Functional {{Logic Programming}}},
-  volume = {53},
-  number = {4},
-  journal = {Communications of the ACM},
-  author = {Antoy, Sergio and Hanus, Michael},
+@inproceedings{alqaddoumi2010pull,
+  title = {The Pull-Tab Transformation},
+  booktitle = {Proceedings of the Third International Workshop on Graph Computation Models},
+  author = {Alqaddoumi, Abdulla and Antoy, Sergio and Fischer, Sebastian and Reck, Fabian},
   year = {2010},
-  pages = {74-85}
+  pages = {127--132},
+  organization = {{Citeseer}}
 }
 
-@inproceedings{wood2014new,
-  address = {{Reykjavik, Iceland}},
-  series = {Proceedings of {{Machine Learning Research}}},
-  title = {A New {{Approach}} to {{Probabilistic Programming Inference}}},
-  booktitle = {Proceedings of the {{Seventeenth International Conference}} on {{Artificial Intelligence}} and {{Statistics}}},
-  publisher = {{PMLR}},
-  author = {Wood, Frank and Meent, Jan Willem and Mansinghka, Vikash},
-  year = {2014},
-  pages = {1024--1032}
+@incollection{altenkirch2003generic,
+  title = {Generic Programming within Dependently Typed Programming},
+  booktitle = {Generic Programming},
+  author = {Altenkirch, Thorsten and McBride, Conor},
+  year = {2003},
+  pages = {1--20},
+  publisher = {{Springer}}
 }
 
-@article{varacca2006distributing,
-  title = {Distributing {{Probability}} over {{Non}}-Determinism},
-  volume = {16},
-  doi = {10.1017/S0960129505005074},
-  author = {Varacca, Daniele and Winskel, Glynn},
-  month = feb,
-  year = {2006},
-  pages = {87--113}
-}
-
-@article{kimmig2011implementation,
-  title = {On the {{Implementation}} of the {{Probabilistic Logic Programming Language ProbLog}}},
-  volume = {11},
-  doi = {10.1017/S1471068410000566},
-  author = {Kimmig, Angelika and Demoen, Bart and De Raedt, Luc and Costa, V{\'i}tor Santos and Rocha, Ricardo},
-  year = {2011},
-  pages = {235 -- 262}
-}
-
-@inproceedings{pirog2018syntax,
-  address = {{Oxford, United Kingdom}},
-  series = {{{LICS}} '18},
-  title = {Syntax and {{Semantics}} for {{Operations}} with {{Scopes}}},
-  isbn = {978-1-4503-5583-4},
-  booktitle = {Proceedings of the 33rd {{Annual ACM}}/{{IEEE Symposium}} on {{Logic}} in {{Computer Science}}},
-  publisher = {{ACM}},
-  doi = {10.1145/3209108.3209166},
-  author = {Pir{\'o}g, Maciej and Schrijvers, Tom and Wu, Nicolas and Jaskelioff, Mauro},
-  year = {2018},
-  keywords = {effect handler,free monad,algebraic effects},
-  pages = {809-818}
-}
-
-@inproceedings{wu2014effect,
-  address = {{Gothenburg, Sweden}},
-  series = {Haskell '14},
-  title = {Effect {{Handlers}} in {{Scope}}},
-  isbn = {978-1-4503-3041-1},
-  booktitle = {Proceedings of the 2014 {{ACM SIGPLAN Symposium}} on {{Haskell}}},
-  publisher = {{ACM}},
-  doi = {10.1145/2633357.2633358},
-  author = {Wu, Nicolas and Schrijvers, Tom and Hinze, Ralf},
-  year = {2014},
-  keywords = {monads,Haskell,modularity,effect handlers,semantics,syntax},
-  pages = {1-12}
-}
-
-@article{breitner2018ready,
-  title = {Ready, {{Set}}, {{Verify}}! {{Applying Hs}}-to-Coq to {{Real}}-World {{Haskell Code}} ({{Experience Report}})},
-  number = {ICFP},
-  journal = {Proceedings of the ACM on Programming Languages},
-  doi = {10.1145/3236784},
-  author = {Breitner, Joachim and {Spector-Zabusky}, Antal and Li, Yao and Rizkallah, Christine and Wiegley, John and Weirich, Stephanie},
-  year = {2018},
-  keywords = {Haskell,Coq,verification},
-  pages = {89:1-89:16}
-}
-
-@inproceedings{mcbride2015turingcompleteness,
-  title = {Turing-{{Completeness Totally Free}}},
-  abstract = {In this paper, I show that general recursive definitions can be represented in the free monad which supports the `effect' of making a recursive call, without saying how these calls should be executed. Diverse semantics can be given within a total framework by suitable monad morphisms. The Bove-Capretta construction of the domain of a general recursive function can be presented datatype-generically as an instance of this technique. The paper is literate Agda, but its key ideas are more broadly transferable.},
-  booktitle = {Mathematics of {{Program Construction}}},
-  publisher = {{Springer International Publishing}},
-  doi = {10.1007/978-3-319-19797-5_13},
-  author = {McBride, Conor},
+@article{altenkirch2015indexed,
+  title = {Indexed Containers},
+  author = {Altenkirch, Thorsten and Ghani, Neil and Hancock, Peter and McBride, Conor and Morris, Peter},
   year = {2015},
-  pages = {257-275}
-}
-
-@inproceedings{letan2018modular,
-  title = {Modular {{Verification}} of {{Programs}} with {{Effects}} and {{Effect Handlers}} in {{Coq}}},
-  abstract = {Modern computing systems have grown in complexity, and the attack surface has increased accordingly. Even though system components are generally carefully designed and even verified by different groups of people, the composition of these components is often regarded with less attention. This paves the way for ``architectural attacks'', a class of security vulnerabilities where the attacker is able to threaten the security of the system even if each of its components continues to act as expected. In this article, we introduce FreeSpec, a formalism built upon the key idea that components can be modelled as programs with algebraic effects to be realized by other components. FreeSpec allows for the modular modelling of a complex system, by defining idealized components connected together, and the modular verification of the properties of their composition. In addition, we have implemented a framework for the Coq proof assistant based on FreeSpec.},
-  booktitle = {Formal {{Methods}}},
-  publisher = {{Springer International Publishing}},
-  doi = {10.1007/978-3-319-95582-7_20},
-  author = {Letan, Thomas and {R{\'e}gis-Gianas}, Yann and Chifflier, Pierre and Hiet, Guillaume},
-  year = {2018},
-  pages = {338-354}
-}
-
-@article{atkey2015interleaving,
-  title = {Interleaving Data and Effects},
   volume = {25},
-  journal = {Journal of Functional Programming},
-  doi = {10.1017/S0956796815000209},
-  author = {Atkey, Robert and Johann, Patricia},
-  year = {2015}
-}
-
-@inproceedings{christiansen2016all,
-  series = {{{ICFP}} 2016},
-  title = {All {{Sorts}} of {{Permutations}} ({{Functional Pearl}})},
-  isbn = {978-1-4503-4219-3},
-  booktitle = {Proceedings of the 21st {{ACM SIGPLAN International Conference}} on {{Functional Programming}}},
-  publisher = {{ACM}},
-  doi = {10.1145/2951913.2951949},
-  author = {Christiansen, Jan and Danilenko, Nikita and Dylus, Sandra},
-  year = {2016},
-  keywords = {free theorems,monads,Haskell,non-determinism,permutation,sorting},
-  pages = {168-179}
-}
-
-@article{wadler2015propositions,
-  title = {Propositions {{As Types}}},
-  volume = {58},
-  issn = {0001-0782},
-  number = {12},
-  journal = {Communications of the ACM},
-  doi = {10.1145/2699407},
-  author = {Wadler, Philip},
-  month = nov,
-  year = {2015},
-  pages = {75-84}
-}
-
-@article{blanqui2002inductivedatatype,
-  title = {Inductive-Data-Type Systems},
-  volume = {272},
-  issn = {0304-3975},
-  abstract = {In a previous work (``Abstract Data Type Systems'', TCS 173(2), 1997), the last two authors presented a combined language made of a (strongly normalizing) algebraic rewrite system and a typed {$\lambda$}-calculus enriched by pattern-matching definitions following a certain format, called the ``General Schema'', which generalizes the usual recursor definitions for natural numbers and similar ``basic inductive types''. This combined language was shown to be strongly normalizing. The purpose of this paper is to reformulate and extend the General Schema in order to make it easily extensible, to capture a more general class of inductive types, called ``strictly positive'', and to ease the strong normalization proof of the resulting system. This result provides a computation model for the combination of an algebraic specification language based on abstract data types and of a strongly typed functional language with strictly positive inductive types.},
-  number = {1},
-  journal = {Theoretical Computer Science},
-  doi = {https://doi.org/10.1016/S0304-3975(00)00347-9},
-  author = {Blanqui, Fr{\'e}d{\'e}ric and Jouannaud, Jean-Pierre and Okada, Mitsuhiro},
-  year = {2002},
-  keywords = {Higher-order rewriting,Inductive types,Recursive definitions,Strong normalization,Typed lambda-calculus},
-  pages = {41-68},
-  note = {Theories of Types and Proofs 1997}
-}
-
-@inproceedings{uustalu2017partiality,
-  title = {Partiality and {{Container Monads}}},
-  isbn = {978-3-319-71237-6},
-  abstract = {We investigate monads of partiality in Martin-L{\"o}f type theory, following Moggi's general monad-based method for modelling effectful computations. These monads are often called lifting monads and appear in category theory with different but related definitions. In this paper, we unveil the relationship between containers and lifting monads. We show that the lifting monads usually employed in type theory can be specified in terms of containers. Moreover, we give a precise characterization of containers whose interpretations carry a lifting monad structure. We show that these conditions are tightly connected with Rosolini's notion of dominance. We provide several examples, putting particular emphasis on Capretta's delay monad and its quotiented variant, the non-termination monad.},
-  booktitle = {Programming {{Languages}} and {{Systems}}},
-  publisher = {{Springer International Publishing}},
-  author = {Uustalu, Tarmo and Veltri, Niccol{\`o}},
-  editor = {Chang, Bor-Yuh Evan},
-  year = {2017},
-  pages = {406-425}
+  publisher = {{Cambridge University Press}},
+  journal = {Journal of Functional Programming}
 }
 
 @inproceedings{altenkirch2017monadic,
@@ -594,573 +103,85 @@
   pages = {20--21}
 }
 
-@article{abbott2005containers,
-  title = {Containers: {{Constructing}} Strictly Positive Types},
-  volume = {342},
-  issn = {0304-3975},
-  abstract = {We introduce the notion of a Martin-L{\"o}f category\textemdash{}a locally cartesian closed category with disjoint coproducts and initial algebras of container functors (the categorical analogue of W-types)\textemdash{}and then establish that nested strictly positive inductive and coinductive types, which we call strictly positive types, exist in any Martin-L{\"o}f category. Central to our development are the notions of containers and container functors. These provide a new conceptual analysis of data structures and polymorphic functions by exploiting dependent type theory as a convenient way to define constructions in Martin-L{\"o}f categories. We also show that morphisms between containers can be full and faithfully interpreted as polymorphic functions (i.e.natural transformations) and that, in the presence of W-types, all strictly positive types (including nested inductive and coinductive types) give rise to containers.},
-  number = {1},
-  journal = {Theoretical Computer Science},
-  doi = {https://doi.org/10.1016/j.tcs.2005.06.002},
-  author = {Abbott, Michael and Altenkirch, Thorsten and Ghani, Neil},
+@article{antoy2005evaluation,
+  title = {Evaluation {{Strategies}} for {{Functional Logic Programming}}},
+  author = {Antoy, Sergio},
   year = {2005},
-  keywords = {Category theory,Coinduction,Container functors,Final coalgebras,Induction,Initial algebras,Type theory,W-Types},
-  pages = {3-27}
+  volume = {40},
+  pages = {875--903},
+  journal = {Journal of Symbolic Computation},
+  number = {1}
 }
 
-@incollection{abbott2003categories,
-  address = {{Berlin, Heidelberg}},
-  title = {Categories of {{Containers}}},
-  volume = {2620},
-  abstract = {We introduce the notion of containers as a mathematical formalisation of the idea that many important datatypes consist of templates where data is stored. We show that containers have good closure properties under a variety of constructions including the formation of initial algebras and final coalgebras. We also show that containers include strictly positive types and shapely types but that there are containers which do not correspond to either of these. Further, we derive a representation result classifying the nature of polymorphic functions between containers. We finish this paper with an application to the theory of shapely types and refer to a forthcoming paper which applies this theory to differentiable types.},
-  language = {English},
-  booktitle = {Foundations of {{Software Science}} and {{Computation Structures}}},
-  publisher = {{Springer Berlin Heidelberg}},
-  author = {Abbott, Michael and Altenkirch, Thorsten and Ghani, Neil},
-  year = {2003},
-  pages = {23-38}
-}
-
-@incollection{christiansen2011sloth,
-  address = {{Berlin, Heidelberg}},
-  title = {Sloth \textendash{} {{A Tool}} for {{Checking Minimal}}-{{Strictness}}},
-  volume = {6539},
-  abstract = {We present a light-weight tool called Sloth which assists programmers in identifying unnecessarily strict first order functions. Sloth reports counterexamples in form of a partial value, the corresponding result of the tested function and a recommended result. We present examples where the hints reported by Sloth can be used to improve a function with respect to memory behaviour, non-termination, and performance in the context of functional-logic programming. Furthermore we give an example-driven introduction into the basics of the implementation of Sloth. To improve the results in comparison to an existing approach we use additional constraints to assure that Sloth's suggestions are implementable without employing parallelism.},
-  language = {English},
-  booktitle = {Practical {{Aspects}} of {{Declarative Languages}}},
-  publisher = {{Springer Berlin Heidelberg}},
-  author = {Christiansen, Jan},
-  year = {2011},
-  pages = {160-174},
-  copyright = {All rights reserved}
-}
-
-@article{phoasynthetic,
-  title = {The {{Synthetic Plotkin Powerdomain}}},
-  abstract = {Plotkin [1976] introduced a powerdomain construction on domains in order to give semantics to a non-deterministic binary choice constructor, and later [1979] characterised it as the free semilattice. Smyth [1983] and Winskel [1985] showed that it could be interpreted in terms of modal predicate transformers and Robinson [1986] recognised it as a special case of Johnstone's [1982] Vietoris construction, which itself generalises the Hausdorff metric on the set of closed subsets of a metric space. The domain construction involves a curious order relation known as the Egli-Milner order.},
-  language = {English},
-  author = {Phoa, Wesley and Taylor, Paul},
-  pages = {15}
-}
-
-@article{dylus2019one,
-  title = {One {{Monad}} to {{Prove Them All}}},
-  volume = {3},
-  abstract = {One Monad to Prove Them All is a modern fairy tale about curiosity and perseverance, two important properties of a successful PhD student. We follow the PhD student Mona on her adventure of proving properties about Haskell programs in the proof assistant Coq. On the one hand, as a PhD student in computer science Mona observes an increasing demand for correct software products. In particular, because of the large amount of existing software, verifying existing software products becomes more important. Verifying programs in the functional programming language Haskell is no exception. On the other hand, Mona is delighted to see that communities in the area of theorem proving are becoming popular. Thus, Mona sets out to learn more about the interactive theorem prover Coq and verifying Haskell programs in Coq.},
-  language = {English},
-  number = {3},
-  journal = {The Art, Science, and Engineering of Programming},
-  author = {Dylus, Sandra and Christiansen, Jan and Teegen, Finn},
-  year = {2019}
-}
-
-@inproceedings{johann2010generic,
-  title = {A {{Generic Operational Metatheory}} for {{Algebraic Effects}}},
-  abstract = {We provide a syntactic analysis of contextual preorder and equivalence for a polymorphic programming language with effects. Our approach applies uniformly across a range of algebraic effects, and incorporates, as instances: errors, input/output, global state, nondeterminism, probabilistic choice, and combinations thereof. Our approach is to extend Plotkin and Power's structural operational semantics for algebraic effects (FoSSaCS 2001) with a primitive ``basic preorder'' on ground type computation trees. The basic preorder is used to derive notions of contextual preorder and equivalence on program terms. Under mild assumptions on this relation, we prove fundamental properties of contextual preorder (hence equivalence) including extensionality properties and a characterisation via applicative contexts, and we provide machinery for reasoning about polymorphism using relational parametricity.},
-  language = {English},
-  booktitle = {2010 25th {{Annual IEEE Symposium}} on {{Logic}} in {{Computer Science}}},
-  publisher = {{IEEE}},
-  author = {Johann, Patricia and Simpson, Alex and Voigtl{\"a}nder, Janis},
-  month = jul,
+@article{antoy2010functional,
+  title = {Functional {{Logic Programming}}},
+  author = {Antoy, Sergio and Hanus, Michael},
   year = {2010},
-  pages = {209-218}
+  volume = {53},
+  pages = {74--85},
+  journal = {Communications of the ACM},
+  number = {4}
 }
 
-@article{lopez2018basic,
-  title = {Basic {{Operational Preorders}} for {{Algebraic Effects}} in {{General}}, and for {{Combined Probability}} and {{Nondeterminism}} in {{Particular}}},
-  abstract = {The ``generic operational metatheory'' of Johann, Simpson and Voigtl{\"a}nder (LiCS 2010) defines contextual equivalence, in the presence of algebraic effects, in terms of a basic operational preorder on ground-type effect trees. We propose three general approaches to specifying such preorders: (i) operational (ii) denotational, and (iii) axiomatic; coinciding with the three major styles of program semantics. We illustrate these via a nontrivial case study: the combination of probabilistic choice with nondeterminism, for which we show that natural instantiations of the three specification methods (operational in terms of Markov decision processes, denotational using a powerdomain, and axiomatic) all determine the same canonical preorder. We do this in the case of both angelic and demonic nondeterminism.},
-  language = {English},
-  journal = {Schloss Dagstuhl - Leibniz-Zentrum fuer Informatik GmbH, Wadern/Saarbruecken, Germany},
-  author = {Lopez, Aliaume and Simpson, Alex},
-  year = {2018}
+@inproceedings{antoy2017proving,
+  title = {Proving {{Non}}-{{Deterministic Computations}} in {{Agda}}},
+  booktitle = {Proceedings of the 24th {{International Workshop}} on {{Functional}} and ({{Constraint}}) {{Logic Programming}}},
+  author = {Antoy, Sergio and Hanus, Michael and Libby, Steven},
+  year = {2017},
+  volume = {234},
+  pages = {180--195},
+  publisher = {{Open Publishing Association}},
+  series = {Electronic {{Proceedings}} in {{Theoretical Computer Science}}}
 }
 
-@inproceedings{delaware2013modular,
-  title = {Modular {{Monadic Meta}}-{{Theory}}},
-  abstract = {This paper presents 3MT, a framework for modular mechanized meta-theory of languages with effects. Using 3MT, individual language features and their corresponding definitions \textendash{} semantic functions, theorem statements and proofs \textendash{} can be built separately and then reused to create different languages with fully mechanized meta-theory. 3MT combines modular datatypes and monads to define denotational semantics with effects on a per-feature basis, without fixing the particular set of effects or language constructs.},
-  language = {English},
-  booktitle = {Proceedings of the 18th {{ACM SIGPLAN International Conference}} on {{Functional Programming}} - {{ICFP}} '13},
-  publisher = {{ACM Press}},
-  author = {Delaware, Benjamin and Keuchel, Steven and Schrijvers, Tom and Oliveira, Bruno C.d.S.},
-  year = {2013},
-  pages = {319}
+@article{ariola1997call,
+  title = {The Call-by-Need Lambda Calculus},
+  author = {Ariola, Zena M and Felleisen, Matthias},
+  year = {1997},
+  volume = {7},
+  pages = {265--301},
+  publisher = {{Cambridge University Press}},
+  journal = {Journal of Functional Programming},
+  number = {3}
 }
 
-@inproceedings{delaware2013meta,
-  title = {Meta-{{Theory}} {\`a} {{La Carte}}},
-  volume = {48},
-  booktitle = {{{ACM SIGPLAN Notices}}},
-  author = {Delaware, Benjamin and {d S Oliveira}, Bruno C and Schrijvers, Tom},
-  year = {2013},
-  pages = {207-218},
-  number = {1},
-  organization = {{ACM}}
-}
-
-@article{pirog2012tracing,
-  title = {Tracing {{Monadic Computations}} and {{Representing Effects}}},
-  volume = {76},
-  language = {English},
-  journal = {Electronic Proceedings in Theoretical Computer Science},
-  author = {Pir{\'o}g, Maciej and Gibbons, Jeremy},
-  month = feb,
-  year = {2012},
-  pages = {90-111}
-}
-
-@incollection{vaneekelen2006proof,
-  address = {{Berlin, Heidelberg}},
-  title = {Proof {{Tool Support}} for {{Explicit Strictness}}},
-  volume = {4015},
-  language = {English},
-  booktitle = {Implementation and {{Application}} of {{Functional Languages}}},
-  publisher = {{Springer Berlin Heidelberg}},
-  author = {{van Eekelen}, Marko and {de Mol}, Maarten},
-  year = {2006},
-  pages = {37-54}
-}
-
-@article{danielssoncase,
-  title = {A {{Case Study}} in {{Program Verification}} in the {{Presence}} of {{Partial}} and {{Infinite Values}}},
-  abstract = {This work is a case study in program verification: We have written a simple parser and a corresponding pretty-printer in a nonstrict functional programming language with lifted pairs and functions (Haskell). A natural aim is to prove that the programs are, in some sense, each other's inverses. The presence of partial and infinite values in the domains makes this exercise interesting, and having lifted types adds an extra spice to the task. We have tackled the problem in different ways, and this is a report on the merits of those approaches. More specifically, we first describe a method for testing properties of programs in the presence of partial and infinite values. By testing before proving we avoid wasting time trying to prove statements that are not valid. Then we prove that the programs we have written are in fact (more or less) inverses using first fixpoint induction and then the approximation lemma.},
-  language = {English},
-  author = {Danielsson, Nils Anders and Jansson, Patrik},
-  pages = {25}
-}
-
-@article{santos1995compilation,
-  title = {Compilation by {{Transformation}} in {{Non}}-{{Strict Functional Languages}}},
-  author = {Santos, Andr{\'e} L de M},
-  year = {1995},
-  publisher = {{Citeseer}}
-}
-
-@article{swierstrafunctional,
-  title = {A {{Functional Semantics}} for the {{Awkward Squad}}},
-  abstract = {It can be very difficult to debug impure code, let alone prove its correctness. To address these problems, we provide a functional specification of three central components of Peyton Jones's awkward squad: teletype IO, mutable state, and concurrency. By constructing an internal model of such concepts within our programming language, we can test, debug, and reason about programs that perform IO as if they were pure. In particular, we demonstrate how our specifications may be used in tandem with QuickCheck to automatically test complex pointer algorithms and concurrent programs.},
-  language = {English},
-  author = {Swierstra, Wouter and Altenkirch, Thorsten},
-  pages = {12}
-}
-
-@article{sternagel2013proof,
-  title = {Proof {{Pearl}}\textemdash{{A Mechanized Proof}} of {{GHC}}'s {{Mergesort}}},
-  volume = {51},
-  abstract = {We present our Isabelle/HOL formalization of GHC's sorting algorithm for lists, proving its correctness and stability. This constitutes another example of applying a state-of-the-art proof assistant to real-world code. Furthermore, it allows users to take advantage of the formalized algorithm in generated code.},
-  language = {English},
-  number = {4},
-  journal = {Journal of Automated Reasoning},
-  author = {Sternagel, Christian},
-  month = dec,
-  year = {2013},
-  pages = {357-370}
-}
-
-@inproceedings{farmer2015reasoning,
-  title = {Reasoning with the {{HERMIT}}: {{Tool Support}} for {{Equational Reasoning}} on {{GHC Core Programs}}},
-  shorttitle = {Reasoning with the {{HERMIT}}},
-  abstract = {A benefit of pure functional programming is that it encourages equational reasoning. However, the Haskell language has lacked direct tool support for such reasoning. Consequently, reasoning about Haskell programs is either performed manually, or in another language that does provide tool support (e.g. Agda or Coq).},
-  language = {English},
-  booktitle = {Proceedings of the 8th {{ACM SIGPLAN Symposium}} on {{Haskell}} - {{Haskell}} 2015},
-  publisher = {{ACM Press}},
-  author = {Farmer, Andrew and Sculthorpe, Neil and Gill, Andy},
-  year = {2015},
-  pages = {23-34}
-}
-
-@incollection{demol2008proving,
-  address = {{Berlin, Heidelberg}},
-  title = {Proving {{Properties}} of {{Lazy Functional Programs}} with {{Sparkle}}},
-  volume = {5161},
-  language = {English},
-  booktitle = {Central {{European Functional Programming School}}},
-  publisher = {{Springer Berlin Heidelberg}},
-  author = {{de Mol}, Maarten and {van Eekelen}, Marko and Plasmeijer, Rinus},
-  year = {2008},
-  pages = {41-86}
-}
-
-@article{dijkstra2012experimentation,
-  title = {Experimentation {{Project Report}}: {{Translating Haskell Programs}} to {{Coq Programs}}},
-  language = {English},
-  author = {Dijkstra, Gabe},
-  year = {2012},
-  pages = {17}
-}
-
-@inproceedings{jeuring2012testing,
-  title = {Testing {{Type Class Laws}}},
-  volume = {47},
-  booktitle = {{{ACM SIGPLAN Notices}}},
-  author = {Jeuring, Johan and Jansson, Patrik and Amaral, Cl{\'a}udio},
-  year = {2012},
-  pages = {49-60},
-  number = {12},
-  organization = {{ACM}}
+@book{arnold2005java,
+  title = {The Java Programming Language},
+  author = {Arnold, Ken and Gosling, James and Holmes, David},
+  year = {2005},
+  publisher = {{Addison Wesley Professional}}
 }
 
 @article{arvidsson2018proving,
-  archivePrefix = {arXiv},
-  eprinttype = {arxiv},
-  eprint = {1808.05789},
-  primaryClass = {cs},
   title = {Proving {{Type Class Laws}} for {{Haskell}}},
-  abstract = {Type classes in Haskell are used to implement ad-hoc polymorphism, i.e. a way to ensure both to the programmer and the compiler that a set of functions are defined for a specific data type. All instances of such type classes are expected to behave in a certain way and satisfy laws associated with the respective class. These are however typically just stated in comments and as such, there is no real way to enforce that they hold. In this paper we describe a system which allows the user to write down type class laws which are then automatically instantiated and sent to an inductive theorem prover when declaring a new instance of a type class.},
-  language = {English},
-  journal = {arXiv:1808.05789 [cs]},
   author = {Arvidsson, Andreas and Johansson, Moa and Touche, Robin},
-  month = aug,
   year = {2018},
-  keywords = {Computer Science - Programming Languages}
-}
-
-@inproceedings{koh2019interaction,
-  title = {From {{C}} to {{Interaction Trees}}: {{Specifying}}, {{Verifying}}, and {{Testing}} a {{Networked Server}}},
-  shorttitle = {From {{C}} to {{Interaction Trees}}},
-  abstract = {We present the first formal verification of a networked server implemented in C. Interaction trees, a general structure for representing reactive computations, are used to tie together disparate verification and testing tools (Coq, VST, and QuickChick) and to axiomatize the behavior of the operating system on which the server runs (CertiKOS). The main theorem connects a specification of acceptable server behaviors, written in a straightforward ``one client at a time'' style, with the CompCert semantics of the C program. The variability introduced by low-level buffering of messages and interleaving of multiple TCP connections is captured using network refinement, a variant of observational refinement.},
-  language = {English},
-  booktitle = {Proceedings of the 8th {{ACM SIGPLAN International Conference}} on {{Certified Programs}} and {{Proofs}} - {{CPP}} 2019},
-  publisher = {{ACM Press}},
-  author = {Koh, Nicolas and Li, Yao and Li, Yishuai and Xia, Li-yao and Beringer, Lennart and Honor{\'e}, Wolf and Mansky, William and Pierce, Benjamin C. and Zdancewic, Steve},
-  year = {2019},
-  pages = {234-248}
-}
-
-@article{gibbonsproof,
-  title = {Proof {{Methods}} for {{Structured Corecursive Programs}}},
-  abstract = {Corecursive programs produce values of greatest fixpoint types, in contrast to recursive programs, which consume values of least fixpoint types. There are a number of widely used methods for proving properties of corecursive programs, including fixpoint induction, the take lemma, and coinduction. However, these methods are all rather low-level, in that they do not exploit the common structure that is often present in corecursive definitions. We argue for a more structured approach to proving properties of corecursive programs. In particular, we show that by writing corecursive programs using a simple operator that encapsulates a common pattern of corecursive definition, we can then use high-level algebraic properties of this operator to conduct proofs in a purely calculational style that avoids the use of inductive or coinductive methods.},
-  language = {English},
-  author = {Gibbons, Jeremy and Hutton, Graham},
-  pages = {15}
-}
-
-@article{sheard2004twolevel,
-  title = {Two-{{Level Types}} and {{Parameterized Modules}}},
-  volume = {14},
-  abstract = {In this paper, we describe two techniques for the efficient, modularized implementation of a large class of algorithms. We illustrate these techniques using several examples, including efficient generic unification algorithms that use reference cells to encode substitutions, and highly modular language implementations.},
-  language = {English},
-  number = {5},
-  journal = {Journal of Functional Programming},
-  author = {Sheard, Tim and Pasalic, Emir},
-  month = sep,
-  year = {2004},
-  pages = {547-587}
-}
-
-@article{huffman2012formal,
+  month = aug,
+  abstract = {Type classes in Haskell are used to implement ad-hoc polymorphism, i.e. a way to ensure both to the programmer and the compiler that a set of functions are defined for a specific data type. All instances of such type classes are expected to behave in a certain way and satisfy laws associated with the respective class. These are however typically just stated in comments and as such, there is no real way to enforce that they hold. In this paper we describe a system which allows the user to write down type class laws which are then automatically instantiated and sent to an inductive theorem prover when declaring a new instance of a type class.},
   archivePrefix = {arXiv},
+  eprint = {1808.05789},
   eprinttype = {arxiv},
-  eprint = {1207.3208},
-  primaryClass = {cs},
-  title = {Formal {{Verification}} of {{Monad Transformers}}},
-  abstract = {We present techniques for reasoning about constructor classes that (like the monad class) fix polymorphic operations and assert polymorphic axioms. We do not require a logic with first-class type constructors, first-class polymorphism, or type quantification; instead, we rely on a domain-theoretic model of the type system in a universal domain to provide these features.},
+  journal = {arXiv:1808.05789 [cs]},
+  keywords = {Computer Science - Programming Languages},
   language = {English},
-  journal = {arXiv:1207.3208 [cs]},
-  author = {Huffman, Brian},
-  month = jul,
-  year = {2012},
-  keywords = {Computer Science - Logic in Computer Science,F.3.1}
+  primaryClass = {cs}
+}
+
+@article{atkey2015interleaving,
+  title = {Interleaving Data and Effects},
+  author = {Atkey, Robert and Johann, Patricia},
+  year = {2015},
+  volume = {25},
+  doi = {10.1017/S0956796815000209},
+  journal = {Journal of Functional Programming}
 }
 
 @article{austinhaskhol,
   title = {{{HaskHOL}}: {{A Haskell Hosted Domain Specific Language Representation}} of {{HOL Light}}},
-  abstract = {Traditionally, members of the higher-order logic (HOL) theorem proving family have been implemented in the Standard ML programming language or one of its derivatives. This paper presents a description of a recently initiated project intended to break with tradition and implement a lightweight HOL theorem prover library, HaskHOL, as a Haskell hosted domain specific language. The goal of this work is to provide the ability for Haskell users to reason about their code directly without having to transform it or otherwise export it to an external tool. The paper also presents a verification technique leveraging popular Haskell tools QuickCheck and Haskell Program Coverage to increase confidence that the logical kernel of HaskHOL is implemented correctly.},
-  language = {English},
   author = {Austin, Evan and Alexander, Perry},
-  pages = {13}
-}
-
-@article{affeldtmonadic,
-  title = {Monadic {{Equational Reasoning}} in {{Coq}}},
-  abstract = {One can perform equational reasoning about computational effects with a purely functional programming language thanks to monads. Even though ``monadic equational reasoning'' sounds natural, it is not mainstream. This is mostly because, on the practical side, it is difficult to maintain pencil-and-paper proofs of large examples, and, on the theoretical side, the algebraic laws resulting from the combination of effects are tricky to get right. We propose a mechanization of monadic equational reasoning in the Coq proof assistant that addresses these problems. Our main idea is to formalize the hierarchy of effects and algebraic laws like it is done for mathematical structures. We can then take advantage of the advanced rewriting capabilities of Coq to achieve concise proof scripts while still being able to reason rigorously about models. We explain the various techniques we use to formalize a rich hierarchy of effects (with nondeterminism, state, probability, and more) and to mechanize numerous examples from the literature. As an original application, we also explore the application of monadic equational approach to reason about the semantic of programs.},
-  language = {English},
-  author = {Affeldt, Reynald and Nowak, David},
-  pages = {18}
-}
-
-@inproceedings{affeldt2018experimenting,
-  title = {Experimenting with {{Monadic Equational Reasoning}} in {{Coq}}},
-  language = {English},
-  booktitle = {Proceedings of the 35th {{Meeting}} of the {{Japan Society}} for {{Software Science}} and {{Technology}}},
-  author = {Affeldt, Reynald and Nowak, David},
-  year = {2018},
-  pages = {14}
-}
-
-@book{bird2010pearls,
-  title = {Pearls of {{Functional Algorithm Design}}},
-  publisher = {{Cambridge University Press}},
-  author = {Bird, Richard},
-  year = {2010}
-}
-
-@incollection{bove2007computation,
-  address = {{Berlin, Heidelberg}},
-  title = {Computation by {{Prophecy}}},
-  volume = {4583},
-  abstract = {We describe a new method to represent (partial) recursive functions in type theory. For every recursive definition, we define a co-inductive type of prophecies that characterises the traces of the computation of the function. The structure of a prophecy is a possibly infinite tree, which is coerced by linearisation to a type of partial results defined by applying the delay monad to the co-domain of the function. Using induction on a weight relation defined on the prophecies, we can reason about them and prove that the formal type-theoretic version of the recursive function, resulting from the present method, satisfies the recursive equations of the original function. The advantages of this technique over the method previously developed by the authors via a special-purpose accessibility (domain) predicate are: there is no need of extra logical arguments in the definition of the recursive function; the function can be applied to any element in its domain, regardless of termination properties; we obtain a type of partial recursive functions between any two given types; and composition of recursive functions can be easily defined.},
-  booktitle = {Typed {{Lambda Calculi}} and {{Applications}}},
-  publisher = {{Springer Berlin Heidelberg}},
-  author = {Bove, Ana and Capretta, Venanzio},
-  year = {2007},
-  pages = {70-83}
-}
-
-@incollection{demol2002theorem,
-  address = {{Berlin, Heidelberg}},
-  title = {Theorem {{Proving}} for {{Functional Programmers}}},
-  volume = {2312},
-  abstract = {Sparkle is a new theorem prover written and specialized in the functional programming language Clean. It is in the first place intended to be used by programmers on small parts of Clean-programs, combining theorem proving and programming into one process. It should of course also be usable by logicians interested in proving properties of larger programs.},
-  language = {English},
-  booktitle = {Implementation of {{Functional Languages}}},
-  publisher = {{Springer Berlin Heidelberg}},
-  author = {{de Mol}, Maarten and {van Eekelen}, Marko and Plasmeijer, Rinus},
-  year = {2002},
-  pages = {55-71}
-}
-
-@inproceedings{matthes2008recursion,
-  title = {Recursion on {{Nested Datatypes}} in {{Dependent Type Theory}}},
-  booktitle = {Conference on {{Computability}} in {{Europe}}},
-  author = {Matthes, Ralph},
-  year = {2008},
-  pages = {431-446},
-  organization = {{Springer}}
-}
-
-@article{bunkenburg2019modeling,
-  title = {Modeling {{Call}}-{{Time Choice}} as {{Effect}} Using {{Scoped Free Monads}}},
-  journal = {Master's Thesis, Kiel University},
-  author = {Bunkenburg, Niels},
-  year = {2019}
-}
-
-@inproceedings{pfenning1988higher,
-  title = {Higher-Order Abstract Syntax},
-  volume = {23},
-  booktitle = {{{ACM}} Sigplan Notices},
-  author = {Pfenning, Frank and Elliott, Conal},
-  year = {1988},
-  pages = {199-208},
-  number = {7},
-  organization = {{ACM}}
-}
-
-@article{altenkirch2015indexed,
-  title = {Indexed Containers},
-  volume = {25},
-  journal = {Journal of Functional Programming},
-  author = {Altenkirch, Thorsten and Ghani, Neil and Hancock, Peter and McBride, Conor and Morris, Peter},
-  year = {2015},
-  publisher = {{Cambridge University Press}}
-}
-
-@inproceedings{ghani2007higher,
-  title = {Higher Dimensional Trees, Algebraically},
-  booktitle = {International {{Conference}} on {{Algebra}} and {{Coalgebra}} in {{Computer Science}}},
-  author = {Ghani, Neil and Kurz, Alexander},
-  year = {2007},
-  pages = {226-241},
-  organization = {{Springer}}
-}
-
-@inproceedings{antoy2017proving,
-  series = {Electronic {{Proceedings}} in {{Theoretical Computer Science}}},
-  title = {Proving {{Non}}-{{Deterministic Computations}} in {{Agda}}},
-  volume = {234},
-  booktitle = {Proceedings of the 24th {{International Workshop}} on {{Functional}} and ({{Constraint}}) {{Logic Programming}}},
-  publisher = {{Open Publishing Association}},
-  author = {Antoy, Sergio and Hanus, Michael and Libby, Steven},
-  year = {2017},
-  pages = {180-195}
-}
-
-@inproceedings{cleva2004logic,
-  title = {A {{Logic Programming Approach}} to the {{Verification}} of {{Functional}}-{{Logic Programs}}},
-  booktitle = {Proceedings of the 6th {{ACM SIGPLAN International Conference}} on {{Principles}} and {{Practice}} of {{Declarative Programming}}},
-  author = {Cleva, Jos{\'e} Miguel and Leach, Javier and {L{\'o}pez-Fraguas}, Francisco J},
-  year = {2004},
-  pages = {9-19},
-  organization = {{ACM}}
-}
-
-@inproceedings{plotkin2009handlers,
-  title = {Handlers of Algebraic Effects},
-  booktitle = {European {{Symposium}} on {{Programming}}},
-  author = {Plotkin, Gordon and Pretnar, Matija},
-  year = {2009},
-  pages = {80-94},
-  organization = {{Springer}}
-}
-
-@inproceedings{brady2013programming,
-  title = {Programming and Reasoning with Algebraic Effects and Dependent Types},
-  volume = {48},
-  booktitle = {{{ACM SIGPLAN Notices}}},
-  author = {Brady, Edwin},
-  year = {2013},
-  pages = {133-144},
-  number = {9},
-  organization = {{ACM}}
-}
-
-@inproceedings{brachthauser2017effekt,
-  title = {Effekt: {{Extensible}} Algebraic Effects in {{Scala}} (Short Paper)},
-  booktitle = {Proceedings of the 8th {{ACM SIGPLAN International Symposium}} on {{Scala}}},
-  author = {Brachth{\"a}user, Jonathan Immanuel and Schuster, Philipp},
-  year = {2017},
-  pages = {67-72},
-  organization = {{ACM}}
-}
-
-@article{kiselyov2018eff,
-  title = {Eff Directly in {{OCaml}}},
-  journal = {arXiv preprint arXiv:\textbackslash{}-1812.11664},
-  author = {Kiselyov, Oleg and Sivaramakrishnan, KC},
-  year = {2018}
-}
-
-@inproceedings{lindley2017be,
-  series = {{{POPL}} 2017},
-  title = {Do {{Be Do Be Do}}},
-  isbn = {978-1-4503-4660-3},
-  booktitle = {Proceedings of the 44th {{ACM SIGPLAN Symposium}} on {{Principles}} of {{Programming Languages}}},
-  publisher = {{ACM}},
-  doi = {10.1145/3009837.3009897},
-  author = {Lindley, Sam and McBride, Conor and McLaughlin, Craig},
-  year = {2017},
-  keywords = {algebraic effects,effect handlers,continuations,bidirectional typing,call-by-push-value,effect polymorphism,pattern matching},
-  pages = {500-514},
-  numpages = {15},
-  acmid = {3009897}
-}
-
-@inproceedings{kammar2013handlers,
-  title = {Handlers in Action},
-  volume = {48},
-  booktitle = {{{ACM SIGPLAN Notices}}},
-  author = {Kammar, Ohad and Lindley, Sam and Oury, Nicolas},
-  year = {2013},
-  pages = {145-158},
-  number = {9},
-  organization = {{ACM}}
-}
-
-@article{pretnar2015introduction,
-  title = {An Introduction to Algebraic Effects and Handlers. Invited Tutorial Paper},
-  volume = {319},
-  journal = {Electronic Notes in Theoretical Computer Science},
-  author = {Pretnar, Matija},
-  year = {2015},
-  pages = {19-35},
-  publisher = {{Elsevier}}
-}
-
-@techreport{leijen2016algebraic,
-  type = {Technical {{Report}}},
-  title = {Algebraic {{Effects}} for {{Functional Programming}}},
-  institution = {{Microsoft Research}},
-  author = {Leijen, Daan},
-  year = {2016},
-  pages = {15}
-}
-
-@inproceedings{swamy2016dependent,
-  title = {Dependent {{Types}} and {{Multi}}-{{Monadic Effects}} in {{F}}*},
-  isbn = {978-1-4503-3549-2},
-  booktitle = {43rd {{ACM SIGPLAN}}-{{SIGACT Symposium}} on {{Principles}} of {{Programming Languages}} ({{POPL}})},
-  publisher = {{ACM}},
-  author = {Swamy, Nikhil and Hritcu, Catalin and Keller, Chantal and Rastogi, Aseem and {Delignat-Lavaud}, Antoine and Forest, Simon and Bhargavan, Karthikeyan and Fournet, C{\'e}dric and Strub, Pierre-Yves and Kohlweiss, Markulf and Zinzindohou{\'e}, Jean-Karim and {Zanella-B{\'e}guelin}, Santiago},
-  month = jan,
-  year = {2016},
-  pages = {256-270},
-  shortbooktitle = {POPL},
-  ee = {http://dx.doi.org/10.1145/2837614.2837655}
-}
-
-@article{xia2019interaction,
-  title = {Interaction {{Trees}}: {{Representing Recursive}} and {{Impure Programs}} in {{Coq}} ({{Work In Progress}})},
-  journal = {arXiv preprint arXiv:1906.00046},
-  author = {Xia, Li-yao and Zakowski, Yannick and He, Paul and Hur, Chung-Kil and Malecha, Gregory and Pierce, Benjamin C and Zdancewic, Steve},
-  year = {2019}
-}
-
-@inproceedings{norell2008dependently,
-  title = {Dependently {{Typed Programming}} in {{Agda}}},
-  booktitle = {International {{School}} on {{Advanced Functional Programming}}},
-  author = {Norell, Ulf},
-  year = {2008},
-  pages = {230-266},
-  organization = {{Springer}}
-}
-
-@inproceedings{brus1987clean,
-  title = {Clean \textemdash{} a {{Language}} for {{Functional Graph Rewriting}}},
-  booktitle = {Conference on {{Functional Programming Languages}} and {{Computer Architecture}}},
-  author = {Brus, TH and {van Eekelen}, Marko CJD and Van Leer, MO and Plasmeijer, Marinus J},
-  year = {1987},
-  pages = {364-384},
-  organization = {{Springer}}
-}
-
-@inproceedings{gonzalez1996rewriting,
-  title = {A Rewriting Logic for Declarative Programming},
-  booktitle = {European {{Symposium}} on {{Programming}}},
-  author = {{Gonz{\'a}lez-Moreno}, Juan C and {Hortal{\'a}-Gonz{\'a}lez}, Maria Teresa and {L{\'o}pez-Fraguas}, Francisco Javier and {Rodr{\'i}guez-Artalejo}, Mario},
-  year = {1996},
-  pages = {156-172},
-  organization = {{Springer}}
-}
-
-@inproceedings{launchbury1993natural,
-  title = {A Natural Semantics for Lazy Evaluation},
-  booktitle = {Proceedings of the 20th {{ACM SIGPLAN}}-{{SIGACT}} Symposium on {{Principles}} of Programming Languages},
-  author = {Launchbury, John},
-  year = {1993},
-  pages = {144-154},
-  organization = {{ACM}}
-}
-
-@article{abramsky1994domain,
-  title = {Domain Theory},
-  author = {Abramsky, Samson and Jung, Achim},
-  year = {1994},
-  publisher = {{Oxford University Press}}
-}
-
-@inproceedings{christiansen2019proving,
-  title = {Proving {{Inequational Propositions}} about {{Haskell Programs}} in {{Coq}}},
-  booktitle = {International {{Conference}} on the {{Art}}, {{Science}}, and {{Engineering}} of {{Programming}}},
-  author = {Christiansen, Jan and Dylus, Sandra},
-  month = apr,
-  year = {2019}
-}
-
-@phdthesis{coquand1986calculus,
-  title = {The Calculus of Constructions},
-  school = {INRIA},
-  author = {Coquand, Thierry and Huet, G{\'e}rard},
-  year = {1986}
-}
-
-@article{pierce2010software,
-  title = {Software {{Foundations}}},
-  author = {Pierce, Benjamin C and Casinghino, Chris and Gaboardi, Marco and Greenberg, Michael and Hri{\c t}cu, C{\u a}t{\u a}lin and Sj{\"o}berg, Vilhelm and Yorgey, Brent},
-  year = {2010}
-}
-
-@book{horowitz1983fundamentals,
-  title = {Fundamentals of Programming Languages},
-  publisher = {{Springer Science \& Business Media}},
-  author = {Horowitz, Ellis},
-  year = {1983}
-}
-
-@book{hutton2016programming,
-  title = {Programming in Haskell},
-  publisher = {{Cambridge University Press}},
-  author = {Hutton, Graham},
-  year = {2016}
+  pages = {13},
+  abstract = {Traditionally, members of the higher-order logic (HOL) theorem proving family have been implemented in the Standard ML programming language or one of its derivatives. This paper presents a description of a recently initiated project intended to break with tradition and implement a lightweight HOL theorem prover library, HaskHOL, as a Haskell hosted domain specific language. The goal of this work is to provide the ability for Haskell users to reason about their code directly without having to transform it or otherwise export it to an external tool. The paper also presents a verification technique leveraging popular Haskell tools QuickCheck and Haskell Program Coverage to increase confidence that the logical kernel of HaskHOL is implemented correctly.},
+  language = {English}
 }
 
 @article{barras1997coq,
@@ -1169,13 +190,532 @@
   year = {1997}
 }
 
+@book{bird2010pearls,
+  title = {Pearls of {{Functional Algorithm Design}}},
+  author = {Bird, Richard},
+  year = {2010},
+  publisher = {{Cambridge University Press}}
+}
+
+@article{blanqui2002inductivedatatype,
+  title = {Inductive-Data-Type Systems},
+  author = {Blanqui, Fr{\'e}d{\'e}ric and Jouannaud, Jean-Pierre and Okada, Mitsuhiro},
+  year = {2002},
+  volume = {272},
+  pages = {41--68},
+  issn = {0304-3975},
+  doi = {https://doi.org/10.1016/S0304-3975(00)00347-9},
+  abstract = {In a previous work (``Abstract Data Type Systems'', TCS 173(2), 1997), the last two authors presented a combined language made of a (strongly normalizing) algebraic rewrite system and a typed {$\lambda$}-calculus enriched by pattern-matching definitions following a certain format, called the ``General Schema'', which generalizes the usual recursor definitions for natural numbers and similar ``basic inductive types''. This combined language was shown to be strongly normalizing. The purpose of this paper is to reformulate and extend the General Schema in order to make it easily extensible, to capture a more general class of inductive types, called ``strictly positive'', and to ease the strong normalization proof of the resulting system. This result provides a computation model for the combination of an algebraic specification language based on abstract data types and of a strongly typed functional language with strictly positive inductive types.},
+  journal = {Theoretical Computer Science},
+  keywords = {Higher-order rewriting,Inductive types,Recursive definitions,Strong normalization,Typed lambda-calculus},
+  note = {Theories of Types and Proofs 1997},
+  number = {1}
+}
+
+@incollection{bove2007computation,
+  title = {Computation by {{Prophecy}}},
+  booktitle = {Typed {{Lambda Calculi}} and {{Applications}}},
+  author = {Bove, Ana and Capretta, Venanzio},
+  year = {2007},
+  volume = {4583},
+  pages = {70--83},
+  publisher = {{Springer Berlin Heidelberg}},
+  address = {{Berlin, Heidelberg}},
+  abstract = {We describe a new method to represent (partial) recursive functions in type theory. For every recursive definition, we define a co-inductive type of prophecies that characterises the traces of the computation of the function. The structure of a prophecy is a possibly infinite tree, which is coerced by linearisation to a type of partial results defined by applying the delay monad to the co-domain of the function. Using induction on a weight relation defined on the prophecies, we can reason about them and prove that the formal type-theoretic version of the recursive function, resulting from the present method, satisfies the recursive equations of the original function. The advantages of this technique over the method previously developed by the authors via a special-purpose accessibility (domain) predicate are: there is no need of extra logical arguments in the definition of the recursive function; the function can be applied to any element in its domain, regardless of termination properties; we obtain a type of partial recursive functions between any two given types; and composition of recursive functions can be easily defined.}
+}
+
+@inproceedings{brachthauser2017effekt,
+  title = {Effekt: {{Extensible}} Algebraic Effects in {{Scala}} (Short Paper)},
+  booktitle = {Proceedings of the 8th {{ACM SIGPLAN International Symposium}} on {{Scala}}},
+  author = {Brachth{\"a}user, Jonathan Immanuel and Schuster, Philipp},
+  year = {2017},
+  pages = {67--72},
+  organization = {{ACM}}
+}
+
+@inproceedings{brady2013programming,
+  title = {Programming and Reasoning with Algebraic Effects and Dependent Types},
+  booktitle = {{{ACM SIGPLAN Notices}}},
+  author = {Brady, Edwin},
+  year = {2013},
+  volume = {48},
+  pages = {133--144},
+  number = {9},
+  organization = {{ACM}}
+}
+
+@article{brassel2004encapsulating,
+  title = {Encapsulating {{Non}}-{{Determinism}} in {{Functional Logic Computations}}},
+  author = {Bra{\ss}el, Bernd and Hanus, Michael and Huch, Frank},
+  year = {2004},
+  volume = {2004},
+  journal = {Journal of Functional and Logic Programming},
+  number = {6}
+}
+
+@article{brassel2009technique,
+  title = {A {{Technique}} to {{Build Debugging Tools}} for {{Lazy Functional Logic Languages}}},
+  author = {Bra{\ss}el, Bernd},
+  year = {2009},
+  volume = {246},
+  pages = {63--76},
+  journal = {Electronic Notes in Theoretical Computer Science}
+}
+
+@inproceedings{brassel2011kics2,
+  title = {{{KiCS2}}: {{A New Compiler}} from {{Curry}} to {{Haskell}}},
+  booktitle = {Proceedings of the 20th {{International Conference}} on {{Functional}} and {{Constraint Logic Programming}}},
+  author = {Bra{\ss}el, Bernd and Hanus, Michael and Peem{\"o}ller, Bj{\"o}rn and Reck, Fabian},
+  editor = {Kuchen, Herbert},
+  year = {2011},
+  pages = {1--18},
+  publisher = {{Springer-Verlag}},
+  address = {{Odense, Denmark}},
+  isbn = {978-3-642-22530-7},
+  series = {{{WFLP}} '11}
+}
+
+@article{breitner2018ready,
+  title = {Ready, {{Set}}, {{Verify}}! {{Applying Hs}}-to-Coq to {{Real}}-World {{Haskell Code}} ({{Experience Report}})},
+  author = {Breitner, Joachim and {Spector-Zabusky}, Antal and Li, Yao and Rizkallah, Christine and Wiegley, John and Weirich, Stephanie},
+  year = {2018},
+  pages = {89:1-89:16},
+  doi = {10.1145/3236784},
+  journal = {Proceedings of the ACM on Programming Languages},
+  keywords = {Coq,Haskell,verification},
+  number = {ICFP}
+}
+
+@inproceedings{brus1987clean,
+  title = {Clean \textemdash{} a {{Language}} for {{Functional Graph Rewriting}}},
+  booktitle = {Conference on {{Functional Programming Languages}} and {{Computer Architecture}}},
+  author = {Brus, TH and {van Eekelen}, Marko CJD and Van Leer, MO and Plasmeijer, Marinus J},
+  year = {1987},
+  pages = {364--384},
+  organization = {{Springer}}
+}
+
+@article{bunkenburg2019modeling,
+  title = {Modeling {{Call}}-{{Time Choice}} as {{Effect}} Using {{Scoped Free Monads}}},
+  author = {Bunkenburg, Niels},
+  year = {2019},
+  journal = {Master's Thesis, Kiel University}
+}
+
+@book{chlipala2011certified,
+  title = {Certified {{Programming}} with {{Dependent Types}}},
+  author = {Chlipala, Adam},
+  year = {2011},
+  publisher = {{MIT Press New York}},
+  isbn = {978-0-262-02665-9}
+}
+
+@inproceedings{christiansen2008easycheck,
+  title = {{{EasyCheck}} --- {{Test Data}} for {{Free}}},
+  booktitle = {Proceedings of the {{International Symposium}} on {{Functional}} and {{Logic Programming}}},
+  author = {Christiansen, Jan and Fischer, Sebastian},
+  year = {2008},
+  pages = {322--336},
+  publisher = {{Springer}},
+  address = {{Berlin, Heidelberg}},
+  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QNy4uLy4uL1BhcGVycy9UZXN0aW5nL0Vhc3lDaGVjayAtIFRlc3QgRGF0YSBmb3IgRnJlZS5wZGbSFwsYGVdOUy5kYXRhTxEB7AAAAAAB7AACAAAMTWFjaW50b3NoIEhEAAAAAAAAAAAAAAAAAAAA0rzi3UgrAAAAqOwCH0Vhc3lDaGVjayAtIFRlc3QgRGEjMjMxRjYyMy5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIx9iPWvJlCUERGIAAAAAAAAgADAAAJIAAAAAAAAAAAAAAAAAAAAAdUZXN0aW5nAAAQAAgAANK81M0AAAARAAgAANa8izIAAAABABQAqOwCABbHdgAJXXYACV11AAYsowACAFRNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AFRlc3Rpbmc6AEVhc3lDaGVjayAtIFRlc3QgRGEjMjMxRjYyMy5wZGYADgBGACIARQBhAHMAeQBDAGgAZQBjAGsAIAAtACAAVABlAHMAdAAgAEQAYQB0AGEAIABmAG8AcgAgAEYAcgBlAGUALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAEVVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9UZXN0aW5nL0Vhc3lDaGVjayAtIFRlc3QgRGF0YSBmb3IgRnJlZS5wZGYAABMAAS8AABUAAgAK//8AAIAG0hscHR5aJGNsYXNzbmFtZVgkY2xhc3Nlc11OU011dGFibGVEYXRhox0fIFZOU0RhdGFYTlNPYmplY3TSGxwiI1xOU0RpY3Rpb25hcnmiIiBfEA9OU0tleWVkQXJjaGl2ZXLRJidUcm9vdIABAAgAEQAaACMALQAyADcAQABGAE0AVQBgAGcAagBsAG4AcQBzAHUAdwCEAI4AyADNANUCxQLHAswC1wLgAu4C8gL5AwIDBwMUAxcDKQMsAzEAAAAAAAACAQAAAAAAAAAoAAAAAAAAAAAAAAAAAAADMw==}
+}
+
+@inproceedings{christiansen2010free,
+  title = {Free {{Theorems For Functional Logic Programs}}},
+  booktitle = {Proceedings of the 4th {{ACM SIGPLAN Workshop}} on {{Programming Languages Meets Program Verification}}},
+  author = {Christiansen, Jan and Seidel, Daniel and Voigtl{\"a}nder, Janis},
+  year = {2010},
+  pages = {39--48},
+  publisher = {{ACM}},
+  doi = {10.1145/1707790.1707797},
+  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QJy4uLy4uL1BhcGVycy9DdXJyeS9wMzktY2hyaXN0aWFuc2VuLnBkZtIXCxgZV05TLmRhdGFPEQGyAAAAAAGyAAIAAAxNYWNpbnRvc2ggSEQAAAAAAAAAAAAAAAAAAADSvOLdSCsAAAAWx3oUcDM5LWNocmlzdGlhbnNlbi5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGpsUNNr0sYAAAAAAAAAAAACAAMAAAkgAAAAAAAAAAAAAAAAAAAABUN1cnJ5AAAQAAgAANK81M0AAAARAAgAANNrtqYAAAABABQAFsd6ABbHdgAJXXYACV11AAYsowACAEdNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AEN1cnJ5OgBwMzktY2hyaXN0aWFuc2VuLnBkZgAADgAqABQAcAAzADkALQBjAGgAcgBpAHMAdABpAGEAbgBzAGUAbgAuAHAAZABmAA8AGgAMAE0AYQBjAGkAbgB0AG8AcwBoACAASABEABIANVVzZXJzL2phYy9Eb2N1bWVudHMvUGFwZXJzL0N1cnJ5L3AzOS1jaHJpc3RpYW5zZW4ucGRmAAATAAEvAAAVAAIACv//AACABtIbHB0eWiRjbGFzc25hbWVYJGNsYXNzZXNdTlNNdXRhYmxlRGF0YaMdHyBWTlNEYXRhWE5TT2JqZWN00hscIiNcTlNEaWN0aW9uYXJ5oiIgXxAPTlNLZXllZEFyY2hpdmVy0SYnVHJvb3SAAQAIABEAGgAjAC0AMgA3AEAARgBNAFUAYABnAGoAbABuAHEAcwB1AHcAhACOALgAvQDFAnsCfQKCAo0ClgKkAqgCrwK4Ar0CygLNAt8C4gLnAAAAAAAAAgEAAAAAAAAAKAAAAAAAAAAAAAAAAAAAAuk=}
+}
+
+@incollection{christiansen2011sloth,
+  title = {Sloth \textendash{} {{A Tool}} for {{Checking Minimal}}-{{Strictness}}},
+  booktitle = {Practical {{Aspects}} of {{Declarative Languages}}},
+  author = {Christiansen, Jan},
+  year = {2011},
+  volume = {6539},
+  pages = {160--174},
+  publisher = {{Springer Berlin Heidelberg}},
+  address = {{Berlin, Heidelberg}},
+  abstract = {We present a light-weight tool called Sloth which assists programmers in identifying unnecessarily strict first order functions. Sloth reports counterexamples in form of a partial value, the corresponding result of the tested function and a recommended result. We present examples where the hints reported by Sloth can be used to improve a function with respect to memory behaviour, non-termination, and performance in the context of functional-logic programming. Furthermore we give an example-driven introduction into the basics of the implementation of Sloth. To improve the results in comparison to an existing approach we use additional constraints to assure that Sloth's suggestions are implementable without employing parallelism.},
+  copyright = {All rights reserved},
+  language = {English}
+}
+
+@inproceedings{christiansen2016all,
+  title = {All {{Sorts}} of {{Permutations}} ({{Functional Pearl}})},
+  booktitle = {Proceedings of the 21st {{ACM SIGPLAN International Conference}} on {{Functional Programming}}},
+  author = {Christiansen, Jan and Danilenko, Nikita and Dylus, Sandra},
+  year = {2016},
+  pages = {168--179},
+  publisher = {{ACM}},
+  doi = {10.1145/2951913.2951949},
+  isbn = {978-1-4503-4219-3},
+  keywords = {free theorems,Haskell,monads,non-determinism,permutation,sorting},
+  series = {{{ICFP}} 2016}
+}
+
+@inproceedings{christiansen2019proving,
+  title = {Proving {{Inequational Propositions}} about {{Haskell Programs}} in {{Coq}}},
+  booktitle = {International {{Conference}} on the {{Art}}, {{Science}}, and {{Engineering}} of {{Programming}}},
+  author = {Christiansen, Jan and Dylus, Sandra},
+  year = {2019},
+  month = apr
+}
+
 @inproceedings{christiansen2019verifying,
   title = {Verifying Effectful {{Haskell}} Programs in {{Coq}}},
   booktitle = {Proceedings of the 12th {{ACM SIGPLAN International Symposium}} on {{Haskell}}},
-  doi = {10.1145/3331545.3342592},
   author = {Christiansen, Jan and Dylus, Sandra and Bunkenburg, Niels},
   year = {2019},
-  pages = {125-138}
+  pages = {125--138},
+  doi = {10.1145/3331545.3342592}
+}
+
+@inproceedings{cleva2004logic,
+  title = {A {{Logic Programming Approach}} to the {{Verification}} of {{Functional}}-{{Logic Programs}}},
+  booktitle = {Proceedings of the 6th {{ACM SIGPLAN International Conference}} on {{Principles}} and {{Practice}} of {{Declarative Programming}}},
+  author = {Cleva, Jos{\'e} Miguel and Leach, Javier and {L{\'o}pez-Fraguas}, Francisco J},
+  year = {2004},
+  pages = {9--19},
+  organization = {{ACM}}
+}
+
+@phdthesis{coquand1986calculus,
+  title = {The Calculus of Constructions},
+  author = {Coquand, Thierry and Huet, G{\'e}rard},
+  year = {1986},
+  school = {INRIA}
+}
+
+@inproceedings{coquand1988inductively,
+  title = {Inductively {{Defined Types}}},
+  booktitle = {Proceedings of the {{International Conference}} on {{Computer Logic}}},
+  author = {Coquand, Thierry and Paulin, Christine},
+  year = {1988},
+  volume = {417},
+  pages = {50--66},
+  publisher = {{Springer-Verlag}},
+  doi = {10.1007/3-540-52335-9_47},
+  isbn = {978-3-540-46963-6},
+  series = {Lecture {{Notes}} in {{Computer Science}}}
+}
+
+@article{czaplicki2012elm,
+  title = {Elm: {{Concurrent FRP}} for Functional {{GUIs}}},
+  author = {Czaplicki, Evan},
+  year = {2012},
+  journal = {Senior thesis, Harvard University}
+}
+
+@inproceedings{danielsson2006fast,
+  title = {Fast and {{Loose Reasoning}} Is {{Morally Correct}}},
+  booktitle = {Conference {{Record}} of the 33rd {{ACM SIGPLAN}}-{{SIGACT Symposium}} on {{Principles}} of {{Programming Languages}}},
+  author = {Danielsson, Nils Anders and Hughes, John and Jansson, Patrik and Gibbons, Jeremy},
+  year = {2006},
+  pages = {206--217},
+  publisher = {{ACM}},
+  doi = {10.1145/1111320.1111056},
+  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QRi4uLy4uL1BhcGVycy9SZWFzb25pbmcvRmFzdCBhbmQgTG9vc2UgUmVhc29uaW5nIGlzIE1vcmFsbHkgQ29ycmVjdC5wZGbSFwsYGVdOUy5kYXRhTxECGAAAAAACGAACAAAMTWFjaW50b3NoIEhEAAAAAAAAAAAAAAAAAAAA0rzi3UgrAAACNWYvH0Zhc3QgYW5kIExvb3NlIFJlYXMjMjM1NjYwRS5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI1Zg7WxViqUERGIAAAAAAAAgADAAAJIAAAAAAAAAAAAAAAAAAAAAlSZWFzb25pbmcAABAACAAA0rzUzQAAABEACAAA1sVKmgAAAAEAFAI1Zi8AFsd2AAlddgAJXXUABiyjAAIAVk1hY2ludG9zaCBIRDpVc2VyczoAamFjOgBEb2N1bWVudHM6AFBhcGVyczoAUmVhc29uaW5nOgBGYXN0IGFuZCBMb29zZSBSZWFzIzIzNTY2MEUucGRmAA4AYAAvAEYAYQBzAHQAIABhAG4AZAAgAEwAbwBvAHMAZQAgAFIAZQBhAHMAbwBuAGkAbgBnACAAaQBzACAATQBvAHIAYQBsAGwAeQAgAEMAbwByAHIAZQBjAHQALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAFRVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9SZWFzb25pbmcvRmFzdCBhbmQgTG9vc2UgUmVhc29uaW5nIGlzIE1vcmFsbHkgQ29ycmVjdC5wZGYAEwABLwAAFQACAAr//wAAgAbSGxwdHlokY2xhc3NuYW1lWCRjbGFzc2VzXU5TTXV0YWJsZURhdGGjHR8gVk5TRGF0YVhOU09iamVjdNIbHCIjXE5TRGljdGlvbmFyeaIiIF8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAtADIANwBAAEYATQBVAGAAZwBqAGwAbgBxAHMAdQB3AIQAjgDXANwA5AMAAwIDBwMSAxsDKQMtAzQDPQNCA08DUgNkA2cDbAAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAANu}
+}
+
+@article{danielssoncase,
+  title = {A {{Case Study}} in {{Program Verification}} in the {{Presence}} of {{Partial}} and {{Infinite Values}}},
+  author = {Danielsson, Nils Anders and Jansson, Patrik},
+  pages = {25},
+  abstract = {This work is a case study in program verification: We have written a simple parser and a corresponding pretty-printer in a nonstrict functional programming language with lifted pairs and functions (Haskell). A natural aim is to prove that the programs are, in some sense, each other's inverses. The presence of partial and infinite values in the domains makes this exercise interesting, and having lifted types adds an extra spice to the task. We have tackled the problem in different ways, and this is a report on the merits of those approaches. More specifically, we first describe a method for testing properties of programs in the presence of partial and infinite values. By testing before proving we avoid wasting time trying to prove statements that are not valid. Then we prove that the programs we have written are in fact (more or less) inverses using first fixpoint induction and then the approximation lemma.},
+  language = {English}
+}
+
+@inproceedings{delaware2013meta,
+  title = {Meta-{{Theory}} {\`a} {{La Carte}}},
+  booktitle = {{{ACM SIGPLAN Notices}}},
+  author = {Delaware, Benjamin and {d S Oliveira}, Bruno C and Schrijvers, Tom},
+  year = {2013},
+  volume = {48},
+  pages = {207--218},
+  number = {1},
+  organization = {{ACM}}
+}
+
+@inproceedings{delaware2013modular,
+  title = {Modular {{Monadic Meta}}-{{Theory}}},
+  booktitle = {Proceedings of the 18th {{ACM SIGPLAN International Conference}} on {{Functional Programming}} - {{ICFP}} '13},
+  author = {Delaware, Benjamin and Keuchel, Steven and Schrijvers, Tom and Oliveira, Bruno C.d.S.},
+  year = {2013},
+  pages = {319},
+  publisher = {{ACM Press}},
+  address = {{Boston, Massachusetts, USA}},
+  abstract = {This paper presents 3MT, a framework for modular mechanized meta-theory of languages with effects. Using 3MT, individual language features and their corresponding definitions \textendash{} semantic functions, theorem statements and proofs \textendash{} can be built separately and then reused to create different languages with fully mechanized meta-theory. 3MT combines modular datatypes and monads to define denotational semantics with effects on a per-feature basis, without fixing the particular set of effects or language constructs.},
+  language = {English}
+}
+
+@incollection{demol2002theorem,
+  title = {Theorem {{Proving}} for {{Functional Programmers}}},
+  booktitle = {Implementation of {{Functional Languages}}},
+  author = {{de Mol}, Maarten and {van Eekelen}, Marko and Plasmeijer, Rinus},
+  year = {2002},
+  volume = {2312},
+  pages = {55--71},
+  publisher = {{Springer Berlin Heidelberg}},
+  address = {{Berlin, Heidelberg}},
+  abstract = {Sparkle is a new theorem prover written and specialized in the functional programming language Clean. It is in the first place intended to be used by programmers on small parts of Clean-programs, combining theorem proving and programming into one process. It should of course also be usable by logicians interested in proving properties of larger programs.},
+  language = {English}
+}
+
+@incollection{demol2008proving,
+  title = {Proving {{Properties}} of {{Lazy Functional Programs}} with {{Sparkle}}},
+  booktitle = {Central {{European Functional Programming School}}},
+  author = {{de Mol}, Maarten and {van Eekelen}, Marko and Plasmeijer, Rinus},
+  year = {2008},
+  volume = {5161},
+  pages = {41--86},
+  publisher = {{Springer Berlin Heidelberg}},
+  address = {{Berlin, Heidelberg}},
+  language = {English}
+}
+
+@inproceedings{deraedt2007problog,
+  title = {{{ProbLog}}: {{A Probabilistic Prolog}} and {{Its Application}} in {{Link Discovery}}},
+  booktitle = {Proceedings of the 20th {{International Joint Conference}} on {{Artifical Intelligence}}},
+  author = {De Raedt, Luc and Kimmig, Angelika and Toivonen, Hannu},
+  year = {2007},
+  pages = {2468--2473},
+  publisher = {{Morgan Kaufmann Publishers Inc.}},
+  address = {{Hyderabad, India}},
+  series = {{{IJCAI}} '07}
+}
+
+@article{deraedt2013probabilistic,
+  title = {Probabilistic {{Programming Concepts}}},
+  author = {De Raedt, Luc and Kimmig, Angelika},
+  year = {2013},
+  journal = {arXiv:1312.4328 (preprint)}
+}
+
+@article{dijkstra2012experimentation,
+  title = {Experimentation {{Project Report}}: {{Translating Haskell Programs}} to {{Coq Programs}}},
+  author = {Dijkstra, Gabe},
+  year = {2012},
+  pages = {17},
+  language = {English}
+}
+
+@inproceedings{dylus2018probabilistic,
+  title = {Probabilistic {{Functional Logic Programming}}},
+  booktitle = {Practical {{Aspects}} of {{Declarative Languages}}},
+  author = {Dylus, Sandra and Christiansen, Jan and Teegen, Finn},
+  year = {2018},
+  pages = {3--19},
+  publisher = {{Springer International Publishing}},
+  doi = {10.1007/978-3-319-73305-0},
+  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QWC4uLy4uL1BhcGVycy9GdW5jdGlvbmFsIExvZ2ljIFByb2dyYW1taW5nL1Byb2JhYmlsaXN0aWMgRnVuY3Rpb25hbCBMb2dpYyBQcm9ncmFtbWluZy5wZGbSFwsYGVdOUy5kYXRhTxECTgAAAAACTgACAAAMTWFjaW50b3NoIEhEAAAAAAAAAAAAAAAAAAAA0rzi3UgrAAACJsASH1Byb2JhYmlsaXN0aWMgRnVuY3QjMjI2QkZGNy5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAImv/fWm3heUERGIAAAAAAAAgADAAAJIAAAAAAAAAAAAAAAAAAAABxGdW5jdGlvbmFsIExvZ2ljIFByb2dyYW1taW5nABAACAAA0rzUzQAAABEACAAA1ptqTgAAAAEAFAImwBIAFsd2AAlddgAJXXUABiyjAAIAaU1hY2ludG9zaCBIRDpVc2VyczoAamFjOgBEb2N1bWVudHM6AFBhcGVyczoARnVuY3Rpb25hbCBMb2dpYyBQcm9ncmFtbWluZzoAUHJvYmFiaWxpc3RpYyBGdW5jdCMyMjZCRkY3LnBkZgAADgBeAC4AUAByAG8AYgBhAGIAaQBsAGkAcwB0AGkAYwAgAEYAdQBuAGMAdABpAG8AbgBhAGwAIABMAG8AZwBpAGMAIABQAHIAbwBnAHIAYQBtAG0AaQBuAGcALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAGZVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9GdW5jdGlvbmFsIExvZ2ljIFByb2dyYW1taW5nL1Byb2JhYmlsaXN0aWMgRnVuY3Rpb25hbCBMb2dpYyBQcm9ncmFtbWluZy5wZGYAEwABLwAAFQACAAr//wAAgAbSGxwdHlokY2xhc3NuYW1lWCRjbGFzc2VzXU5TTXV0YWJsZURhdGGjHR8gVk5TRGF0YVhOU09iamVjdNIbHCIjXE5TRGljdGlvbmFyeaIiIF8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAtADIANwBAAEYATQBVAGAAZwBqAGwAbgBxAHMAdQB3AIQAjgDpAO4A9gNIA0oDTwNaA2MDcQN1A3wDhQOKA5cDmgOsA68DtAAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAAO2}
+}
+
+@article{dylus2019implementing,
+  title = {Implementing a Library for Probabilistic Programming Using Non-Strict Non-Determinism},
+  author = {Dylus, Sandra and Christiansen, Jan and Teegen, Finn},
+  year = {2019},
+  pages = {1--29},
+  doi = {10.1017/S1471068419000085},
+  journal = {Theory and Practice of Logic Programming}
+}
+
+@article{dylus2019one,
+  title = {One {{Monad}} to {{Prove Them All}}},
+  author = {Dylus, Sandra and Christiansen, Jan and Teegen, Finn},
+  year = {2019},
+  volume = {3},
+  abstract = {One Monad to Prove Them All is a modern fairy tale about curiosity and perseverance, two important properties of a successful PhD student. We follow the PhD student Mona on her adventure of proving properties about Haskell programs in the proof assistant Coq. On the one hand, as a PhD student in computer science Mona observes an increasing demand for correct software products. In particular, because of the large amount of existing software, verifying existing software products becomes more important. Verifying programs in the functional programming language Haskell is no exception. On the other hand, Mona is delighted to see that communities in the area of theorem proving are becoming popular. Thus, Mona sets out to learn more about the interactive theorem prover Coq and verifying Haskell programs in Coq.},
+  journal = {The Art, Science, and Engineering of Programming},
+  language = {English},
+  number = {3}
+}
+
+@article{erwig2006functional,
+  title = {Functional {{Pearls}}: {{Probabilistic Functional Programming}} in {{Haskell}}},
+  author = {Erwig, Martin and Kollmansberger, Steve},
+  year = {2006},
+  volume = {16},
+  pages = {21 -- 34},
+  journal = {Journal of Functional Programming},
+  number = {1}
+}
+
+@inproceedings{farmer2015reasoning,
+  title = {Reasoning with the {{HERMIT}}: {{Tool Support}} for {{Equational Reasoning}} on {{GHC Core Programs}}},
+  shorttitle = {Reasoning with the {{HERMIT}}},
+  booktitle = {Proceedings of the 8th {{ACM SIGPLAN Symposium}} on {{Haskell}} - {{Haskell}} 2015},
+  author = {Farmer, Andrew and Sculthorpe, Neil and Gill, Andy},
+  year = {2015},
+  pages = {23--34},
+  publisher = {{ACM Press}},
+  address = {{Vancouver, BC, Canada}},
+  abstract = {A benefit of pure functional programming is that it encourages equational reasoning. However, the Haskell language has lacked direct tool support for such reasoning. Consequently, reasoning about Haskell programs is either performed manually, or in another language that does provide tool support (e.g. Agda or Coq).},
+  language = {English}
+}
+
+@phdthesis{filinski1996controlling,
+  title = {Controlling {{Effects}}},
+  author = {Filinski, Andrezej},
+  year = {1996},
+  school = {Carnegie-Mellom University Pittsburgh}
+}
+
+@inproceedings{fischer2009purely,
+  title = {Purely {{Functional Lazy Non}}-Deterministic {{Programming}}},
+  booktitle = {Proceedings of the 14th {{ACM SIGPLAN International Conference}} on {{Functional Programming}}},
+  author = {Fischer, Sebastian and Kiselyov, Oleg and Shan, Chung-chieh},
+  year = {2009},
+  pages = {11--22},
+  publisher = {{ACM}},
+  doi = {10.1145/1596550.1596556},
+  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QSy4uLy4uL1BhcGVycy9DdXJyeS9QdXJlbHkgRnVuY3Rpb25hbCBMYXp5IE5vbi1kZXRlcm1pbmlzdGljIFByb2dyYW1taW5nLnBkZtIXCxgZV05TLmRhdGFPEQIoAAAAAAIoAAIAAAxNYWNpbnRvc2ggSEQAAAAAAAAAAAAAAAAAAADSvOLdSCsAAAAWx3ofUHVyZWx5IEZ1bmN0aW9uYWwgTCMxMUQ1RTBCLnBkZgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR1eC9TTajVQREYgAAAAAAACAAMAAAkgAAAAAAAAAAAAAAAAAAAABUN1cnJ5AAAQAAgAANK81M0AAAARAAgAANTTXCUAAAABABQAFsd6ABbHdgAJXXYACV11AAYsowACAFJNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AEN1cnJ5OgBQdXJlbHkgRnVuY3Rpb25hbCBMIzExRDVFMEIucGRmAA4AcgA4AFAAdQByAGUAbAB5ACAARgB1AG4AYwB0AGkAbwBuAGEAbAAgAEwAYQB6AHkAIABOAG8AbgAtAGQAZQB0AGUAcgBtAGkAbgBpAHMAdABpAGMAIABQAHIAbwBnAHIAYQBtAG0AaQBuAGcALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAFlVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9DdXJyeS9QdXJlbHkgRnVuY3Rpb25hbCBMYXp5IE5vbi1kZXRlcm1pbmlzdGljIFByb2dyYW1taW5nLnBkZgAAEwABLwAAFQACAAr//wAAgAbSGxwdHlokY2xhc3NuYW1lWCRjbGFzc2VzXU5TTXV0YWJsZURhdGGjHR8gVk5TRGF0YVhOU09iamVjdNIbHCIjXE5TRGljdGlvbmFyeaIiIF8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAtADIANwBAAEYATQBVAGAAZwBqAGwAbgBxAHMAdQB3AIQAjgDcAOEA6QMVAxcDHAMnAzADPgNCA0kDUgNXA2QDZwN5A3wDgQAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAAOD},
+  keywords = {call-time choice,continuations,monads,side effects}
+}
+
+@phdthesis{fischer2010functional,
+  title = {On {{Functional Logic Programming}} and Its {{Application}} to {{Testing}}},
+  author = {Fischer, Sebastian},
+  year = {2010},
+  school = {Christian-Albrechts University of Kiel, Germany},
+  type = {Dissertation Zur {{Erlangung}} Des Akademischen {{Grades Doktor}} Der {{Naturwissenschaften}} ({{Dr}}.Rer.Nat.)}
+}
+
+@inproceedings{ghani2007higher,
+  title = {Higher Dimensional Trees, Algebraically},
+  booktitle = {International {{Conference}} on {{Algebra}} and {{Coalgebra}} in {{Computer Science}}},
+  author = {Ghani, Neil and Kurz, Alexander},
+  year = {2007},
+  pages = {226--241},
+  organization = {{Springer}}
+}
+
+@inproceedings{gibbons2011just,
+  title = {Just Do It: {{Simple Monadic Equational Reasoning}}},
+  author = {Gibbons, Jeremy and Hinze, Ralf},
+  year = {2011},
+  pages = {2--14},
+  publisher = {{ACM}},
+  series = {{{ICFP}}'11}
+}
+
+@article{gibbonsproof,
+  title = {Proof {{Methods}} for {{Structured Corecursive Programs}}},
+  author = {Gibbons, Jeremy and Hutton, Graham},
+  pages = {15},
+  abstract = {Corecursive programs produce values of greatest fixpoint types, in contrast to recursive programs, which consume values of least fixpoint types. There are a number of widely used methods for proving properties of corecursive programs, including fixpoint induction, the take lemma, and coinduction. However, these methods are all rather low-level, in that they do not exploit the common structure that is often present in corecursive definitions. We argue for a more structured approach to proving properties of corecursive programs. In particular, we show that by writing corecursive programs using a simple operator that encapsulates a common pattern of corecursive definition, we can then use high-level algebraic properties of this operator to conduct proofs in a purely calculational style that avoids the use of inductive or coinductive methods.},
+  language = {English}
+}
+
+@inproceedings{gonzalez1996rewriting,
+  title = {A Rewriting Logic for Declarative Programming},
+  booktitle = {European {{Symposium}} on {{Programming}}},
+  author = {{Gonz{\'a}lez-Moreno}, Juan C and {Hortal{\'a}-Gonz{\'a}lez}, Maria Teresa and {L{\'o}pez-Fraguas}, Francisco Javier and {Rodr{\'i}guez-Artalejo}, Mario},
+  year = {1996},
+  pages = {156--172},
+  organization = {{Springer}}
+}
+
+@article{goodman2008churchCoRR,
+  title = {Church: A {{Language}} for {{Generative Models}}},
+  author = {Goodman, Noah D. and Mansinghka, Vikash K. and Roy, Daniel M. and Bonawitz, Keith and Tenenbaum, Joshua B.},
+  year = {2008},
+  pages = {220--229},
+  journal = {CoRR}
+}
+
+@misc{goodman2014design,
+  title = {The {{Design}} and {{Implementation}} of {{Probabilistic Programming Languages}}},
+  author = {Goodman, Noah D. and Stuhlm{\"u}ller, Andreas},
+  year = {2014},
+  howpublished = {http://dippl.org}
+}
+
+@inproceedings{gordon2014probabilistic,
+  title = {Probabilistic {{Programming}}},
+  booktitle = {Proceedings of the on {{Future}} of {{Software Engineering}}},
+  author = {Gordon, Andrew D. and Henzinger, Thomas A. and Nori, Aditya V. and Rajamani, Sriram K.},
+  year = {2014},
+  pages = {167--181},
+  publisher = {{ACM}},
+  address = {{Hyderabad, India}},
+  doi = {10.1145/2593882.2593900},
+  series = {{{FOSE}} '14}
+}
+
+@article{hanus1994integration,
+  title = {The {{Integration}} of {{Functions}} into {{Logic Programming}}: {{From Theory}} to {{Practice}}},
+  author = {Hanus, Michael},
+  year = {1994},
+  pages = {583--628},
+  journal = {Journal of Logic Programming}
+}
+
+@inproceedings{hanus1995curry,
+  title = {Curry: {{A}} Truly Functional Logic Language},
+  booktitle = {Proc. {{ILPS}}},
+  author = {Hanus, Michael and Kuchen, Herbert and {Moreno-Navarro}, Juan Jose},
+  year = {1995},
+  volume = {95},
+  pages = {95--107},
+  number = {5}
+}
+
+@book{hanus2014kics2,
+  title = {{{KiCS2}} - {{The Kiel Curry System User Manual Version}} 0.3.2 of 2014-07-30},
+  author = {Hanus, Michael and Bra{\ss}el, Bernd and Peem{\"o}ller, Bj{\"o}rn and Reck, Fabian},
+  year = {2014}
+}
+
+@book{hanus2017pakcs,
+  title = {{{PAKCS}}: {{The Portland Aachen Kiel Curry System}}},
+  author = {Hanus, Michael},
+  year = {2017}
+}
+
+@inproceedings{hinze2000new,
+  title = {A New Approach to Generic Functional Programming},
+  booktitle = {Proceedings of the 27th {{ACM SIGPLAN}}-{{SIGACT}} Symposium on {{Principles}} of Programming Languages},
+  author = {Hinze, Ralf},
+  year = {2000},
+  pages = {119--132},
+  organization = {{ACM}}
+}
+
+@book{horowitz1983fundamentals,
+  title = {Fundamentals of Programming Languages},
+  author = {Horowitz, Ellis},
+  year = {1983},
+  publisher = {{Springer Science \& Business Media}}
+}
+
+@inproceedings{hudak2007history,
+  title = {A {{History}} of {{Haskell}}: {{Being Lazy}} with {{Class}}},
+  booktitle = {Proceedings of the {{Third ACM SIGPLAN Conference}} on {{History}} of {{Programming Languages}}},
+  author = {Hudak, Paul and Hughes, John and Peyton Jones, Simon and Wadler, Philip},
+  year = {2007},
+  pages = {12-1--12-55},
+  series = {{{HOPL III}}}
+}
+
+@article{huffman2012formal,
+  title = {Formal {{Verification}} of {{Monad Transformers}}},
+  author = {Huffman, Brian},
+  year = {2012},
+  month = jul,
+  abstract = {We present techniques for reasoning about constructor classes that (like the monad class) fix polymorphic operations and assert polymorphic axioms. We do not require a logic with first-class type constructors, first-class polymorphism, or type quantification; instead, we rely on a domain-theoretic model of the type system in a universal domain to provide these features.},
+  archivePrefix = {arXiv},
+  eprint = {1207.3208},
+  eprinttype = {arxiv},
+  journal = {arXiv:1207.3208 [cs]},
+  keywords = {Computer Science - Logic in Computer Science,F.3.1},
+  language = {English},
+  primaryClass = {cs}
 }
 
 @inproceedings{hutton2008reasoning,
@@ -1185,125 +725,590 @@
   year = {2008}
 }
 
-@incollection{altenkirch2003generic,
-  title = {Generic Programming within Dependently Typed Programming},
-  booktitle = {Generic Programming},
-  publisher = {{Springer}},
-  author = {Altenkirch, Thorsten and McBride, Conor},
-  year = {2003},
-  pages = {1-20}
+@book{hutton2016programming,
+  title = {Programming in Haskell},
+  author = {Hutton, Graham},
+  year = {2016},
+  publisher = {{Cambridge University Press}}
 }
 
-@inproceedings{hinze2000new,
-  title = {A New Approach to Generic Functional Programming},
-  booktitle = {Proceedings of the 27th {{ACM SIGPLAN}}-{{SIGACT}} Symposium on {{Principles}} of Programming Languages},
-  author = {Hinze, Ralf},
-  year = {2000},
-  pages = {119-132},
+@inproceedings{jeuring2012testing,
+  title = {Testing {{Type Class Laws}}},
+  booktitle = {{{ACM SIGPLAN Notices}}},
+  author = {Jeuring, Johan and Jansson, Patrik and Amaral, Cl{\'a}udio},
+  year = {2012},
+  volume = {47},
+  pages = {49--60},
+  number = {12},
   organization = {{ACM}}
 }
 
-@inproceedings{hanus1995curry,
-  title = {Curry: {{A}} Truly Functional Logic Language},
-  volume = {95},
-  booktitle = {Proc. {{ILPS}}},
-  author = {Hanus, Michael and Kuchen, Herbert and {Moreno-Navarro}, Juan Jose},
-  year = {1995},
-  pages = {95-107},
-  number = {5}
+@inproceedings{johann2004free,
+  title = {Free {{Theorems}} in the {{Presence}} of Seq},
+  booktitle = {Proceedings of the 31st {{ACM SIGPLAN}}-{{SIGACT Symposium}} on {{Principles}} of {{Programming Languages}}},
+  author = {Johann, Patricia and Voigtl{\"a}nder, Janis},
+  year = {2004},
+  pages = {99--110},
+  publisher = {{ACM}},
+  doi = {10.1145/982962.964010},
+  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QQy4uLy4uL1BhcGVycy9GcmVlIFRoZW9yZW1zL0ZyZWUgVGhlb3JlbXMgaW4gdGhlIFByZXNlbmNlIG9mIHNlcS5wZGbSFwsYGVdOUy5kYXRhTxECEAAAAAACEAACAAAMTWFjaW50b3NoIEhEAAAAAAAAAAAAAAAAAAAA0rzi3UgrAAAAbiGkH0ZyZWUgVGhlb3JlbXMgaW4gdGgjMUVEQzFENS5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHtwdXWIl3uAAAAAAAAAAAAAgADAAAJIAAAAAAAAAAAAAAAAAAAAA1GcmVlIFRoZW9yZW1zAAAQAAgAANK81M0AAAARAAgAANYiT94AAAABABQAbiGkABbHdgAJXXYACV11AAYsowACAFpNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AEZyZWUgVGhlb3JlbXM6AEZyZWUgVGhlb3JlbXMgaW4gdGgjMUVEQzFENS5wZGYADgBSACgARgByAGUAZQAgAFQAaABlAG8AcgBlAG0AcwAgAGkAbgAgAHQAaABlACAAUAByAGUAcwBlAG4AYwBlACAAbwBmACAAcwBlAHEALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAFFVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9GcmVlIFRoZW9yZW1zL0ZyZWUgVGhlb3JlbXMgaW4gdGhlIFByZXNlbmNlIG9mIHNlcS5wZGYAABMAAS8AABUAAgAK//8AAIAG0hscHR5aJGNsYXNzbmFtZVgkY2xhc3Nlc11OU011dGFibGVEYXRhox0fIFZOU0RhdGFYTlNPYmplY3TSGxwiI1xOU0RpY3Rpb25hcnmiIiBfEA9OU0tleWVkQXJjaGl2ZXLRJidUcm9vdIABAAgAEQAaACMALQAyADcAQABGAE0AVQBgAGcAagBsAG4AcQBzAHUAdwCEAI4A1ADZAOEC9QL3AvwDBwMQAx4DIgMpAzIDNwNEA0cDWQNcA2EAAAAAAAACAQAAAAAAAAAoAAAAAAAAAAAAAAAAAAADYw==},
+  keywords = {controlling strict evaluation,correctness proofs,denotational semantics,Haskell,logical relations,parametricity,program transformations,short cut fusion,theorems for free}
 }
 
-@book{arnold2005java,
-  title = {The Java Programming Language},
-  publisher = {{Addison Wesley Professional}},
-  author = {Arnold, Ken and Gosling, James and Holmes, David},
-  year = {2005}
+@inproceedings{johann2010generic,
+  title = {A {{Generic Operational Metatheory}} for {{Algebraic Effects}}},
+  booktitle = {2010 25th {{Annual IEEE Symposium}} on {{Logic}} in {{Computer Science}}},
+  author = {Johann, Patricia and Simpson, Alex and Voigtl{\"a}nder, Janis},
+  year = {2010},
+  month = jul,
+  pages = {209--218},
+  publisher = {{IEEE}},
+  address = {{Edinburgh, United Kingdom}},
+  abstract = {We provide a syntactic analysis of contextual preorder and equivalence for a polymorphic programming language with effects. Our approach applies uniformly across a range of algebraic effects, and incorporates, as instances: errors, input/output, global state, nondeterminism, probabilistic choice, and combinations thereof. Our approach is to extend Plotkin and Power's structural operational semantics for algebraic effects (FoSSaCS 2001) with a primitive ``basic preorder'' on ground type computation trees. The basic preorder is used to derive notions of contextual preorder and equivalence on program terms. Under mild assumptions on this relation, we prove fundamental properties of contextual preorder (hence equivalence) including extensionality properties and a characterisation via applicative contexts, and we provide machinery for reasoning about polymorphism using relational parametricity.},
+  language = {English}
 }
 
-@article{czaplicki2012elm,
-  title = {Elm: {{Concurrent FRP}} for Functional {{GUIs}}},
-  journal = {Senior thesis, Harvard University},
-  author = {Czaplicki, Evan},
-  year = {2012}
+@article{johnson1963generation,
+  title = {Generation of {{Permutations}} by {{Adjacent Transposition}}},
+  author = {Johnson, Selmer M},
+  year = {1963},
+  pages = {282--285},
+  journal = {Mathematics of computation}
 }
 
-@misc{2019reasonml,
-  title = {{{ReasonML}}},
-  abstract = {Simple, fast \& type safe code that leverages the JavaScript \& OCaml ecosystems},
-  howpublished = {https://reasonml.github.io/},
-  year = {2019}
+@book{jones2002haskell,
+  title = {Haskell 98 {{Language}} and {{Libraries}}: {{The Revised Report}}},
+  editor = {Jones, Simon Peyton},
+  year = {2002},
+  month = sep,
+  keywords = {functional-programming haskell}
+}
+
+@inproceedings{kammar2013handlers,
+  title = {Handlers in Action},
+  booktitle = {{{ACM SIGPLAN Notices}}},
+  author = {Kammar, Ohad and Lindley, Sam and Oury, Nicolas},
+  year = {2013},
+  volume = {48},
+  pages = {145--158},
+  number = {9},
+  organization = {{ACM}}
+}
+
+@article{kimmig2011implementation,
+  title = {On the {{Implementation}} of the {{Probabilistic Logic Programming Language ProbLog}}},
+  author = {Kimmig, Angelika and Demoen, Bart and De Raedt, Luc and Costa, V{\'i}tor Santos and Rocha, Ricardo},
+  year = {2011},
+  volume = {11},
+  pages = {235 -- 262},
+  doi = {10.1017/S1471068410000566}
+}
+
+@inproceedings{kiselyov2009embedded,
+  title = {Embedded {{Probabilistic Programming}}},
+  booktitle = {Domain-{{Specific Languages}}},
+  author = {Kiselyov, Oleg and Shan, Chung-chieh},
+  year = {2009},
+  pages = {360--384},
+  publisher = {{Springer Berlin Heidelberg}},
+  doi = {10.1007/978-3-642-03034-5_17},
+  abstract = {Two general techniques for implementing a domain-specific language (DSL) with less overhead are the finally-tagless embedding of object programs and the direct-style representation of side effects. We use these techniques to build a DSL for probabilistic programming, for expressing countable probabilistic models and performing exact inference and importance sampling on them. Our language is embedded as an ordinary OCaml library and represents probability distributions as ordinary OCaml programs. We use delimited continuations to reify probabilistic programs as lazy search trees, which inference algorithms may traverse without imposing any interpretive overhead on deterministic parts of a model. We thus take advantage of the existing OCaml implementation to achieve competitive performance and ease of use. Inference algorithms can easily be embedded in probabilistic programs themselves.}
+}
+
+@inproceedings{kiselyov2015freer,
+  title = {Freer {{Monads}}, {{More Extensible Effects}}},
+  booktitle = {Proceedings of the 2015 {{ACM SIGPLAN Symposium}} on {{Haskell}}},
+  author = {Kiselyov, Oleg and Ishii, Hiromi},
+  year = {2015},
+  pages = {94--105},
+  publisher = {{ACM}},
+  doi = {10.1145/2804302.2804319},
+  keywords = {coroutine,effect handler,effect interaction,free monad,Kan extension,open union,type and effect system}
+}
+
+@article{kiselyov2018eff,
+  title = {Eff Directly in {{OCaml}}},
+  author = {Kiselyov, Oleg and Sivaramakrishnan, KC},
+  year = {2018},
+  journal = {arXiv preprint arXiv:\textbackslash{}-1812.11664}
+}
+
+@inproceedings{koh2019interaction,
+  title = {From {{C}} to {{Interaction Trees}}: {{Specifying}}, {{Verifying}}, and {{Testing}} a {{Networked Server}}},
+  shorttitle = {From {{C}} to {{Interaction Trees}}},
+  booktitle = {Proceedings of the 8th {{ACM SIGPLAN International Conference}} on {{Certified Programs}} and {{Proofs}} - {{CPP}} 2019},
+  author = {Koh, Nicolas and Li, Yao and Li, Yishuai and Xia, Li-yao and Beringer, Lennart and Honor{\'e}, Wolf and Mansky, William and Pierce, Benjamin C. and Zdancewic, Steve},
+  year = {2019},
+  pages = {234--248},
+  publisher = {{ACM Press}},
+  address = {{Cascais, Portugal}},
+  abstract = {We present the first formal verification of a networked server implemented in C. Interaction trees, a general structure for representing reactive computations, are used to tie together disparate verification and testing tools (Coq, VST, and QuickChick) and to axiomatize the behavior of the operating system on which the server runs (CertiKOS). The main theorem connects a specification of acceptable server behaviors, written in a straightforward ``one client at a time'' style, with the CompCert semantics of the C program. The variability introduced by low-level buffering of messages and interleaving of multiple TCP connections is captured using network refinement, a variant of observational refinement.},
+  language = {English}
+}
+
+@inproceedings{launchbury1993natural,
+  title = {A Natural Semantics for Lazy Evaluation},
+  booktitle = {Proceedings of the 20th {{ACM SIGPLAN}}-{{SIGACT}} Symposium on {{Principles}} of Programming Languages},
+  author = {Launchbury, John},
+  year = {1993},
+  pages = {144--154},
+  organization = {{ACM}}
+}
+
+@techreport{leijen2016algebraic,
+  title = {Algebraic {{Effects}} for {{Functional Programming}}},
+  author = {Leijen, Daan},
+  year = {2016},
+  pages = {15},
+  institution = {{Microsoft Research}},
+  type = {Technical {{Report}}}
+}
+
+@inproceedings{letan2018modular,
+  title = {Modular {{Verification}} of {{Programs}} with {{Effects}} and {{Effect Handlers}} in {{Coq}}},
+  booktitle = {Formal {{Methods}}},
+  author = {Letan, Thomas and {R{\'e}gis-Gianas}, Yann and Chifflier, Pierre and Hiet, Guillaume},
+  year = {2018},
+  pages = {338--354},
+  publisher = {{Springer International Publishing}},
+  doi = {10.1007/978-3-319-95582-7_20},
+  abstract = {Modern computing systems have grown in complexity, and the attack surface has increased accordingly. Even though system components are generally carefully designed and even verified by different groups of people, the composition of these components is often regarded with less attention. This paves the way for ``architectural attacks'', a class of security vulnerabilities where the attacker is able to threaten the security of the system even if each of its components continues to act as expected. In this article, we introduce FreeSpec, a formalism built upon the key idea that components can be modelled as programs with algebraic effects to be realized by other components. FreeSpec allows for the modular modelling of a complex system, by defining idealized components connected together, and the modular verification of the properties of their composition. In addition, we have implemented a framework for the Coq proof assistant based on FreeSpec.}
+}
+
+@inproceedings{lindley2017be,
+  title = {Do {{Be Do Be Do}}},
+  booktitle = {Proceedings of the 44th {{ACM SIGPLAN Symposium}} on {{Principles}} of {{Programming Languages}}},
+  author = {Lindley, Sam and McBride, Conor and McLaughlin, Craig},
+  year = {2017},
+  pages = {500--514},
+  publisher = {{ACM}},
+  address = {{Paris, France}},
+  doi = {10.1145/3009837.3009897},
+  acmid = {3009897},
+  isbn = {978-1-4503-4660-3},
+  keywords = {algebraic effects,bidirectional typing,call-by-push-value,continuations,effect handlers,effect polymorphism,pattern matching},
+  numpages = {15},
+  series = {{{POPL}} 2017}
+}
+
+@article{lopez2018basic,
+  title = {Basic {{Operational Preorders}} for {{Algebraic Effects}} in {{General}}, and for {{Combined Probability}} and {{Nondeterminism}} in {{Particular}}},
+  author = {Lopez, Aliaume and Simpson, Alex},
+  year = {2018},
+  abstract = {The ``generic operational metatheory'' of Johann, Simpson and Voigtl{\"a}nder (LiCS 2010) defines contextual equivalence, in the presence of algebraic effects, in terms of a basic operational preorder on ground-type effect trees. We propose three general approaches to specifying such preorders: (i) operational (ii) denotational, and (iii) axiomatic; coinciding with the three major styles of program semantics. We illustrate these via a nontrivial case study: the combination of probabilistic choice with nondeterminism, for which we show that natural instantiations of the three specification methods (operational in terms of Markov decision processes, denotational using a powerdomain, and axiomatic) all determine the same canonical preorder. We do this in the case of both angelic and demonic nondeterminism.},
+  journal = {Schloss Dagstuhl - Leibniz-Zentrum fuer Informatik GmbH, Wadern/Saarbruecken, Germany},
+  language = {English}
+}
+
+@inproceedings{matthes2008recursion,
+  title = {Recursion on {{Nested Datatypes}} in {{Dependent Type Theory}}},
+  booktitle = {Conference on {{Computability}} in {{Europe}}},
+  author = {Matthes, Ralph},
+  year = {2008},
+  pages = {431--446},
+  organization = {{Springer}}
+}
+
+@inproceedings{mcbride2015turingcompleteness,
+  title = {Turing-{{Completeness Totally Free}}},
+  booktitle = {Mathematics of {{Program Construction}}},
+  author = {McBride, Conor},
+  year = {2015},
+  pages = {257--275},
+  publisher = {{Springer International Publishing}},
+  doi = {10.1007/978-3-319-19797-5_13},
+  abstract = {In this paper, I show that general recursive definitions can be represented in the free monad which supports the `effect' of making a recursive call, without saying how these calls should be executed. Diverse semantics can be given within a total framework by suitable monad morphisms. The Bove-Capretta construction of the domain of a general recursive function can be presented datatype-generically as an instance of this technique. The paper is literate Agda, but its key ideas are more broadly transferable.}
+}
+
+@inproceedings{mccallum2009factorie,
+  title = {{{FACTORIE}}: {{Probabilistic Programming}} via {{Imperatively Defined Factor Graphs}}},
+  booktitle = {Proceedings of the {{International Conference}} on {{Neural Information Processing Systems}}},
+  author = {McCallum, Andrew and Schultz, Karl and Singh, Sameer},
+  year = {2009},
+  address = {{Vancouver, British Columbia, Canada}}
+}
+
+@inproceedings{mehner2014parametricity,
+  title = {Parametricity and {{Proving Free Theorems}} for {{Functional}}-{{Logic Languages}}},
+  booktitle = {Proceedings of the 16th {{International Symposium}} on {{Principles}} and {{Practice}} of {{Declarative Programming}}},
+  author = {Mehner, Stefan and Seidel, Daniel and Stra{\ss}burger, Lutz and Voigtl{\"a}nder, Janis},
+  year = {2014},
+  pages = {19--30},
+  publisher = {{ACM}},
+  doi = {10.1145/2643135.2643147},
+  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QZS4uLy4uL1BhcGVycy9GcmVlIFRoZW9yZW1zL1BhcmFtZXRyaWNpdHkgYW5kIFByb3ZpbmcgRnJlZSBUaGVvcmVtcyBmb3IgRnVuY3Rpb25hbC1Mb2dpYyBMYW5ndWFnZXMucGRm0hcLGBlXTlMuZGF0YU8RAnYAAAAAAnYAAgAADE1hY2ludG9zaCBIRAAAAAAAAAAAAAAAAAAAANK84t1IKwAAAG4hpB9QYXJhbWV0cmljaXR5IGFuZCBQIzExMjBBQjcucGRmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEgq31MMfBVBERiAAAAAAAAIAAwAACSAAAAAAAAAAAAAAAAAAAAANRnJlZSBUaGVvcmVtcwAAEAAIAADSvNTNAAAAEQAIAADUwxD1AAAAAQAUAG4hpAAWx3YACV12AAlddQAGLKMAAgBaTWFjaW50b3NoIEhEOlVzZXJzOgBqYWM6AERvY3VtZW50czoAUGFwZXJzOgBGcmVlIFRoZW9yZW1zOgBQYXJhbWV0cmljaXR5IGFuZCBQIzExMjBBQjcucGRmAA4AlgBKAFAAYQByAGEAbQBlAHQAcgBpAGMAaQB0AHkAIABhAG4AZAAgAFAAcgBvAHYAaQBuAGcAIABGAHIAZQBlACAAVABoAGUAbwByAGUAbQBzACAAZgBvAHIAIABGAHUAbgBjAHQAaQBvAG4AYQBsAC0ATABvAGcAaQBjACAATABhAG4AZwB1AGEAZwBlAHMALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAHNVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9GcmVlIFRoZW9yZW1zL1BhcmFtZXRyaWNpdHkgYW5kIFByb3ZpbmcgRnJlZSBUaGVvcmVtcyBmb3IgRnVuY3Rpb25hbC1Mb2dpYyBMYW5ndWFnZXMucGRmAAATAAEvAAAVAAIACv//AACABtIbHB0eWiRjbGFzc25hbWVYJGNsYXNzZXNdTlNNdXRhYmxlRGF0YaMdHyBWTlNEYXRhWE5TT2JqZWN00hscIiNcTlNEaWN0aW9uYXJ5oiIgXxAPTlNLZXllZEFyY2hpdmVy0SYnVHJvb3SAAQAIABEAGgAjAC0AMgA3AEAARgBNAFUAYABnAGoAbABuAHEAcwB1AHcAhACOAPYA+wEDA30DfwOEA48DmAOmA6oDsQO6A78DzAPPA+ED5APpAAAAAAAAAgEAAAAAAAAAKAAAAAAAAAAAAAAAAAAAA+s=},
+  keywords = {Curry,free theorems,functional logic programming}
 }
 
 @book{minsky2013real,
   title = {Real World {{OCaml}}: Functional Programming for the Masses},
-  publisher = {{" O'Reilly Media, Inc."}},
   author = {Minsky, Yaron and Madhavapeddy, Anil and Hickey, Jason},
-  year = {2013}
+  year = {2013},
+  publisher = {{" O'Reilly Media, Inc."}}
 }
 
-@article{smyth1982category,
-  title = {The Category-Theoretic Solution of Recursive Domain Equations},
-  volume = {11},
-  number = {4},
-  journal = {SIAM Journal on Computing},
-  author = {Smyth, Michael B and Plotkin, Gordon D},
-  year = {1982},
-  pages = {761-783},
-  publisher = {{SIAM}}
+@inproceedings{nampally2015constraintbased,
+  title = {Constraint-{{Based Inference}} in {{Probabilistic Logic Programs}}.},
+  booktitle = {Workshop on {{Probabilistic Programming}}},
+  author = {Nampally, Arun and Ramakrishnan, Cartic R},
+  year = {2015},
+  pages = {46--56}
 }
 
-@article{ariola1997call,
-  title = {The Call-by-Need Lambda Calculus},
-  volume = {7},
-  number = {3},
-  journal = {Journal of Functional Programming},
-  author = {Ariola, Zena M and Felleisen, Matthias},
-  year = {1997},
-  pages = {265-301},
-  publisher = {{Cambridge University Press}}
+@inproceedings{norell2008dependently,
+  title = {Dependently {{Typed Programming}} in {{Agda}}},
+  booktitle = {International {{School}} on {{Advanced Functional Programming}}},
+  author = {Norell, Ulf},
+  year = {2008},
+  pages = {230--266},
+  organization = {{Springer}}
 }
 
-@phdthesis{filinski1996controlling,
-  title = {Controlling {{Effects}}},
-  school = {Carnegie-Mellom University Pittsburgh},
-  author = {Filinski, Andrezej},
-  year = {1996}
-}
-
-@article{wadler1997declare,
-  title = {How to Declare an Imperative},
-  volume = {29},
-  number = {3},
-  journal = {ACM Computing Surveys (CSUR)},
-  author = {Wadler, Philip},
-  year = {1997},
-  pages = {240-263},
-  publisher = {{ACM}}
+@inproceedings{paige2014compilation,
+  title = {A {{Compilation Target}} for {{Probabilistic Programming Languages}}},
+  booktitle = {Proceedings of the {{International Conference}} on {{Machine Learning}}},
+  author = {Paige, Brooks and Wood, Frank},
+  year = {2014},
+  address = {{Beijing, China}}
 }
 
 @book{pearl2014probabilistic,
   title = {Probabilistic Reasoning in Intelligent Systems: Networks of Plausible Inference},
-  publisher = {{Elsevier}},
   author = {Pearl, Judea},
-  year = {2014}
+  year = {2014},
+  publisher = {{Elsevier}}
 }
 
-@inproceedings{alqaddoumi2010pull,
-  title = {The Pull-Tab Transformation},
-  booktitle = {Proceedings of the Third International Workshop on Graph Computation Models},
-  author = {Alqaddoumi, Abdulla and Antoy, Sergio and Fischer, Sebastian and Reck, Fabian},
-  year = {2010},
-  pages = {127-132},
-  organization = {{Citeseer}}
+@inproceedings{pfenning1988higher,
+  title = {Higher-Order Abstract Syntax},
+  booktitle = {{{ACM}} Sigplan Notices},
+  author = {Pfenning, Frank and Elliott, Conal},
+  year = {1988},
+  volume = {23},
+  pages = {199--208},
+  number = {7},
+  organization = {{ACM}}
 }
 
-@article{dylus2019implementing,
-  title = {Implementing a Library for Probabilistic Programming Using Non-Strict Non-Determinism},
-  journal = {Theory and Practice of Logic Programming},
-  doi = {10.1017/S1471068419000085},
-  author = {Dylus, Sandra and Christiansen, Jan and Teegen, Finn},
+@article{phoasynthetic,
+  title = {The {{Synthetic Plotkin Powerdomain}}},
+  author = {Phoa, Wesley and Taylor, Paul},
+  pages = {15},
+  abstract = {Plotkin [1976] introduced a powerdomain construction on domains in order to give semantics to a non-deterministic binary choice constructor, and later [1979] characterised it as the free semilattice. Smyth [1983] and Winskel [1985] showed that it could be interpreted in terms of modal predicate transformers and Robinson [1986] recognised it as a special case of Johnstone's [1982] Vietoris construction, which itself generalises the Hausdorff metric on the set of closed subsets of a metric space. The domain construction involves a curious order relation known as the Egli-Milner order.},
+  language = {English}
+}
+
+@article{pierce2010software,
+  title = {Software {{Foundations}}},
+  author = {Pierce, Benjamin C and Casinghino, Chris and Gaboardi, Marco and Greenberg, Michael and Hri{\c t}cu, C{\u a}t{\u a}lin and Sj{\"o}berg, Vilhelm and Yorgey, Brent},
+  year = {2010}
+}
+
+@article{pirog2012tracing,
+  title = {Tracing {{Monadic Computations}} and {{Representing Effects}}},
+  author = {Pir{\'o}g, Maciej and Gibbons, Jeremy},
+  year = {2012},
+  month = feb,
+  volume = {76},
+  pages = {90--111},
+  journal = {Electronic Proceedings in Theoretical Computer Science},
+  language = {English}
+}
+
+@inproceedings{pirog2018syntax,
+  title = {Syntax and {{Semantics}} for {{Operations}} with {{Scopes}}},
+  booktitle = {Proceedings of the 33rd {{Annual ACM}}/{{IEEE Symposium}} on {{Logic}} in {{Computer Science}}},
+  author = {Pir{\'o}g, Maciej and Schrijvers, Tom and Wu, Nicolas and Jaskelioff, Mauro},
+  year = {2018},
+  pages = {809--818},
+  publisher = {{ACM}},
+  address = {{Oxford, United Kingdom}},
+  doi = {10.1145/3209108.3209166},
+  isbn = {978-1-4503-5583-4},
+  keywords = {algebraic effects,effect handler,free monad},
+  series = {{{LICS}} '18}
+}
+
+@inproceedings{plotkin2009handlers,
+  title = {Handlers of Algebraic Effects},
+  booktitle = {European {{Symposium}} on {{Programming}}},
+  author = {Plotkin, Gordon and Pretnar, Matija},
+  year = {2009},
+  pages = {80--94},
+  organization = {{Springer}}
+}
+
+@article{pretnar2015introduction,
+  title = {An Introduction to Algebraic Effects and Handlers. Invited Tutorial Paper},
+  author = {Pretnar, Matija},
+  year = {2015},
+  volume = {319},
+  pages = {19--35},
+  publisher = {{Elsevier}},
+  journal = {Electronic Notes in Theoretical Computer Science}
+}
+
+@inproceedings{runciman2008smallcheck,
+  title = {{{SmallCheck}} and {{Lazy SmallCheck}}: {{Automatic Exhaustive Testing}} for {{Small Values}}},
+  booktitle = {Proceedings of the {{First ACM SIGPLAN Symposium}} on {{Haskell}}},
+  author = {Runciman, Colin and Naylor, Matthew and Lindblad, Fredrik},
+  year = {2008},
+  pages = {37--48},
+  publisher = {{ACM}},
+  address = {{Victoria, BC, Canada}},
+  doi = {10.1145/1411286.1411292},
+  series = {Haskell '08}
+}
+
+@article{santos1995compilation,
+  title = {Compilation by {{Transformation}} in {{Non}}-{{Strict Functional Languages}}},
+  author = {Santos, Andr{\'e} L de M},
+  year = {1995},
+  publisher = {{Citeseer}}
+}
+
+@inproceedings{scibior2015practical,
+  title = {Practical {{Probabilistic Programming}} with {{Monads}}},
+  booktitle = {Proceedings of the 2015 {{ACM SIGPLAN Symposium}} on {{Haskell}}},
+  author = {{\'S}cibior, Adam and Ghahramani, Zoubin and Gordon, Andrew D.},
+  year = {2015},
+  pages = {165--176},
+  publisher = {{ACM}},
+  address = {{Vancouver, BC, Canada}},
+  doi = {10.1145/2804302.2804317},
+  series = {Haskell '15}
+}
+
+@article{sedgewick1977permutation,
+  title = {Permutation {{Generation Methods}}},
+  author = {Sedgewick, Robert},
+  year = {1977},
+  pages = {137--164},
+  journal = {ACM Computing Surveys (CSUR)}
+}
+
+@article{sheard2004twolevel,
+  title = {Two-{{Level Types}} and {{Parameterized Modules}}},
+  author = {Sheard, Tim and Pasalic, Emir},
+  year = {2004},
+  month = sep,
+  volume = {14},
+  pages = {547--587},
+  abstract = {In this paper, we describe two techniques for the efficient, modularized implementation of a large class of algorithms. We illustrate these techniques using several examples, including efficient generic unification algorithms that use reference cells to encode substitutions, and highly modular language implementations.},
+  journal = {Journal of Functional Programming},
+  language = {English},
+  number = {5}
+}
+
+@article{smyth1982category,
+  title = {The Category-Theoretic Solution of Recursive Domain Equations},
+  author = {Smyth, Michael B and Plotkin, Gordon D},
+  year = {1982},
+  volume = {11},
+  pages = {761--783},
+  publisher = {{SIAM}},
+  journal = {SIAM Journal on Computing},
+  number = {4}
+}
+
+@inproceedings{spector-zabusky2018total,
+  title = {Total {{Haskell}} Is {{Reasonable Coq}}},
+  booktitle = {Proceedings of the 7th {{ACM SIGPLAN International Conference}} on {{Certified Programs}} and {{Proofs}}},
+  author = {{Spector-Zabusky}, Antal and Breitner, Joachim and Rizkallah, Christine and Weirich, Stephanie},
+  year = {2018},
+  pages = {14--27},
+  publisher = {{ACM}},
+  address = {{New York, NY, USA}},
+  doi = {10.1145/3167092},
+  abstract = {We would like to use the Coq proof assistant to mechanically verify properties of Haskell programs. To that end, we present a tool, named {$<$}tt{$>$}hs-to-coq{$<$}/tt{$>$}, that translates total Haskell programs into Coq programs via a shallow embedding. We apply our tool in three case studies \textendash{} a lawful {$<$}tt{$>$}Monad{$<$}/tt{$>$} instance, ``Hutton's razor'', and an existing data structure library \textendash{} and prove their correctness. These examples show that this approach is viable: both that {$<$}tt{$>$}hs-to-coq{$<$}/tt{$>$} applies to existing Haskell code, and that the output it produces is amenable to verification.},
+  file = {/Users/sad/Zotero/storage/Z5QLKAF6/Spector-Zabusky et al. - 2018 - Total Haskell is Reasonable Coq.pdf},
+  isbn = {978-1-4503-5586-5},
+  keywords = {Coq,Haskell,verification},
+  series = {{{CPP}} 2018}
+}
+
+@article{sternagel2013proof,
+  title = {Proof {{Pearl}}\textemdash{{A Mechanized Proof}} of {{GHC}}'s {{Mergesort}}},
+  author = {Sternagel, Christian},
+  year = {2013},
+  month = dec,
+  volume = {51},
+  pages = {357--370},
+  abstract = {We present our Isabelle/HOL formalization of GHC's sorting algorithm for lists, proving its correctness and stability. This constitutes another example of applying a state-of-the-art proof assistant to real-world code. Furthermore, it allows users to take advantage of the formalized algorithm in generated code.},
+  journal = {Journal of Automated Reasoning},
+  language = {English},
+  number = {4}
+}
+
+@inproceedings{swamy2016dependent,
+  title = {Dependent {{Types}} and {{Multi}}-{{Monadic Effects}} in {{F}}*},
+  booktitle = {43rd {{ACM SIGPLAN}}-{{SIGACT Symposium}} on {{Principles}} of {{Programming Languages}} ({{POPL}})},
+  author = {Swamy, Nikhil and Hritcu, Catalin and Keller, Chantal and Rastogi, Aseem and {Delignat-Lavaud}, Antoine and Forest, Simon and Bhargavan, Karthikeyan and Fournet, C{\'e}dric and Strub, Pierre-Yves and Kohlweiss, Markulf and Zinzindohou{\'e}, Jean-Karim and {Zanella-B{\'e}guelin}, Santiago},
+  year = {2016},
+  month = jan,
+  pages = {256--270},
+  publisher = {{ACM}},
+  ee = {http://dx.doi.org/10.1145/2837614.2837655},
+  isbn = {978-1-4503-3549-2},
+  shortbooktitle = {POPL}
+}
+
+@article{swierstra2008data,
+  title = {Data {{Types}} {\`a} La {{Carte}}},
+  author = {Swierstra, Wouter},
+  year = {2008},
+  volume = {18},
+  pages = {423--436},
+  publisher = {Cambridge University Press},
+  location = {New York, NY, USA},
+  doi = {10.1017/S0956796808006758},
+  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QMi4uLy4uL1BhcGVycy9EYXRhIFN0cnVjdHVyZXMvRGF0YVR5cGVzQUxhQ2FydGUucGRm0hcLGBlXTlMuZGF0YU8RAdIAAAAAAdIAAgAADE1hY2ludG9zaCBIRAAAAAAAAAAAAAAAAAAAANK84t1IKwAAAKjdYhVEYXRhVHlwZXNBTGFDYXJ0ZS5wZGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqYCM1A/uGgAAAAAAAAAAAAIAAwAACSAAAAAAAAAAAAAAAAAAAAAPRGF0YSBTdHJ1Y3R1cmVzAAAQAAgAANK81M0AAAARAAgAANQP0foAAAABABQAqN1iABbHdgAJXXYACV11AAYsowACAFJNYWNpbnRvc2ggSEQ6VXNlcnM6AGphYzoARG9jdW1lbnRzOgBQYXBlcnM6AERhdGEgU3RydWN0dXJlczoARGF0YVR5cGVzQUxhQ2FydGUucGRmAA4ALAAVAEQAYQB0AGEAVAB5AHAAZQBzAEEATABhAEMAYQByAHQAZQAuAHAAZABmAA8AGgAMAE0AYQBjAGkAbgB0AG8AcwBoACAASABEABIAQFVzZXJzL2phYy9Eb2N1bWVudHMvUGFwZXJzL0RhdGEgU3RydWN0dXJlcy9EYXRhVHlwZXNBTGFDYXJ0ZS5wZGYAEwABLwAAFQACAAr//wAAgAbSGxwdHlokY2xhc3NuYW1lWCRjbGFzc2VzXU5TTXV0YWJsZURhdGGjHR8gVk5TRGF0YVhOU09iamVjdNIbHCIjXE5TRGljdGlvbmFyeaIiIF8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAtADIANwBAAEYATQBVAGAAZwBqAGwAbgBxAHMAdQB3AIQAjgDDAMgA0AKmAqgCrQK4AsECzwLTAtoC4wLoAvUC+AMKAw0DEgAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAAMU},
+  journal = {Journal of Functional Programming},
+  number = {4}
+}
+
+@article{swierstrafunctional,
+  title = {A {{Functional Semantics}} for the {{Awkward Squad}}},
+  author = {Swierstra, Wouter and Altenkirch, Thorsten},
+  pages = {12},
+  abstract = {It can be very difficult to debug impure code, let alone prove its correctness. To address these problems, we provide a functional specification of three central components of Peyton Jones's awkward squad: teletype IO, mutable state, and concurrency. By constructing an internal model of such concepts within our programming language, we can test, debug, and reason about programs that perform IO as if they were pure. In particular, we demonstrate how our specifications may be used in tandem with QuickCheck to automatically test complex pointer algorithms and concurrent programs.},
+  language = {English}
+}
+
+@article{trotter1962algorithm,
+  title = {Algorithm 115: {{Perm}}},
+  author = {Trotter, H. F.},
+  year = {1962},
+  pages = {434--435},
+  journal = {Commun. ACM}
+}
+
+@inproceedings{uustalu2017container,
+  title = {Container {{Combinatorics}}: {{Monads}} and {{Lax Monoidal Functors}}},
+  booktitle = {Topics in {{Theoretical Computer Science}}},
+  author = {Uustalu, Tarmo},
+  year = {2017},
+  pages = {91--105},
+  publisher = {{Springer International Publishing}},
+  doi = {10.1007/978-3-319-68953-1}
+}
+
+@inproceedings{uustalu2017partiality,
+  title = {Partiality and {{Container Monads}}},
+  booktitle = {Programming {{Languages}} and {{Systems}}},
+  author = {Uustalu, Tarmo and Veltri, Niccol{\`o}},
+  editor = {Chang, Bor-Yuh Evan},
+  year = {2017},
+  pages = {406--425},
+  publisher = {{Springer International Publishing}},
+  abstract = {We investigate monads of partiality in Martin-L{\"o}f type theory, following Moggi's general monad-based method for modelling effectful computations. These monads are often called lifting monads and appear in category theory with different but related definitions. In this paper, we unveil the relationship between containers and lifting monads. We show that the lifting monads usually employed in type theory can be specified in terms of containers. Moreover, we give a precise characterization of containers whose interpretations carry a lifting monad structure. We show that these conditions are tightly connected with Rosolini's notion of dominance. We provide several examples, putting particular emphasis on Capretta's delay monad and its quotiented variant, the non-termination monad.},
+  isbn = {978-3-319-71237-6}
+}
+
+@incollection{vaneekelen2006proof,
+  title = {Proof {{Tool Support}} for {{Explicit Strictness}}},
+  booktitle = {Implementation and {{Application}} of {{Functional Languages}}},
+  author = {{van Eekelen}, Marko and {de Mol}, Maarten},
+  year = {2006},
+  volume = {4015},
+  pages = {37--54},
+  publisher = {{Springer Berlin Heidelberg}},
+  address = {{Berlin, Heidelberg}},
+  language = {English}
+}
+
+@book{vanlaarhoven2007haskell,
+  title = {Haskell Mailing List},
+  author = {{van Laarhoven}, Twan and others},
+  year = {2007},
+  month = dec
+}
+
+@article{varacca2006distributing,
+  title = {Distributing {{Probability}} over {{Non}}-Determinism},
+  author = {Varacca, Daniele and Winskel, Glynn},
+  year = {2006},
+  month = feb,
+  volume = {16},
+  pages = {87--113},
+  doi = {10.1017/S0960129505005074}
+}
+
+@inproceedings{wadler1985replace,
+  title = {How to {{Replace Failure}} by a {{List}} of {{Successes}}},
+  booktitle = {Proceedings of the {{International Conference}} on {{Functional Programming Languages}} and {{Computer Architecture}}},
+  author = {Wadler, Philip},
+  year = {1985},
+  pages = {113--128},
+  publisher = {{ACM}},
+  address = {{New York, NY, USA}},
+  bdsk-file-1 = {YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJXTlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAFgAdccmVsYXRpdmVQYXRoWWFsaWFzRGF0YV8QTi4uLy4uL1BhcGVycy9Ob24tRGV0ZXJtaW5pc20vSG93IHRvIHJlcGxhY2UgZmFpbHVyZSBieSBhIGxpc3Qgb2Ygc3VjY2Vzc2VzLnBkZtIXCxgZV05TLmRhdGFPEQIwAAAAAAIwAAIAAAxNYWNpbnRvc2ggSEQAAAAAAAAAAAAAAAAAAADSvOLdSCsAAAImrNofSG93IHRvIHJlcGxhY2UgZmFpbCMyMjZBQ0I5LnBkZgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiasudaaXN9QREYgAAAAAAACAAMAAAkgAAAAAAAAAAAAAAAAAAAAD05vbi1EZXRlcm1pbmlzbQAAEAAIAADSvNTNAAAAEQAIAADWmk7PAAAAAQAUAias2gAWx3YACV12AAlddQAGLKMAAgBcTWFjaW50b3NoIEhEOlVzZXJzOgBqYWM6AERvY3VtZW50czoAUGFwZXJzOgBOb24tRGV0ZXJtaW5pc206AEhvdyB0byByZXBsYWNlIGZhaWwjMjI2QUNCOS5wZGYADgBkADEASABvAHcAIAB0AG8AIAByAGUAcABsAGEAYwBlACAAZgBhAGkAbAB1AHIAZQAgAGIAeQAgAGEAIABsAGkAcwB0ACAAbwBmACAAcwB1AGMAYwBlAHMAcwBlAHMALgBwAGQAZgAPABoADABNAGEAYwBpAG4AdABvAHMAaAAgAEgARAASAFxVc2Vycy9qYWMvRG9jdW1lbnRzL1BhcGVycy9Ob24tRGV0ZXJtaW5pc20vSG93IHRvIHJlcGxhY2UgZmFpbHVyZSBieSBhIGxpc3Qgb2Ygc3VjY2Vzc2VzLnBkZgATAAEvAAAVAAIACv//AACABtIbHB0eWiRjbGFzc25hbWVYJGNsYXNzZXNdTlNNdXRhYmxlRGF0YaMdHyBWTlNEYXRhWE5TT2JqZWN00hscIiNcTlNEaWN0aW9uYXJ5oiIgXxAPTlNLZXllZEFyY2hpdmVy0SYnVHJvb3SAAQAIABEAGgAjAC0AMgA3AEAARgBNAFUAYABnAGoAbABuAHEAcwB1AHcAhACOAN8A5ADsAyADIgMnAzIDOwNJA00DVANdA2IDbwNyA4QDhwOMAAAAAAAAAgEAAAAAAAAAKAAAAAAAAAAAAAAAAAAAA44=}
+}
+
+@inproceedings{wadler1989theorems,
+  title = {Theorems for Free!},
+  booktitle = {Proceedings of the Fourth International Conference on {{Functional}} Programming Languages and Computer Architecture},
+  author = {Wadler, Philip},
+  year = {1989},
+  pages = {347--359},
+  publisher = {{ACM}},
+  keywords = {free theorems,Haskell}
+}
+
+@article{wadler1997declare,
+  title = {How to Declare an Imperative},
+  author = {Wadler, Philip},
+  year = {1997},
+  volume = {29},
+  pages = {240--263},
+  publisher = {{ACM}},
+  journal = {ACM Computing Surveys (CSUR)},
+  number = {3}
+}
+
+@article{wadler2015propositions,
+  title = {Propositions {{As Types}}},
+  author = {Wadler, Philip},
+  year = {2015},
+  month = nov,
+  volume = {58},
+  pages = {75--84},
+  issn = {0001-0782},
+  doi = {10.1145/2699407},
+  journal = {Communications of the ACM},
+  number = {12}
+}
+
+@inproceedings{wood2014new,
+  title = {A New {{Approach}} to {{Probabilistic Programming Inference}}},
+  booktitle = {Proceedings of the {{Seventeenth International Conference}} on {{Artificial Intelligence}} and {{Statistics}}},
+  author = {Wood, Frank and Meent, Jan Willem and Mansinghka, Vikash},
+  year = {2014},
+  pages = {1024--1032},
+  publisher = {{PMLR}},
+  address = {{Reykjavik, Iceland}},
+  series = {Proceedings of {{Machine Learning Research}}}
+}
+
+@inproceedings{wu2014effect,
+  title = {Effect {{Handlers}} in {{Scope}}},
+  booktitle = {Proceedings of the 2014 {{ACM SIGPLAN Symposium}} on {{Haskell}}},
+  author = {Wu, Nicolas and Schrijvers, Tom and Hinze, Ralf},
+  year = {2014},
+  pages = {1--12},
+  publisher = {{ACM}},
+  address = {{Gothenburg, Sweden}},
+  doi = {10.1145/2633357.2633358},
+  isbn = {978-1-4503-3041-1},
+  keywords = {effect handlers,Haskell,modularity,monads,semantics,syntax},
+  series = {Haskell '14}
+}
+
+@article{xia2019interaction,
+  title = {Interaction {{Trees}}: {{Representing Recursive}} and {{Impure Programs}} in {{Coq}} ({{Work In Progress}})},
+  author = {Xia, Li-yao and Zakowski, Yannick and He, Paul and Hur, Chung-Kil and Malecha, Gregory and Pierce, Benjamin C and Zdancewic, Steve},
   year = {2019},
-  pages = {1-29}
+  journal = {arXiv preprint arXiv:1906.00046}
 }
 
 
