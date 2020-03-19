@@ -262,7 +262,7 @@ Fail Inductive List (M : Type -> Type) (A : Type) :=
 
 Similar to \cinl{partial} that corresponds to the Maybe monad that we know from Haskell, we will be mostly interested in other monadic instantiations and follow the idea of monadic abstractions we discussed in \autoref{subsec:monadicAbstractions}.
 Thus, we name the type parameter \cinl{M} to indicate that it is a placeholder for a monadic type.
-This representation was already suggested by \citet{abel2005verifying}, who translated Haskell code into Agda~\citep{norell2008dependently} code in order to prove propositions about Haskell functions.
+This representation was already suggested by \citet{abel2005verifying}, who translated Haskell code into Agda~\citep{norell2009dependently} code in order to prove propositions about Haskell functions.
 Their approach, however, is not applicable in recent versions of Agda nor Coq anymore.
 When we try to compile the above definition, we get the following error message.
 
@@ -284,8 +284,8 @@ Fail Inductive NonStrictlyPos :=
 The data type \cinl{NonStrictlyPos} has no type parameters and only one unary constructor \cinl{con}.
 The argument of the constructor \cinl{con} is a function from \cinl{NonStrictlyPos} to \cinl{nat}.
 The domain of this function is the crucial part of the definition and the origin of the error message.
-As so often when using Coq, \citet{chlipala2011certified} is a great resource introducing typical obstacles beginners may face when using Coq for the first time.
-\citeauthor{chlipala2011certified} makes the following comment concerning Coq's strict positivity requirement.
+As so often when using Coq, \citet{chlipala2013certified} is a great resource introducing typical obstacles beginners may face when using Coq for the first time.
+\citeauthor{chlipala2013certified} makes the following comment concerning Coq's strict positivity requirement.
 
 \begin{quote}
 \emph{We have run afoul of the strict positivity requirement for inductive definitions, which says that the type being defined may not occur to the left of an arrow in the type of a constructor argument.}
@@ -1896,7 +1896,7 @@ In his attempt to combine several functional programming idioms to describe a te
 They were motivated by finding models for exception handlers, but also present algebraic theories for effects like non\--determinism, IO and state.
 For all these effects the underlying computation monad is the free\--model of the respective theory.
 That is, they derive the representation of free monads to model effects from an algebraic theory.
-Starting with their work on algebraic effects, by now there are implementations in Idris~\citep{brady2013programming}, Scala~\citep{brachthauser2017effekt}, OCaml~\citep{kiselyov2018eff}, and Haskell~\citep{kiselyov2015freer,kammar2013handlers} as well as new languages with primitives for effects and handlers like Eff~\citep{pretnar2015introduction}, Koka~\citep{leijen2016algebraic}, Frank~\citep{lindley2017be}, and F*~\citep{swamy2016dependent}.
+Starting with their work on algebraic effects, by now there are implementations in Idris~\citep{brady2013programming}, Scala~\citep{brachthauser2017effekt}, OCaml~\citep{kiselyov2016eff}, and Haskell~\citep{kiselyov2015freer,kammar2013handlers} as well as new languages with primitives for effects and handlers like Eff~\citep{pretnar2015introduction}, Koka~\citep{leijen2016algebraic}, Frank~\citep{lindley2017be}, and F*~\citep{swamy2016dependent}.
 
 Concerning modelling effects in dependently typed languages, \citet{mcbride2015turingcompleteness} introduces the \texttt{General} monad to model recursion in Agda.
 
@@ -1991,7 +1991,7 @@ This approach enables a more practical way to reason about some simple propertie
 
 Besides the generic view on modelling effects and the focus on modelling or reasoning about Haskell, we also take a look at related work on proving properties about functional logic programs to find connections and inspirations for our findings about modelling Curry programs.
 \citet{cleva2004logic} discuss that common equational reasoning techniques are not valid in functional logic languages that combine non\--deterministic functions and call\--time choice semantics.
-They suggest a proof calculus based on \emph{CRLW} (constructor\--based rewriting logic)~\citep{gonzalez1996rewriting} to prove properties about first\--order functional logic programs.
+They suggest a proof calculus based on \emph{CRLW} (constructor\--based rewriting logic)~\citep{gonzalez-moreno1996rewriting} to prove properties about first\--order functional logic programs.
 On top of that, they encode this approach in various proof assistants for simple exemplary programs and corresponding properties.
 
 Instead of using term rewriting systems like \emph{CRLW} as basis, \citet{fischer2009purely} present an embedding of Curry's functional logic features, that is, the combination of non\--strictness, sharing and non\--determinism, in the functional language Haskell.

@@ -3,7 +3,7 @@ Key applications of the probabilistic programming paradim are probabilistic proc
 PFLP makes heavy use of functional logic programming concepts and shows that this paradigm is well\--suited for implementing a library for probabilistic programming.
 In fact, there is a close connection between probabilistic programming and functional logic programming.
 For example, non\--deterministic choice and probabilistic choice are similar concepts.
-Furthermore, the concept of call\--time choice as known from functional logic programming coincides with (stochastic) memoisation \citep{deraedt2013probabilistic} in the area of probabilistic programming.
+Furthermore, the concept of call\--time choice as known from functional logic programming coincides with (stochastic) memoisation \citep{deraedt2007problog} in the area of probabilistic programming.
 We are not the first to observe this close connection between functional logic programming and probabilistic programming.
 For example,~\citet{fischer2009purely} present a library for modelling functional logic programs in the functional language Haskell.
 As they state, by extending their approach to weighted non\--determinism we can model a probabilistic programming language.
@@ -581,7 +581,7 @@ The difference to \cyinl{Plural} is that the trial identifier needs to be differ
 In the end, we have decided to go with the current modelling based on call\--time choice, because the alternative would work against the spirit of the Curry programming language.
 
 There is a long history of discussions about the pros and cons of call\--time choice and run\--time choice.
-It is common knowledge in probabilistic programming~\citep{deraedt2013probabilistic} that, in order to model stochastic automata or probabilistic grammars, memoisation --- that is, call\--time choice --- has to be avoided.
+It is common knowledge in probabilistic programming~\citep{deraedt2007problog} that, in order to model stochastic automata or probabilistic grammars, memoisation --- that is, call\--time choice --- has to be avoided.
 Similarly,~\citet{antoy2005evaluation} observes that you need run\--time choice to elegantly model regular expressions in the context of functional logic programming languages.
 Then again, probabilistic languages need a concept like memoisation in order to use a single value drawn from a distribution multiple times.
 
@@ -1378,7 +1378,7 @@ First, we start with an example already motivated in the introduction of this se
 We define a simple Bayesian network and corresponding queries using our library.
 The second case study concerns examples that have been characterised as challenging
 for probabilistic logic programming by
-\citet{nampally2015constraintbased}, who use the example to discuss
+\citet{nampally2018constraintbased}, who use the example to discuss
 the expressiveness of probabilistic logic programming and its cost
 with respect to performance.
 These examples focus on properties of random strings and their probabilities.
@@ -2282,7 +2282,7 @@ Considering these restrictions, we showed that the library obeys the expected mo
 The basis of this chapter has been published previously.
 The general introduction of the library and its implementation ideas have been published in the Proceedings of the 20th International Symposium on Practical Aspects of Declarative Languages \citep{dylus2018probabilistic}.
 An extended version includes reasoning about the monad laws, a small case study containing the random string examples as well as performance results for these examples with comparisions to WebPPL and ProbLog.
-This extended version was published in Theory and Practice of Logic Programming~\citep{dylus2019implementing}.
+This extended version was published in Theory and Practice of Logic Programming~\citep{dylus2020implementing}.
 The chapter at hand contains additional material.
 First, the case study contains three part: the aforementioned random string examples, a Bayesian network example, and the development of several ways to model the secret santa problem.
 Second, with the new examples come also new performance comparisons: we reimplemented all case studies in ProbLog as well as WebPPL and compared their performance.
