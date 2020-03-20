@@ -223,7 +223,10 @@ We use a more involved version of the \cinl{induction}\--tactic that additionall
 The introduction pattern \cinl{[ | y ys H ]} describes the naming conventions for the variables introduced in the two subgoals.
 We do not supply any variable names for the first goal, because the \cinl{nil}\--case does not introduce new variables.
 For the \cinl{cons}\--subgoal we pass the three names: \cinl{y} and \cinl{ys} for the two arguments of the \cinl{cons}\--constructor as well as \cinl{H} for the induction hypothesis that Coq generates automatically based on the definition of the \cinl{list} data type.
-More generally, the vertical bar is a separator for the resulting subgoals and we introduce new names depending on the arguments of the corresponding subgoal.
+More generally, the vertical bar is a separator for the resulting
+subgoals and we introduce new names depending on the arguments of the
+corresponding subgoal.
+Coq generates names for all arguments that are not explicitly introduced by the pattern.
 In case of \cinl{nil}, we can simplify both sides of the equation using the definition of \cinl{length} and \cinl{map} by applying the tactic \cinl{simpl}.
 
 \begin{cproof}{- simpl.}
