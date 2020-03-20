@@ -185,7 +185,7 @@ That is, we add the decision \cinl{Some true} for the recursive traversal of the
 \label{subsubsec:modelcalltime}
 
 The current idea to model call-time choice is based on the observation that let-bindings of non-deterministic computation introduce an effect that needs to be handled differently than an ordinary non-deterministic computation.
-That is, a let-binding and sharing of computations, respectively, needs to be modeled as an explicit effect on top of the
+That is, a let-binding and sharing of computations, respectively, needs to be modelled as an explicit effect on top of the
 non-determinism.
 The general idea is inspired by KiCS2's approach: all choices within a shared non-deterministic computation get identifiers that we use when traversing the tree-like structure to track the information about previous choices.
 Consider an effect \cinl{NDSharing} that adds an identifier to choices as well as a new primitive for sharing a computation.

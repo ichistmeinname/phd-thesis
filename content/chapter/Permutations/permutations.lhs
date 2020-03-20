@@ -18,7 +18,7 @@ As we want to test out different models later, we refactor the list\--specific i
 We will notice a difference between the Curry and the Haskell implementation when testing the sorting functions on concrete lists.
 This difference is not a new insight, but interesting nonetheless: Curry's non\--determinism can exploit non\--strictness in a way the common Haskell model of non\--determinism using a monadic interface cannot.
 
-\subsection{Modeling Non\--determinism}
+\subsection{Modelling Non\--determinism}
 
 In a pure functional language like Haskell, we can express non\--deterministic functions using lists to represent multiple non\--deterministic results as we have already introduced and discussed in \autoref{subsec:monadicAbstractions}.
 That is, we reuse the type synonym \hinl{ND} in order to distinguish between list values that are used to model non\--determinism and list values in the common sense.
@@ -515,7 +515,7 @@ In contrast, we cannot model the same behaviour in Haskell when using a list\--b
 \end{hrepl}
 
 The error message says that the list constructor \hinl{(:)} expects a second argument of type \hinl{[Bool]}, but we apply it to an argument of type \hinl{ND [Bool]}.
-Due to the explicit modeling of non\--determinism that is visible in the type\--level --- using \hinl{ND} --- we cannot construct non\--deterministic computations that occur deep in the arguments of constructors like \hinl{(:)} out of the box.
+Due to the explicit modelling of non\--determinism that is visible in the type\--level --- using \hinl{ND} --- we cannot construct non\--deterministic computations that occur deep in the arguments of constructors like \hinl{(:)} out of the box.
 In contrast, Curry's non\--determinism is not visible on the type\--level, such that we can use non\--determinism expressions in any constructor argument without altering the type of the expression.
 We can reconcile the computation we want to express with the explicit non\--determinism in Haskell by binding the non\--deterministic computation first and reuse the list constructor then.
 

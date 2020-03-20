@@ -397,7 +397,7 @@ We do not go into more details concerning this unintended behaviour here, but ho
 \subsection{Free Monads}
 \label{subsec:freeMonad}
 
-Recently, the functional programming community started using a slightly different approach for modeling effects.
+Recently, the functional programming community started using a slightly different approach for modelling effects.
 The overall monadic structure is still the key of the representation of such effects.
 One observation that leads to the other abstraction is that all representations of such effects have two operations in common: one to lift a value into the effect representation (\hinl{return}) and one to manipulate the values of an effect (\hinl{(>>=)}).
 This observation finally leads to a monad instance that can interpret all monadic operations in an abstract way: the free monad \citep{swierstra2008data}.
