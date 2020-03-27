@@ -400,8 +400,7 @@ That way we do not need to use labeled choices as the following equation in \aut
 The implementation of \cyinl{insert} is a nice example for a straightforward realisation of the algorithm's specification due to the usage of non\--determinism.
 When we use such non\--deterministic functions in our code basis, we cannot regain a pure, deterministic function anymore.
 Luckily, there exists a mechanism in Curry to encapsulate the non\--determinism of computations.
-Curry provides one implementation of such an encapsulation with the primitive function \cyinl{allValues :: a -> { a }} that
-operates on a polymorphic --- and potentially non\--deterministic --- value and yields a multiset of all non\--deterministic values.
+Curry provides one implementation of strong encapsulation \citep{brassel2004encapsulating} with the primitive function \cyinl{allValues :: a -> { a }} that operates on a polymorphic --- and potentially non\--deterministic --- value and yields a multiset of values.
 For presentation purposes, we use an abstract view of the result of an encapsulation to emphasise that the order of encapsulated results does not matter.
 In order to work with encapsulated values, Curry furthermore provides the following two functions to fold and map the resulting multiset.
 

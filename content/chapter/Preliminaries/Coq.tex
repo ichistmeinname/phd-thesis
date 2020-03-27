@@ -173,7 +173,7 @@ Inductive eq (A : Type) (x : A) : A -> Prop :=
 \end{coqcode}
 
 The data type \cinl{eq} is a propositional type, indicated by the resulting type \cinl{Prop}.
-Intuitively, Coq distinguishes between ordinary programs that are of type \cinl{Type} while proofs are of type \cinl{Prop}.
+Intuitively, \cinl{Prop} is the type of propositions in Coq.
 Furthermore, the type of the constructor \cinl{eq_refl} that represents the reflexivity property for structural equality is \cinl{eq x x}.
 Here, \cinl{eq} is a dependent type: the type of the constructor \cinl{eq_refl} uses not only types but the value \cinl{x} in its type signature.
 The type \cinl{eq} can only be instantiated with arguments \cinl{x} and \cinl{y} if they evaluate to the same value.
@@ -341,7 +341,7 @@ Another prominent example for the usage of dependent types originates from gener
 
 A container is described as a product of shapes and a position function.
 The shape is a type \cinl{Shape} and the position type \cinl{Pos} is a type function that maps shapes to types.
-Using these two components we can define a container extension that gives access to values of type \cinl{A}.
+Using these two components, we can define a container extension that gives access to values of type \cinl{A}.
 
 \begin{coqcode}
 Inductive Ext (Shape : Type) (Pos : Shape -> Type) (A : Type) : Type :=
@@ -376,7 +376,7 @@ The only value of type \cinl{unit} is called \cinl{tt}.
 The position type function, on the other hand, describes the possible positions of polymorphic arguments for a given constructor.
 As observed above, \cinl{One} has only one constructor.
 This constructor \cinl{one} does not have any polymorphic arguments.
-More precisely, there are no possible positions for polymorphic argument for any constructor.
+More precisely, there are no possible positions for polymorphic arguments for any constructor.
 In order to represent that there are no possible positions, we use an empty type.
 An empty type is a data type without any values, that is, we cannot construct values of that type.
 
@@ -439,10 +439,10 @@ Lemma from_to_One : !$\forall$! (A : Type) (e : Ext One!$_\text{S}$! One!$_\text
 
 In contrast to the definition of \cinl{map_length}, we introduce all variables on the right\--hand side of the type signature.
 After introducing these quantified variables as hypotheses, we simplify the function applications of \cinl{from_One} and \cinl{to_One} as they disregard the given argument.
-Next, we observe that the argument \cinl{e} on the right\--hand side of the equation is of type\cinl{Ext}: it must be constructed using \cinl{ext} as well.
+Next, we observe that the argument \cinl{e} on the right\--hand side of the equation is of type \cinl{Ext}: it must be constructed using \cinl{ext} as well.
 More precisely, we even know that the first component, the shape, is of type \cinl{One!$_\text{S}$!}, and, hence, the only valid value is \cinl{tt}.
 We destruct \cinl{e} directly in its two components: \cinl{tt} for the shape and \cinl{pf} for the position function using \cinl{[]} as a nested destruction for the shape.
-The pattern \cinl{[]} can be used for deconstruction of values with only one constructors and without any arguments.
+The pattern \cinl{[]} can be used for deconstruction of values with only one constructor and without any arguments.
 
 \begin{cproof1}{destruct e as [ [] pf ].}{0.4}{0.6}
   s : One\(\sb{\text{S}}\)
@@ -469,7 +469,7 @@ In the case above, we apply the function \cinl{ext tt} to \cinl{(fun p => match 
 \end{cproof1}
 
 The assumption of the \cinl{f_equal}\--lemma becomes the new goal: we now need to show that the two position functions are the same.
-In pure functional programming we are used to a property called functional extensionality: two functions \cinl{f : A -> B} and \cinl{g : A -> B} are equal, if they yield the same result for all possible input arguments of appropriate type.
+In pure functional programming, we are used to a property called functional extensionality: two functions \cinl{f : A -> B} and \cinl{g : A -> B} are equal, if they yield the same result for all possible input arguments of appropriate type.
 
 \begin{crepl}
 \coqrepl Check  functional_extensionality.

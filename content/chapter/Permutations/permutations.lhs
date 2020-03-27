@@ -357,7 +357,7 @@ coinCmpFree x y =
   Impure (Choice (Just (show x,show y)) (return True) (return False))
 \end{haskellcode}
 
-Now we can apply \hinl{filterM} to our non\--determinism\--tracking comparison function \hinl{cmpCoinFree} and get a \hinl{Free Sort}\--term that contains information about the arguments that need to be compared.
+Now we can apply \hinl{filterM} to our non\--determinism\--tracking comparison function \hinl{cmpCoinFree} and get a term of type \hinl{Free Sort} that contains information about the arguments that need to be compared.
 
 \begin{hrepl}
 \haskellrepl filterM (coinCmpFree 42) [1,2]

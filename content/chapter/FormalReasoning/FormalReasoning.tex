@@ -2,8 +2,8 @@
   program should be rejected [...].}{Adam Chlipala}{(Associate
   Professor of Computer Science)}
 
-This chapter moves the focus from applications using effects like non\--determinism to an approach to model effectful programs in order to apply equational reasoning.
-Equational reasoning is a popular and common tool to prove properties about functional programs and, thus, prominently used by Haskell enthusiasts. \citep{jeuring2012testing, gibbons2011just, hutton2008reasoning}
+This chapter moves the focus from applications using effects like non\--determinism to an approach to model effectful programs in order to apply equational reasoning using a proof assistant.
+Equational reasoning is a popular and common tool to prove properties about effectful functional programs and, thus, prominently used by Haskell enthusiasts \citep{jeuring2012testing, gibbons2011just, hutton2008reasoning}.
 In particular, \citet{danielsson2006fast} argue that reasoning about total programs only and expecting the result to carry over to partial programs is \textit{morally correct}.
 Nevertheless, since we are interested in proving properties about partial or other effectful programs more explicitly, we cannot apply equational reasoning as it is and need a model to represent such  effects.
 In this chapter we present an approach to model effectful non\--strict functional programs in the proof assistant Coq and prove exemplary properties about functions used in functional languages.
@@ -46,6 +46,7 @@ That is, this section tries to explain the obstacles and their solutions in Coq 
 \label{subsec:partial}
 The first obstacle that arises when we want to prove properties about Haskell programs in Coq is the fact that Coq is a total language while often Haskell programs are partially defined.
 That is, we cannot translate partial Haskell programs into Coq as they are, we need to represent the partial parts of the programs more explicitly.
+In the context of this thesis, partial programs or function definitions are terminating but do not yield a defined output for all inputs.
 
 Let us take a look at an example.
 One of the first partial functions that comes to mind is the \hinl{head} function on lists that we defined in \autoref{code:haskell_head}.
@@ -303,7 +304,7 @@ Although this description might answer the question we raised to some extent, it
 For that matter, let us consider an arbitrary type $\tau = t_1 \rightarrow \dots \rightarrow t_n$, where all $t_i$ are types as well.
 The type arguments $t_1$ to $t_n$ appear in positive or negative positions.
 A type argument $t_i$ has a negative position if it appears to the left of an odd number of type arrows.
-That is, starting from an inner position, each type arrow flips a negative position to a positive and vice versa.
+That is, starting from an inner (nested) position, each type arrow flips a negative position to a positive and vice versa.
 In particular, a type argument $t_i$ has a positive position if it appears to the left of an even number of type arrows or no type arrows at all.
 Moreover, a type $t$ occurs strictly positively in $t_1 \rightarrow \dots \rightarrow t_n \rightarrow t$ if $t$ occurs in no $t_i$.
 For more information, \citet{blanqui2002inductivedatatype}  give an inductive definition of the set of negative and positive positions.
@@ -426,7 +427,7 @@ Due to the inlining, it now becomes apparent that the type \cinl{ListCont} appea
 More precisely, \cinl{ListCont} appears to the left of an arrow in the second argument of the \cinl{consC}\--constructor.
 Summarising our findings, the type definition \cinl{List} defined above allows arbitrary type constructors as instances for its type parameter \cinl{M}.
 Since the type parameter is arbitrary, it is not safe to use this definition for all potential instances of \cinl{M}.
-The strict positivity restriction might be violated for a concrete instation of \cinl{M}, for instance for the concrete instantiation of \cinl{Cont} as we demonstrated in the definition of \cinl{ListCont}.
+The strict positivity restriction might be violated for a concrete instation of \cinl{M}, for instance, for the concrete instantiation of \cinl{Cont} as we demonstrated in the definition of \cinl{ListCont}.
 Since we cannot guarantee by definition that the data type definition \cinl{List} is only used with instantiations of \cinl{M} that obey the strict positivity requirement, Coq rejects the definition.
 
 \subsection{Free Monad and Containers}
@@ -436,9 +437,9 @@ Let us summarise the situation so far.
 We want to model effectful data types and functions, for example representing non\--strict partial programs, in a generic way, but cannot use a type constructor variable to represent this generic effect in Coq due to the strict positivity requirement.
 If we use, however, a concrete effect, like \cinl{partial}, the strict positivity is guaranteed again.
 That is, we want to represent effects using a concrete data type representation in order to satisfy Coq's requirement.
-Recall that the effects we want to represent are all a superset of a pure value.
+Recall that the effects we want to represent are all a superset of pure values.
 Partiality, for example, adds \cinl{undefined} to the set of \cinl{defined} values.
-The other mechanism the representation of effects needs to offer is a way to apply functions to the pure value; in case of \cinl{partial} we have used pattern matching to unwrap the pure values in order the define \cinl{head} and \cinl{append}.
+The other mechanism the representation of effects needs to offer is a way to apply functions to pure values; in case of \cinl{partial} we have used pattern matching to unwrap the pure values in order the define \cinl{head} and \cinl{append}.
 Fortunately, monadic abstractions as discussed in \autoref{subsec:monadicAbstractions} give us exactly these capabilities.
 As in Haskell, we define a monad as type constructor class parametrised over \cinl{M} that allows to define functions \cinl{return : A -> M A} and \cinl{bind : M A -> (A -> M B) -> M B}.
 
@@ -489,7 +490,7 @@ Inductive Free (Sh : Type) (Pos : Sh -> Type) A :=
 | impure : !$\forall$! s, (Pos s -> Free Sh Pos A) -> Free Sh Pos A.
 \end{coqcode}
 
-With this definition of \cinl{Free} at hand we are well\--suited to define a lifted version of \cinl{List} as we wished to do at the beginning of this section.
+With this definition of \cinl{Free} at hand, we are well\--suited to define a lifted version of \cinl{List} as we wished to do at the beginning of this section.
 
 \begin{coqcode}
 Inductive List (Sh : Type) (Pos : Sh -> Type) A :=
@@ -567,7 +568,7 @@ In terms of defining values using \cinl{Free F} that represent total values, we 
 The \cinl{impure}\--constructor, on the other hand, should not be available, it should be impossible to construct a value using \cinl{impure}.
 That is, we need a functor without any constructors.
 When an inductive type has no constructors, there is no way to construct a value of that type.
-Once again, we use the same naming scheme as \citeauthor{swierstra2008data} and define the type constructor \cinl{Zero} that has no values.
+Once again, we use the same naming scheme as \citet{swierstra2008data} and define the type constructor \cinl{Zero} that has no values.
 
 \begin{coqcode}
 Inductive Zero (A : Type) := .
@@ -1031,7 +1032,7 @@ We observe that for both cases of \cinl{impure}\--values, we do not have a contr
 The contradiction in the total setting was introduced by the shape of the container that did not have any constructors.
 Now, we are working with \cinl{One!$_\text{S}$!}, which is a type synonym for the \cinl{unit} type and has exactly one constructor, namely \cinl{tt}.
 We can, however, prove the \cinl{impure}\--cases using \cinl{destruct} again, but we need to have a position as an assumption.
-The position is introduced as assumption when we strip away the prefix of \cinl{impure s' pf'} on both sides of the equation, such that only the position functions \cinl{pf} remain to be proven equivalent.
+The position is introduced as assumption when we strip away the prefix of \cinl{impure s' pf'} on both sides of the equation such that only the position function \cinl{pf} remain to be proven equivalent.
 
 The initial situation for the first \cinl{impure}\--case looks as follows.
 
@@ -1159,7 +1160,7 @@ Free_ind : !$\forall$! (Sh : Type) (Pos : Sh -> Type) (A : Type) (P : Free A -> 
 
 For the base case we need to show that a given predicate \cinl{P} holds for \cinl{pure x} for all \cinl{x} of appropriate type.
 The \cinl{impure} case is a bit more interesting: given a shape \cinl{s} and a position function \cinl{pf}, we need to prove that the predicate holds for \cinl{impure s pf} with an additional induction hypothesis in place.
-The hypothesis states that for all possible positions \cinl{p} the predicate already holds for all recursive values we can access using the position function \cinl{pf}.
+The hypothesis states that, for all possible positions \cinl{p}, the predicate already holds for all recursive values that we can access using the position function \cinl{pf}.
 Note that these arguments correspond to the variables introduced in the patterns when using the \cinl{induction} tactic.
 For example, the code above used the tactic using an introduction pattern as follows.
 
@@ -1226,7 +1227,7 @@ Hypothesis consP : !$\forall$! fx fxs, ForFree P fxs -> P (cons fx fxs).
 \end{coqcode}
 
 Note that the predicate \cinl{P} is of type \cinl{List A -> Prop}, that is, it is a predicate on lists.
-Based on these hypotheses we define our custom induction principle by implementing a function with the following type signature.
+Based on these hypotheses, we define our custom induction principle by implementing a function with the following type signature.
 
 \begin{coqcode}
 Fixpoint List_ind (xs : List A) : P xs.
@@ -1234,7 +1235,7 @@ Fixpoint List_ind (xs : List A) : P xs.
 
 \noindent%
 The above declaration corresponds to a \cinl{Lemma}\--statement, that is, we can define the function like proofs using tactics.
-Due to the declared hypothesis the goal and associated assumptions look as follows.
+Due to the declared hypothesis, the goal and associated assumptions look as follows.
 
 \begin{alltt}
   A : Type
@@ -1346,7 +1347,7 @@ As we have seen in previous chapters, Curry combines the functional programming 
 More precisely, Curry combines non\--determinism and laziness; the latter is introduced by shared variables via let\--bindings.
 This combination leads to a call\--time choice semantics.
 The approach we illustrated in the first sections enables reasoning about non\--strict functional programs.
-The difference that we want to illuminate in this section is that sharing expressions via let\--bindings in a model of Haskell with \hinl{undefined} values is an optimisation only, but cannot be observed by the programmer.
+The difference that we want to illuminate in this section is that sharing expressions via let\--bindings in a model of Haskell with \hinl{undefined} values is an optimisation only but cannot be observed by the programmer.
 In Curry, on the other side, we can observe the difference between sharing a non\--deterministic computation that is evaluated once and duplicating non\--deterministic computations due to Curry's call\--time choice semantics.
 
 Before we dive deep into the problems when modelling call\--time choice, we first implement Curry's non\--determinism effect using \cinl{Free}.
@@ -1453,7 +1454,7 @@ Definition Choice (A : Type) (fx : FreeND A) (fy : FreeND A) :=
 \paragraph{First Example}
 \label{par:firstNDExample}
 For our first example we work on a non\--deterministic (positive) number that is the choice between \cinl{1} and \cinl{2}.
-Note, that we work with (positive) numbers as representatives for \hinl{Int} values in Curry, that is, these numbers are primitive and only need to be lifted at the top\--level constructor.
+Note that we work with (positive) numbers as representatives for \hinl{Int} values in Curry, that is, these numbers are primitive and only need to be lifted at the top\--level constructor.
 Thus, we reuse Coq's type for Peano numbers \cinl{nat} to model positive numbers.
 
 \begin{coqcode}
@@ -1658,6 +1659,8 @@ Lemma ndInsert_inc :
         (nfList (ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)))).
 \end{coqcode}
 
+
+
 \subsection{Sharing as Effect}
 \label{subsec:sharingEffect}
 
@@ -1734,8 +1737,8 @@ Lemma doubleMult_inline :
   doubleMult oneOrTwo = pure 2 ? pure 4.
 \end{coqcode}
 
-Hence, the unwanted behaviour origins from duplicating non\--deterministic expressions: in the definition of \cinl{doublePlus} we use the argument \cinl{fx} two times on the right\--hand side of the definition.
-Note, that the same unwanted behaviour when using \cinl{doublePlus} cannot be observed when applying the function to the value \cinl{Failed}.
+Hence, the unwanted behaviour origins from duplicating non\--deterministic expressions: in the definition of \cinl{doublePlus}, we use the argument \cinl{fx} two times on the right\--hand side of the definition.
+Note that the same unwanted behaviour when using \cinl{doublePlus} cannot be observed when applying the function to the value \cinl{Failed}.
 
 \begin{coqcode}
 Lemma even_doublePlus_Failed :
@@ -1779,7 +1782,7 @@ Definition shareStrict (A : Type) (fx : Free A) : Free (Free A) :=
 \end{coqcode}
 
 Note that we define this explicit sharing function for an arbitrary effect, we do not need to know about the possible shapes that we are reconstructing on the right\--hand side.
-In order to define this functionality in a separate function, we yield a nested value, that is a value of type \cinl{Free (Free A)}.
+In order to define this functionality in a separate function, we yield a nested value, that is, a value of type \cinl{Free (Free A)}.
 The inner layer of \cinl{Free} represents the shared computation while the outer layer is a reconstruction of the effect occurring in the argument \cinl{fx} that we want to share.
 
 We implement an additional version of \cinl{doublePlus} using the explicit sharing function and prove that our running example for the property holds as well.
@@ -2073,7 +2076,7 @@ exampleexample84
 \end{verbatim}
 
 We plan to apply the first insights we gained from modelling Curry programs to model Haskell's tracing effect with call\--by\--need semantics.
-In a first attempt to investigate the current approach \citep{christiansen2019verifying} we took a more detailed look at the effects occurring in Haskell and defined a category of effects that behave the same under call\--by\--name and call\--by\--need semantics using a syntactic criteria for the effects involved.
+In a first attempt to investigate the current approach \citep{christiansen2019verifying}, we took a more detailed look at the effects occurring in Haskell and defined a category of effects that behave the same under call\--by\--name and call\--by\--need semantics using a syntactic criteria for the effects involved.
 In that paper, we have shown that a variety of propositions can be successfully modelled using our approach, assuming that the functions involved do not share computations.
 
 When thinking about non\--deterministic functions, it becomes apparent that we cannot model all possible functions with our current approach.
@@ -2232,7 +2235,7 @@ We started with a detailed motivation that resembles the obstacles we stumbled u
 After establishing the preliminary concepts underlying the framework, we define first Haskell functions and associated properties.
 One of the advantages of the framework is its generality: although we are especially interested in an effect like partiality that can occur in Haskell, we emphasise the definition of effect\--generic functions and proofs.
 The former is a common idiom in functional programming, we generalise functions using, for example, a monadic abstraction.
-In case of our framework the latter generalisation is even more interesting: if a proposition holds for arbitrary effects, we can reuse this proposition in other generic proofs as well as in proofs about more specialised settings like partiality.
+In case of our framework, the latter generalisation is even more interesting: if a proposition holds for arbitrary effects, we can reuse this proposition in other generic proofs as well as in proofs about more specialised settings like partiality.
 That is, we can even reuse a variety of functions and properties we define to model Haskell programs when reasoning about Curry programs.
 Of course, for Curry programs we need a non\--deterministic choice between two computations as an additional primitive, nonetheless, effect\--generic functions and propositions can be reused.
 In the section about Curry, we additionally observe that the current model we use for Haskell as well as Curry follows call\--by\--name semantics.

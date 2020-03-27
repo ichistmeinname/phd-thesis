@@ -16,7 +16,7 @@ import Prelude hiding (head)
 
 We present all concepts related to pure functional programming in this thesis using the language Haskell.
 As we assume a basic familiarity of the reader regarding functional programming in Haskell, we will focus on specific and advanced aspects we will make use of.
-For a more detailed introduction to Haskell we recommend interested readers to take a look at other sources \citep{hudak2007history, hutton2016programming}.
+For a more detailed introduction to Haskell, we recommend interested readers to take a look at other sources \citep{hudak2007history, hutton2016programming}.
 
 First, we illustrate the advantages and subtleties of Haskell's non\--strict and especially lazy evaluation strategy using a handful of examples.
 Next, we show how to work with side effects and other effectful operations that are not allowed otherwise due to Haskell's purity.
@@ -35,7 +35,7 @@ That is, call\--by\--need combines the advantages of both, call\--by\--name and 
 Call\--by\--name semantics behaves non\--strict and evaluates expressions only when needed; call\--by\--value semantics corresponds to a strict evaluation, having the advantage that it evaluates expressions only once.
 The combination of non\--strictness and sharing, which Haskell employs, is often called lazy evaluation.
 
-In order to demonstrate the non\--strictness part of Haskell's lazy evaluation we use the following definition of \hinl{head} to project the first element of a list.
+In order to demonstrate the non\--strictness part of Haskell's lazy evaluation, we use the following definition of \hinl{head} to project the first element of a list.
 
 %if False
 
