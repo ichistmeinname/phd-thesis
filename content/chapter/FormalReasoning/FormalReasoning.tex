@@ -124,16 +124,6 @@ Inductive List (A : Type) :=
 
 The data type \cinl{List} represents a Haskell list in Coq as all constructor arguments may be partial.
 When defining functions on lists, we need to consider that the top\--level list constructor may already be undefined.
-Hence, we define smart constructors \cinl{Nil} and \cinl{Cons} that wrap the list in the additional \cinl{defined}\--constructor to indicate that the top\--level expression is defined.
-
-\begin{coqcode}
-Definition Nil (A : Type) : partial (List A) :=
-  defined nil.
-Definition Cons (A : Type) (px : partial A) (pxs : partial (List A)) 
-  : partial (List A) :=
-  defined (cons px pxs).
-\end{coqcode}
-
 The definition of  functions like \cinl{head} adapts to the settings as follows: all arguments as well as result types need to be lifted and the implementation needs to handle the partial values accordingly.
 
 \begin{coqcode}
@@ -170,7 +160,7 @@ Fail Fixpoint append (A : Type) (pxs pys : partial (List A))
   | undefined  => undefined
   | defined xs => match xs with
                  | nil         => pys
-                 | cons pz pzs => Cons pz (append pzs pys)
+                 | cons pz pzs => defined (cons pz (append pzs pys))
                  end
   end.
 \end{coqcode}
@@ -207,10 +197,10 @@ Definition append (A : Type) (pxs pys : partial (List A))
     let fix append' xs pys :=
         match xs with
         | nil         => pys
-        | cons pz pzs => Cons pz (match pzs with
-                                  | undefined  => undefined
-                                  | defined zs => append' zs pys
-                                  end)
+        | cons pz pzs => defined (cons pz (match pzs with
+                                          | undefined  => undefined
+                                          | defined zs => append' zs pys
+                                          end))
         end
     in append' xs pys
   end.
@@ -229,10 +219,10 @@ Fixpoint append' (A : Type) (xs : List A) (pys : partial (List A))
   : partial (List A) :=
   match xs with
   | nil         => pys
-  | cons pz pzs => Cons pz (match pzs with
-                            | undefined  => undefined
-                            | defined zs => append' zs pys
-                            end)
+  | cons pz pzs => defined (cons pz (match pzs with
+                                    | undefined  => undefined
+                                    | defined zs => append' zs pys
+                                    end))
   end.
 
 Definition append (A : Type) (pxs pys : partial (List A))
@@ -496,6 +486,13 @@ With this definition of \cinl{Free} at hand, we are well\--suited to define a li
 Inductive List (Sh : Type) (Pos : Sh -> Type) A :=
 | nil : List Sh Pos A
 | cons : Free Sh Pos A -> Free Sh Pos (List Sh Pos A) -> List Sh Pos A.
+\end{coqcode}
+
+We also define smart constructors \cinl{Nil} and \cinl{Cons} as notations that wrap the list in the additional \cinl{pure}\--constructor to indicate that the top\--level expression is defined.
+
+\begin{coqcode}
+Notation Nil := (pure nil).
+Notation Cons fx fxs := (pure (cons fx fxs)).
 \end{coqcode}
 
 \subsubsection{Representing Partiality using Free Monads and Containers}
