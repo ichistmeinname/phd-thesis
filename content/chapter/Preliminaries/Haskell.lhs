@@ -463,7 +463,7 @@ The monad instance for \hinl{Free} demands the type parameter \hinl{f} to have a
 We present the corresponding type class definition in Haskell as well as the definition of the instances for the concrete functors we use in this section in \appref{sec:appendix:functor}.
 
 A variety of common monads are isomorphic to a representation using free monads.
-A counterexample, however, is the list monad; as \citet{swierstra2008data} states, there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]}.
+A counterexample, however, is the list monad; as \citet{swierstra2008data} states, there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]}.\footnote{A proof sketch of this observation can be found in \appref{sec:appendix:freeList}.}
 Due to this counterexample, we rather chose a tree encoding to represent non\--determinism.
 In \autoref{ch:reasoning} we restate this isomorphism property and will show that the free monad applied to the functors \hinl{One} and \hinl{Choice} are isomorphic to \hinl{Maybe} and the common representation binary tree, respectively.
 Other popular representations are the identity monad and the error monad using the following functors.

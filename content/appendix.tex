@@ -45,6 +45,79 @@ instance Functor (Const e) where
   fmap f (Const y) = Const y
 \end{minted}
 
+\section{Proof Sketch: List is not a Free Monad}
+\label{sec:appendix:freeList}
+
+\citet{swierstra2008data} states that there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]}.
+Using the representation of free monads that we introduce in \autoref{subsec:freeAndContainers}, we present a proof sketch on why the list monad cannot be represented as free monad.\footnote{The initial idea of this sketch comes from a StackOverflow post by Reid Barton: \url{https://stackoverflow.com/a/24918234/458384} (last access: April 15th, 2020).}
+Given this representation we have pure computation constructed using \cinl{pure} and effectful computations are constructed using \cinl{impure}.
+We call the former computations \emph{trivial} and the latter \emph{non-trivial}.
+The proof sketch is now based on the following observation: when composing effectful computations, we know that if one component is non-trivial, the resulting computation is non-trivial as well.
+This property needs to hold for all monads that are isomorphic to \cinl{Free Shape Pos} for some \cinl{Shape} and \cinl{Pos}.
+
+In Coq, we define the necessary propostions as follows.
+
+\begin{coqcode}
+Inductive IsNonTrivial (A : Type) : Free Shape Pos A -> Prop :=
+| IsNonT : !$\forall$! s pf, IsNonTrivial (impure s pf).
+
+Lemma trivialCompBind : !$\forall$! (A B : Type)
+  (fx : Free Shape Pos A) (f : A -> Free Shape Pos B),
+  IsNonTrivial fx -> IsNonTrivial (fx >>= f).
+Proof.
+  intros A B fx f IsNonTriv.
+  inversion IsNonTriv; subst; simpl.
+  apply IsNonT.
+Qed.
+\end{coqcode}
+
+That is, composing a non-trivial computation that is constructed using \cinl{impure} always leads in a resulting value constructed with \cinl{impure} as well.
+For lists, the trivial case is the singleton list and all other values are non-trivial, that is, the empty list as well as all lists with at least two elements are non-trivial lists.
+Again, we can define propositions in Coq to reflect these properties.
+
+\begin{coqcode}
+Inductive IsTrivialList (A : Type) : list A -> Prop :=
+| IsTList : !$\forall$! x, IsTrivialList (cons x nil).
+
+Inductive IsNonTrivialList (A : Type) : list A -> Prop :=
+| IsNil  : IsNonTrivialList nil
+| IsCons : !$\forall$! x y ys, IsNonTrivialList (cons x (cons y ys)).
+\end{coqcode}
+
+For lists, we can find an example with non-trivial list and a function \cinl{f} that yields a trivial list as result.
+In Haskell, the example computation looks as follows.
+
+\begin{minted}{haskell}
+example = do
+  b <- [True,False]
+  if b then return [1] else []
+\end{minted}
+
+That is, we can construct a trivial result, namely \hinl{[1] = return 1}, although we use an inital non-trivial computation \hinl{[True,False]}.
+We can construct the counterexample in Coq as follows.
+Recall that the bind-operation for the list monad is \cinl{concat . map}.
+
+\begin{coqcode}
+Definition list1 : list bool := cons true (cons false nil).
+
+Lemma isNonTrivialList1 : IsNonTrivialList list1.
+Proof.
+  apply IsCons.
+Qed.
+
+Example IsTrivalCounter :
+  IsTrivialList (concat (map (fun x : bool => if x then cons 1 nil else nil) list1)).
+Proof.
+  simpl. apply IsTList.
+Qed.
+
+Example IsTrivalCounter2 :
+  not (IsNonTrivialList (concat (map (fun x : bool => if x then cons 1 nil else nil) list1))).
+Proof.
+  simpl. intro IsNonTriv. inversion IsNonTriv.
+Qed.
+\end{coqcode}
+
 \section{Example Programs in Probabilistic Programming Languages}
 \label{sec:appendix:ppl}
 
