@@ -445,7 +445,20 @@ Inductive Ext (Sh : Type) (Pos : Sh -> Type) A :=
 | ext : !$\forall$! (s : Sh), (Pos s -> A) -> Ext Pos A.
 \end{coqcode}
 
-A container extension \cinl{Ext S P} is then isomorphic to a functor \cinl{F}.
+A container extension \cinl{Ext S P} is then isomorphic to a functor
+\cinl{F}.
+Using the following definition of \cinl{fmap} for \cinl{Ext}, we show
+in \appref{subsec:appendix:extFunctor} that \cinl{Ext} fulfills the functor
+laws.
+
+\begin{coqcode}
+Definition fmap (Shape : Type) (Pos : Shape -> Type) (A B : Type)
+    (f : A -> B) (e: Ext Shape Pos A) : Ext Shape Pos B :=
+    match e with
+    | ext s pf => ext s (fun p => f (pf p))
+    end.
+\end{coqcode}
+
 In \autoref{code:one_container} we defined an exemplary concrete instance of a container for the data type \cinl{One} and proved both structures are isomorphic, which we will recap shortly.
 Since we are mainly interested in monads, we can go even further and use monadic containers as proposed by \citet{altenkirch2017monadic} and \citet{uustalu2017partiality}.
 However, we decided against using monadic containers directly, as they, as far as we know, cannot be implemented in a constructive way, but are an extension of \cinl{Ext} that are modelled using a type class.

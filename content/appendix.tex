@@ -502,6 +502,43 @@ query(santa2(3,X)).
 
 The following code provides proof scripts of lemmas that we omitted in the corresponding sections.
 
+\subsection*{A Container Extension is a Functor}
+\label{subsec:appendix:extFunctor}
+
+Given the following definition of \cinl{fmap} for a container extension \cinl{Ext}
+
+\begin{coqcode}
+Definition fmap (Shape : Type) (Pos : Shape -> Type) (A B : Type)
+    (f : A -> B) (e: Ext Shape Pos A) : Ext Shape Pos B :=
+    match e with
+    | ext s pf => ext s (fun p => f (pf p))
+    end.
+\end{coqcode}
+
+we show that \cinl{fmap} fulfills the functor laws.
+
+\begin{minted}[escapeinside=!!,mathescape=true,style=bw]{coq}
+Section FunctorLaws.
+
+    Variable Shape : Type.
+    Variable Pos : Shape -> Type.
+    Variable A B C : Type.
+
+    Lemma fmap_id : !$\forall$! (e : Ext Shape Pos A),
+        fmap (fun x => x) e = e.
+    Proof.
+      intros [ s pf ]; reflexivity.
+    Qed.
+
+    Lemma fmap_compose : !$\forall$! (f : B -> C) (g : A -> B) (e : Ext Shape Pos A),
+        fmap f (fmap g e) = fmap (fun x => f (g x)) e.
+    Proof.
+      intros f g [ s pf ]; reflexivity.
+    Qed.
+
+End FunctorLaws.
+\end{minted}
+
 \subsection*{Non\--Determinism as Effect}
 \label{subsec:appendix:nondet}
 
