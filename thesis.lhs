@@ -135,6 +135,7 @@
 \setlength{\biblabelsep}{0pt}
 \setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
 \printbibliography
+\printbibliography[omitnumbers=true]
 }
 \cleardoublepage
 
