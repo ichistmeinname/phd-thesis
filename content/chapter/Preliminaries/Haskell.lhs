@@ -137,10 +137,13 @@ test4 n = doubleMult (trace "msg" n)
 \subsection{Monadic Abstractions}
 \label{subsec:monadicAbstractions}
 
+In a functional programming language like Haskell, we are used to define function that map input values to output values.
+If a program, however, does not only return a value, but additionally has an observable interaction with the outside world (for example through an additional context that needs to be considered), such a program is said to have computational \emph{effects}.
 As a pure language, Haskell does not allow any side effects conceptually, unless they are explicitly modelled.
 Such an explicit model becomes visibile at the type\--level.
 For example, Haskell models the interaction with the user through reading input and printing output explicitly with the type \hinl{IO} \citep{wadler1997declare}.
-Haskell's notion of purity, however, allows side effects like tracing and partiality --- in the form of \hinl{trace} and \hinl{undefined}, respectively --- that we discussed above.
+Such an explicit model of computational effects capture the necessity to represent the additional context the function interacts with.
+Haskell's notion of purity, however, allows computational effects like tracing and partiality --- in the form of \hinl{trace} and \hinl{undefined}, respectively --- that we discussed above.
 Effects that do not have explicit constructs for propagation and representation are sometimes called ambient or implicit effects \citep{filinski1996controlling}; in Haskell these example instance, thus, are usually not visibile in the type signature.
 
 In this thesis, we are interested in explicit representations of effects like partiality as well as non\--determinism.
@@ -271,7 +274,7 @@ Note that we manipulate the output for the REPL to use set\--like parentheses fo
 \{ [1,2,3,4,5] , [2,1,3,4,5] , [2,3,1,4,5] , [2,3,4,1,5] , [2,3,4,5,1] \}
 \end{hrepl}
 
-A commonly used abstraction to model all these explicit effects are monads: the most common monadic abstraction is the \hinl{IO} type mentioned in the beginning.
+A commonly used abstraction to model all these computational effects are monads \citep{moggi1989computational}: the most common monadic abstraction is the \hinl{IO} type mentioned in the beginning.
 Using a type constructor class, a monad provides the following two operations.
 
 \begin{haskellcode}
@@ -398,7 +401,7 @@ We do not go into more details concerning this unintended behaviour here, but ho
 \label{subsec:freeMonad}
 
 Recently, the functional programming community started using a slightly different approach for modelling effects.
-The overall monadic structure is still the key of the representation of such effects.
+The overall monadic structure is still the key of the representation.
 One observation that leads to the other abstraction is that all representations of such effects have two operations in common: one to lift a value into the effect representation (\hinl{return}) and one to manipulate the values of an effect (\hinl{(>>=)}).
 This observation finally leads to a monad instance that can interpret all monadic operations in an abstract way: the free monad \citep{swierstra2008data}.
 Consider the following data type \hinl{Free} that is parametrised by a type constructor \hinl{f} and a value type \hinl{a}.
@@ -420,6 +423,7 @@ instance Functor f => Monad (Free f) where
 \end{haskellcode}
 
 We represent all impure operations we need to model using the functor \hinl{f}.
+More precisely, the functor \hinl{f} represents the syntax of the effectful computation, that is, the operations that are added on top of the pure values we usually work with.
 In case of \hinl{Partial}, we have one operation, namely \hinl{Undefined} that corresponds to the Haskell's \hinl{undefined} value associated with partiality.
 The other constructor \hinl{Defined} is already taken care of by \hinl{Pure}.
 Moreover, we observe that \hinl{Undefined} does not contain any further values but is a possible value of its own: it is a nullary operation.
@@ -456,7 +460,7 @@ Note that the functor \hinl{Choice} for non\--determinism used in combination wi
 A leaf corresponds to \hinl{det} while a branch with two sub\--trees \hinl{t1} and \hinl{t2} is represented as \hinl{Impure (Choice t1' t2')} where \hinl{t1'} and \hinl{t2'} are the transformations to \hinl{Free Choice} of the initial sub\--trees \hinl{t1} and \hinl{t2}.
 \autoref{tab:valueOverview} gives an overview of the value correspondences between the monadic representation and the representation using \hinl{Free} with the associated functor.
 The monad instance for \hinl{Free} demands the type parameter \hinl{f} to have a \hinl{Functor} constraint.
-We present the corresponding type class definition in Haskell as well as the definition of the instances for the concrete functors we use in this section in \autoref{sec:appendix:functor}.
+We present the corresponding type class definition in Haskell as well as the definition of the instances for the concrete functors we use in this section in \appref{sec:appendix:functor}.
 
 A variety of common monads are isomorphic to a representation using free monads.
 A counterexample, however, is the list monad; as \citet{swierstra2008data} states, there is no functor \hinl{f} such that type \hinl{Free f a} is isomorphic to \hinl{[a]}.

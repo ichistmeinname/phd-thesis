@@ -1422,7 +1422,7 @@ In the definition of \cinl{from_ND} we decide between the left argument \cinl{x}
 We then implement \cinl{to_ND} such that it complies with its counterpart \cinl{from_ND}, that is, we access the left argument using \cinl{true} and the right argument using \cinl{false}.
 
 These definitions indeed form an isomorphism; since we have already seen quite a few of these proofs, we refrain from showing the whole
-proof script here but provide the definition in \autoref{subsec:appendix:nondet}.
+proof script here but provide the definition in \appref{subsec:appendix:nondet}.
 
 \begin{coqcode}
 Lemma from_to_ND : !$\forall$! (A : Type) (e : Ext ND!$_\text{S}$! ND!$_\text{P}$! A),
@@ -1439,7 +1439,7 @@ In the following sections the suffix \cinl{ND} for types is used as synonym for 
 
 We define the following primitives \cinl{Failed} and \cinl{Choice} to construct values introduced by the non\--determinism effect; we use the operator \cinl{?} as notation for the latter primitive.
 Furthermore, most of the following lemmas are stated without the corresponding proof script.
-We provide these missing proofs scripts in \autoref{subsec:appendix:proving}.
+We provide these missing proofs scripts in \appref{subsec:appendix:proving}.
 
 \begin{coqcode}
 Definition Failed (A : Type) : FreeND A :=
@@ -1669,7 +1669,7 @@ We discuss an ad\--hoc solution to mimic call\--by\--need for concrete examples 
 Secondly, we propose a combination of the underlying mechanism of the \emph{KiCS2} compiler with related work on algebraic effects with scoped operations to implement Curry's call\--time choice semantics.
 
 We only provide proof scripts of the stated propositions if we highlight a specific problem and discuss a peculiarity, respectively.
-Otherwise we refrain from showing the proof scripts here but provide the missing code in \autoref{subsec:appendix:sharing}.
+Otherwise we refrain from showing the proof scripts here but provide the missing code in \appref{subsec:appendix:sharing}.
 
 \subsubsection{Call\--by\--name vs. Call\--by\--need}
 \label{subsubsec:cbneed}

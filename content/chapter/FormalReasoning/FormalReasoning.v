@@ -1,4 +1,5 @@
 Set Implicit Arguments.
+Require Import List.
 
 Require Import FunctionalExtensionality.
 Require Import Equality.
@@ -106,73 +107,73 @@ Module Partial.
 
   Definition Nil (A : Type) : partial (List A) :=
     defined nil.
-  Definition Cons (A : Type) (ox : partial A) (oxs : partial (List A))
+  Definition Cons (A : Type) (px : partial A) (pxs : partial (List A))
     : partial (List A) :=
-    defined (cons ox oxs).
+    defined (cons px pxs).
 
-  Definition head (A : Type) (oxs : partial (List A)) : partial A :=
-    match oxs with
+  Definition head (A : Type) (pxs : partial (List A)) : partial A :=
+    match pxs with
     | undefined  => undefined
     | defined xs => match xs with
                    | nil       => undefined
-                   | cons ox _ => ox
+                   | cons px _ => px
                    end
     end.
 
-  Fail Fixpoint append (A : Type) (oxs oys : partial (List A)) {struct oxs}
+  Fail Fixpoint append (A : Type) (pxs pys : partial (List A)) {struct pxs}
     : partial (List A) :=
-    match oxs with
+    match pxs with
     | undefined  => undefined
     | defined xs => match xs with
-                   | nil         => oys
-                   | cons oz ozs => Cons oz (append ozs oys)
+                   | nil         => pys
+                   | cons pz pzs => Cons pz (append pzs pys)
                    end
     end.
 
-  Fail Fixpoint append (A : Type) (oxs oys : partial (List A)) {struct oxs}
+  Fail Fixpoint append (A : Type) (pxs pys : partial (List A)) {struct pxs}
     : partial (List A) :=
-    match oxs with
+    match pxs with
     | undefined  => undefined
     | defined xs =>
-      let fix append' xs oys :=
+      let fix append' xs pys :=
           match xs with
-          | nil         => oys
-          | cons oz ozs => Cons oz (append ozs oys)
+          | nil         => pys
+          | cons pz pzs => Cons pz (append pzs pys)
           end
-      in append' xs oys
+      in append' xs pys
     end.
 
-  Definition append_ (A : Type) (oxs oys : partial (List A))
+  Definition append_ (A : Type) (pxs pys : partial (List A))
     : partial (List A) :=
-    match oxs with
+    match pxs with
     | undefined  => undefined
     | defined xs =>
-      let fix append' xs oys :=
+      let fix append' xs pys :=
           match xs with
-          | nil         => oys
-          | cons oz ozs => Cons oz (match ozs with
+          | nil         => pys
+          | cons pz pzs => Cons pz (match pzs with
                                    | undefined => undefined
-                                   | defined zs => append' zs oys
+                                   | defined zs => append' zs pys
                                    end)
           end
-      in append' xs oys
+      in append' xs pys
     end.
 
-  Fixpoint append' (A : Type) (xs : List A) (oys : partial (List A))
+  Fixpoint append' (A : Type) (xs : List A) (pys : partial (List A))
     : partial (List A) :=
     match xs with
-    | nil         => oys
-    | cons oz ozs => Cons oz (match ozs with
+    | nil         => pys
+    | cons pz pzs => Cons pz (match pzs with
                              | undefined    => undefined
-                             | defined zs => append' zs oys
+                             | defined zs => append' zs pys
                              end)
     end.
 
-  Definition append (A : Type) (oxs oys : partial (List A))
+  Definition append (A : Type) (pxs pys : partial (List A))
     : partial (List A) :=
-    match oxs with
+    match pxs with
     | undefined  => undefined
-    | defined xs => append' xs oys
+    | defined xs => append' xs pys
     end.
 
 End Partial.
@@ -284,6 +285,38 @@ Module Container.
   Arguments ext {_} {_} {_}.
 
 End Container.
+
+Module ContainerFunctor.
+
+  Import Container.
+
+  Definition fmap (Shape : Type) (Pos : Shape -> Type) (A B : Type)
+    (f : A -> B) (e: Ext Shape Pos A) : Ext Shape Pos B :=
+    match e with
+    | ext s pf => ext s (fun p => f (pf p))
+    end.
+
+  Section FunctorLaws.
+
+    Variable Shape : Type.
+    Variable Pos : Shape -> Type.
+    Variable A B C : Type.
+
+    Lemma fmap_id : forall (e : Ext Shape Pos A),
+        fmap (fun x => x) e = e.
+    Proof.
+      intros [ s pf ]; reflexivity.
+    Qed.
+
+    Lemma fmap_compose : forall (f : B -> C) (g : A -> B) (e : Ext Shape Pos A),
+        fmap f (fmap g e) = fmap (fun x => f (g x)) e.
+    Proof.
+      intros f g [ s pf ]; reflexivity.
+    Qed.
+
+  End FunctorLaws.
+
+End ContainerFunctor.
 
 Module Free.
 
@@ -407,6 +440,75 @@ Module Free.
   End bind_lemmas.
 
 End Free.
+
+Module ListNotFree.
+
+  Import Free.
+
+  Variable Shape : Type.
+  Variable Pos : Shape -> Type.
+  Variable toList : forall T, Free Shape Pos T -> list T.
+
+  Notation "fx >> fy" := (fx >>= fun _ => fy) (at level 40, left associativity).
+
+  Inductive IsNonTrivial (T : Type) : Free Shape Pos T -> Prop :=
+  | IsNonT : forall s pf, IsNonTrivial (impure s pf).
+
+  Lemma trivialCompBind : forall (A B : Type) (fx : Free Shape Pos A) (f : A -> Free Shape Pos B),
+     IsNonTrivial fx -> IsNonTrivial (fx >>= f).
+  Proof.
+    intros A B fx f IsNonTriv.
+    inversion IsNonTriv; subst; simpl.
+    apply IsNonT.
+  Qed.
+
+  Lemma trivialComp : forall (A B : Type) (fx : Free Shape Pos A) (fy : Free Shape Pos B),
+     (IsNonTrivial fx \/ IsNonTrivial fy) -> IsNonTrivial (fx >> fy).
+  Proof.
+    intros A B fx fy [ IsNonTriv | IsNonTriv ].
+    - apply trivialCompBind; apply IsNonTriv.
+    - inversion IsNonTriv; subst; simpl.
+      destruct fx; apply IsNonT.
+  Qed.
+  
+  Inductive IsTrivialList (T : Type) : list T -> Prop :=
+  | IsTList : forall x, IsTrivialList (cons x nil).
+
+  Inductive IsNonTrivialList (T : Type) : list T -> Prop :=
+  | IsNil  : IsNonTrivialList nil
+  | IsCons : forall x y ys, IsNonTrivialList (cons x (cons y ys)).
+
+  Definition notTrivialList : forall (T : Type) (xs : list T),
+      IsTrivialList xs -> not (IsNonTrivialList xs).
+  Proof.
+    intros T xs IsTriv IsNonTriv.
+    destruct xs.
+    - inversion IsTriv.
+    - destruct xs.
+      + inversion IsNonTriv.
+      + inversion IsTriv.
+  Qed.
+
+  Definition list1 : list bool := cons true (cons false nil).
+
+  Lemma isNonTrivialList1 : IsNonTrivialList list1.
+  Proof.
+    apply IsCons.
+  Qed.
+  
+  Example IsTrivalCounter :
+    IsTrivialList (concat (map (fun x : bool => if x then cons 1 nil else nil) list1)).
+  Proof.
+    simpl. apply IsTList.
+  Qed.
+
+  Example IsTrivalCounter2 :
+    not (IsNonTrivialList (concat (map (fun x : bool => if x then cons 1 nil else nil) list1))).
+  Proof.
+    simpl. intro IsNonTriv. inversion IsNonTriv.
+  Qed.
+
+End ListNotFree.
 
 Inductive Empty : Type := .
 
@@ -545,7 +647,7 @@ End Totality.
 
 Module FreeList.
 
-  Import Free.
+  Export Free.
 
   Unset Elimination Schemes.
   Inductive List (Shape : Type) (Pos : Shape -> Type) A :=
@@ -558,6 +660,33 @@ Module FreeList.
 
   Notation Nil := (pure nil).
   Notation Cons fx fxs := (pure (cons fx fxs)).
+
+  Section List_rect.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+    Variable A : Type.
+    Variable P : List Sh Ps A -> Type.
+
+    Inductive ForFreeT A (PF : A -> Type) : Free Sh Ps A -> Type :=
+    | forPureT   : forall x   , PF x -> ForFreeT PF (pure x)
+    | forImpureT : forall s pf, (forall p, ForFreeT PF (pf p)) -> ForFreeT PF (impure s pf).
+
+    Hypothesis nilP : P nil.
+    Hypothesis consP : forall fx fxs, ForFreeT P fxs -> P (cons fx fxs).
+    
+    Fixpoint List_rect (xs : List Sh Ps A) : P xs :=
+      match xs with
+      | nil         => nilP
+      | cons fy fys =>
+        consP fy (let fix free_ind (fxs : Free Sh Ps (List Sh Ps A)) : ForFreeT P fxs :=
+                      match fxs with
+                      | pure xs => forPureT P xs (List_rect xs)
+                      | impure s pf => forImpureT _ (fun p => free_ind (pf p))
+                      end in free_ind fys)
+      end.
+
+  End List_rect.
 
   Section List_ind.
 
@@ -693,6 +822,13 @@ Module rose_map.
       | Branches rs => Branches (map (mapRose f) rs)
       end.
 
+    Fail Fixpoint mapRose2 A B (f : A -> B) (r : Rose A) : Rose B :=
+      match r with
+      | Leaf x      => Leaf (f x)
+      | Branches rs =>
+        Branches (map (fun x => mapRose2 f (Branches (Cons x (Cons x Nil)))) rs)
+      end.
+
   End w_section.
 
   Module local_fix.
@@ -726,7 +862,7 @@ Module LtacGoodies.
       dependent destruction ident1;
       match goal with
       | [ H1 : forall p : ?T, ForFree ?P (?pf p), H0 : forall p, ForFree ?P (?pf p) -> _ = _,
-            p : ?T |- _ ] =>
+          p : ?T |- _ ] =>
         specialize (H0 p (H1 p)) as ident2; clear H1; clear H0; simpl
       end
     end.
@@ -740,14 +876,20 @@ Module LtacGoodies.
 
   Tactic Notation "simplBind" ident(H) := (rewriteBindInductionHypothesis H).
 
+  Import Totality.
+  
   Ltac autoInductionHypothesis :=
     match goal with
+    | [ s : Zero__S |- _ ] => destruct s
     | [ H : ForFree ?P (impure ?s ?pf) |- ?h ?s ?pf1 = ?h ?s ?pf2 ] =>
-      f_equal; let x := fresh in extensionality x; simplify H as Hnew; assumption
+      f_equal; let x := fresh in
+               extensionality x; simplify H as Hnew; assumption
       (*   try apply newH) *)
     | [ H : ForFree ?P (pure ?x) |- _ ] =>
       let newH := fresh in simplify H as newH; rename newH into IH
     | [ H : forall p : ?T, ?f = ?g |- ?h ?s ?pf1 = ?h ?s ?pf2 ] =>
+      f_equal; let x := fresh in extensionality x; apply H
+    | [ H : forall p : ?T, ?f = ?g |- impure ?s ?pf1 = impure ?s ?pf2 ] =>
       f_equal; let x := fresh in extensionality x; apply H
     end.
 
@@ -761,9 +903,14 @@ Module LtacGoodies.
     match goal with
     | [ |- Cons ?fx (?fxs >>= ?g1) = Cons ?fx ?g2 ] => do 2 f_equal; try inductionFreeCons
     | [ |- (?fxs >>= ?f) = ?f1 (?fxs >>= ?g) ] => inductFree fxs as [xs|]; simpl
+    | [ |- ?f1 (?fxs >>= ?f) = ?f2 (?fxs >>= ?g) ] => inductFree fxs as [xs|]; simpl
+    | [ |- ?f2 (?f1 (?fxs >>= ?f)) = ?f4 (?f3 (?fxs >>= ?g)) ] => inductFree fxs as [xs|]; simpl
+    | [ |- (?fxs >>= ?f) = ?fxs ] => inductFree fxs as [xs|]; simpl
+    | [ |- ?fxs = (?fxs >>= ?f) ] => inductFree fxs as [xs|]; simpl
     end.
 
   Tactic Notation "inductFreeList" ident(fxs) "as" simple_intropattern(pat) :=
+    let xs := fresh in
     (induction fxs as [xs|]; simpl; try autoIH; try induction xs as pat; simpl; try inductionFreeCons).
 
 End LtacGoodies.
@@ -795,9 +942,9 @@ Module append_assoc.
       + do 2 f_equal.
         destruct IH as [ xs H | s pf ]; simpl.
         * rewrite H. reflexivity.
-        * contradiction.
+        * destruct s.
     (* fxs = impure s pf *)
-    - contradiction.
+    - destruct s.
   Qed.
 
   Lemma append_assoc_partial :
@@ -812,9 +959,9 @@ Module append_assoc.
         destruct IH as [ xs H | [] pf ]; simpl.
         * rewrite H. reflexivity.
         * do 2 f_equal. extensionality p.
-          contradiction.
+          destruct p.
     - do 2 f_equal. extensionality p.
-      contradiction.
+      destruct p.
   Qed.
 
   Lemma append_assoc_generic :
@@ -864,6 +1011,31 @@ Module append_assoc.
   
 End append_assoc.
 
+Module Primitives.
+
+  Import Free.
+
+  Section Definitions.
+
+    Variable Sh : Type.
+    Variable Ps : Sh -> Type.
+
+    Definition TTrue  : Free Sh Ps bool := pure true.
+    Definition FFalse : Free Sh Ps bool := pure false.
+
+    Definition liftM1 A R (f : A -> R) (x : Free Sh Ps A) : Free Sh Ps R :=
+      x >>= fun x' => pure (f x').
+    Definition liftM2 A B R (f : A -> B -> R) (x : Free Sh Ps A) (y : Free Sh Ps B) : Free Sh Ps R :=
+      x >>= fun x' => y >>= fun y' => pure (f x' y').
+    Definition liftM3 A B C R (f : A -> B -> C -> R) (x : Free Sh Ps A) (y : Free Sh Ps B) (z : Free Sh Ps C) : Free Sh Ps R :=
+      x >>= fun x' => y >>= fun y' => z >>= fun z' => pure (f x' y' z').
+
+  End Definitions.
+
+  Arguments TTrue {_} {_}.
+  Arguments FFalse {_} {_}.
+
+End Primitives.
 
 Module list_properties.
 
@@ -871,6 +1043,7 @@ Module list_properties.
   Import FreeList.
 
   Import LtacGoodies.
+  Import Primitives.
 
   Section Definitions.
 
@@ -888,12 +1061,52 @@ Module list_properties.
       : Free Sh Ps (List Sh Ps B) :=
       fxs >>= fun xs => map' f xs.
 
+    Fixpoint reverse' (Sh : Type) (Ps : Sh -> Type) (A : Type) (xs : List Sh Ps A) : Free Sh Ps (List Sh Ps A) :=
+      match xs with
+      | nil => Nil
+      | cons fy fys => fys >>= fun ys => append (reverse' ys) (Cons fy Nil)
+      end.
+
+    Definition reverse (Sh : Type) (Ps : Sh -> Type) (A : Type) (fxs : Free Sh Ps (List Sh Ps A)) : Free Sh Ps (List Sh Ps A) :=
+      fxs >>= fun xs => reverse' xs.
+
+    Definition doubleList (A : Type) (fxs : Free Sh Ps (List Sh Ps A)) : Free Sh Ps (List Sh Ps A) :=
+      append fxs fxs.
+
+    Fixpoint length' (A : Type) (xs : List Sh Ps A) : Free Sh Ps nat :=
+      match xs with
+      | nil         => pure 0
+      | cons fx fxs => liftM2 plus (pure 1) (fxs >>= fun xs' => length' xs')
+      end.
+
+    Definition length (A : Type) (fxs : Free Sh Ps (List Sh Ps A)) : Free Sh Ps nat :=
+      fxs >>= fun xs => length' xs.
+
   End Definitions.
+
+  Compute (length (doubleList (Cons (pure 1) (Cons (pure 2) Nil)))).
+
+  Import Partiality.
+  Definition Undefined (A : Type) : Free One__S One__P A :=
+    impure tt (fun p : One__P tt => match p with end).
+  Arguments Undefined / {_}.
+
+  Compute (length (doubleList (Cons (pure 1) (Cons (pure 2) Undefined)))).
+
 
   Section Properties.
 
     Variable Sh : Type.
     Variable Ps : Sh -> Type.
+
+    Lemma length_double_undefined :
+      length (doubleList (Cons (pure 1) (Cons (pure 2) Undefined))) = Undefined.
+    Proof.
+      simpl.
+      do 2 f_equal.
+      extensionality p.
+      destruct p.
+    Qed.        
 
     Lemma map_id : forall (A : Type) (fxs : Free Sh Ps (List Sh Ps A)),
         map (fun fx => fx) fxs = fxs.
@@ -944,35 +1157,133 @@ Module list_properties.
       - apply IH.
     Qed.
 
+    Lemma append_nil :
+      forall (A : Type) (fxs : Free Sh Ps (List Sh Ps A)),
+        append fxs Nil = fxs.
+    Proof.
+      intros A fxs.
+      inductFreeList fxs as [ | fx fxs IH ]; simpl.
+      - reflexivity.
+      - apply IH.
+    Qed.
+
   End Properties.
+
+  Import Totality.
+  Lemma reverse_append_distr :
+    forall (A : Type) (fxs fys : Free Zero__S Zero__P (List Zero__S Zero__P A)),
+      reverse (append fxs fys) = append (reverse fys) (reverse fxs).
+  Proof.
+    intros A fxs fys.
+    inductFreeList fxs as [ | fx fxs IH ].
+    - rewrite append_nil. reflexivity.
+    - rewrite append_assoc_generic'.
+      rewrite <- IH.
+      remember (append' xs fys) as frec.
+      inductFree frec as [|]; simpl.
+      reflexivity.
+  Qed.
 
 End list_properties.
 
-Module Primitives.
+Module ListEffectFree.
 
   Import Free.
-
-  Section Definitions.
+  Import FreeList.
+  Import LtacGoodies.
+  
+  Section Generic.
 
     Variable Sh : Type.
     Variable Ps : Sh -> Type.
+    Variable A  : Type.
+    Variable P__A : Free Sh Ps A -> Prop.
 
-    Definition TTrue  : Free Sh Ps bool := pure true.
-    Definition FFalse : Free Sh Ps bool := pure false.
+    Inductive ListEffectFree : Free Sh Ps (List Sh Ps A) -> Prop :=
+    | free_nil : ListEffectFree (pure nil)
+    | free_cons : forall fx fxs, P__A fx -> ListEffectFree fxs -> ListEffectFree (pure (cons fx fxs)).
+    
+    Lemma append_effectFree : forall (fxs fys : Free Sh Ps (List Sh Ps A)),
+        ListEffectFree fxs -> ListEffectFree fys -> ListEffectFree (fxs +++ fys).
+    Proof.
+      intros fxs fys Hxs Hys.
+      inductFree Hxs as [ | fz fzs IH ]; eauto; try econstructor; try assumption.
+    Qed.
 
-    Definition liftM1 A R (f : A -> R) (x : Free Sh Ps A) : Free Sh Ps R :=
-      x >>= fun x' => pure (f x').
-    Definition liftM2 A B R (f : A -> B -> R) (x : Free Sh Ps A) (y : Free Sh Ps B) : Free Sh Ps R :=
-      x >>= fun x' => y >>= fun y' => pure (f x' y').
-    Definition liftM3 A B C R (f : A -> B -> C -> R) (x : Free Sh Ps A) (y : Free Sh Ps B) (z : Free Sh Ps C) : Free Sh Ps R :=
-      x >>= fun x' => y >>= fun y' => z >>= fun z' => pure (f x' y' z').
+    Lemma append_effectFree_and : forall (fxs fys : Free Sh Ps (List Sh Ps A)),
+        ListEffectFree (fxs +++ fys) ->
+        ListEffectFree fxs /\ ListEffectFree fys.
+    Proof.
+      intros fxs fys Hfree; split.
+      - inductFree fxs as [ xs | fz fzs IH ].
+        + induction xs as [ | fx fxs IH ];
+            try econstructor; simpl in *;
+              inversion Hfree; clear Hfree; subst;
+                try assumption.
+          induction IH; simpl in *.
+          * apply H. apply H2.
+          * inversion H2.
+        + inversion Hfree.
+      - inductFree fxs as [ xs | fz fzs IH ].
+        + induction xs as [ | fx fxs IH ]; try assumption.
+          induction IH; simpl in *; inversion Hfree; clear Hfree; subst.
+          * apply H. apply H3.
+          * inversion H4.
+        + inversion Hfree.
+    Qed.
 
-  End Definitions.
+  End Generic.
+  
+  Definition IdProp (A : Type) (x : A) : Prop := True.
+  Arguments IdProp {_}.
 
-  Arguments TTrue {_} {_}.
-  Arguments FFalse {_} {_}.
+  Lemma elemProp_to_idProp :
+    forall (A : Type) (Sh : Type) (Ps : Sh -> Type) (P__A : Free Sh Ps A -> Prop)
+      (fxs : Free Sh Ps (List Sh Ps A)),
+      ListEffectFree P__A fxs -> ListEffectFree IdProp fxs.
+  Proof.
+    intros A Sh Ps P__A fxs Hfree.
+    inductFree Hfree as [ | fz fzs IH ]; eauto;
+      try econstructor; try assumption; try constructor.
+  Qed.
 
-End Primitives.
+End ListEffectFree.
+
+Module ListLtacGoodies.
+
+  Export Free.
+  Export FreeList.
+  Export ListEffectFree.
+
+  Ltac find_pure_listEffectFree elemTac :=
+    match goal with
+    | [ Hcons4 : ListEffectFree ?P2 (?Cons ?xs) |- ListEffectFree ?P2 (Cons _ ?xs) ] =>
+      inversion Hcons4 as [| ? ? Hhead Htail]; subst; clear Hcons4;
+      try constructor; try (apply Htail); try constructor; try assumption
+    | [ Hcons3 : ListEffectFree ?P2 ?xs |- ListEffectFree ?P2 (Cons ?x ?xs) ] =>
+      try constructor; try (apply Hcons3); try constructor; try assumption
+    | [ Hcons2 : ListEffectFree ?P2 (Cons _ (pure ?xs)) |- ListEffectFree ?P2 (pure ?xs) ] =>
+      inversion Hcons2 as [| ? ? Hhead Htail]; clear Hcons2; subst;
+      apply Htail
+    | [ Hcons1 : ?P1 ?P2 (Cons (pure ?x) _) |- ?P2 (pure ?x) ] =>
+      inversion Hcons1 as [| ? ? Hhead Htail]; clear Hcons1; subst;
+      apply Hhead
+    | [ Hexp : ?P (pure ?x) |- ?P (pure ?x) ] => elemTac
+    end.
+
+  Ltac inversion_impure elemTac :=
+    match goal with
+    | [ Himp   : ListEffectFree ?P (impure _ _) |- _ ] =>
+      inversion Himp
+    | [ Himp   : ListEffectFree ?P (Cons ?fx (impure _ _)) |- _ ] =>
+      inversion Himp; subst; try inversion_impure elemTac
+    | [ Himp   : ListEffectFree ?P (Cons (impure _ _) ?fxs) |- _ ] =>
+      inversion Himp as [| ? ? Hhead Htail]; subst; clear Himp;
+      inversion Hhead
+    | [ Himp   : context G [ impure ?s ?pf ] |- _ ] => elemTac
+    end.
+
+End ListLtacGoodies.
 
 Module Razor.
 
@@ -981,6 +1292,7 @@ Module Razor.
   Import FreeList.
 
   Import LtacGoodies.
+  Import ListLtacGoodies.
 
   Section Polymorphic_Definitions.
 
@@ -1069,6 +1381,30 @@ Module Razor.
     Definition comp (fe : Free Sh Ps Expr) : Free Sh Ps Code :=
       fe >>= comp'.
 
+    Fixpoint swap' (e : Expr) : Free Sh Ps Expr :=
+      match e with
+      | val fn    => pure (val fn)
+      | add fx fy => pure (add (fx >>= swap') (fy >>= swap'))
+      end.
+
+    Definition swap (fe : Free Sh Ps Expr) : Free Sh Ps Expr :=
+      fe >>= swap'.
+
+    Lemma swap_swap :
+      forall (fe : Free Sh Ps Expr),
+        swap (swap fe) = fe.
+    Proof.
+      intros fe.
+      inductFree fe as [ fn | ]; simpl.
+      - induction fn as [ n | fe1 fe2 IH1 IH2 ]; simpl.
+        + reflexivity.
+        + do 2 f_equal.
+          * inductFree fe1 as [ n1 | ]; simpl.
+            unfold swap in *; assumption.
+          * inductFree fe2 as [ n2 | ]; simpl.
+            unfold swap in *; assumption.
+    Qed.
+
   End Polymorphic_Definitions.
 
   Arguments add_ {_} {_}.
@@ -1103,6 +1439,8 @@ Module Razor.
 
     Definition exec (fs : FreeP StackP) (fc : FreeP CodeP) : FreeP StackP :=
       fc >>= exec' fs.
+
+    
 
     (* Fixpoint exec2' (s : StackP) (fc : FreeP CodeP) : FreeP StackP := *)
     (*   let help fc fs := fc >>= fun c => match c with *)
@@ -1139,11 +1477,12 @@ Module Razor.
           | push_ fn => fops >>= exec2' (cons fn (pure s))
           | add_     => match s with
                        | nil => @undefined StackP
-                       | cons fn fxs => fxs >>= fun xs =>
-                                                 match xs with
-                                                 | nil => @undefined StackP
-                                                 | cons fm fs' => fops >>= exec' (Cons (liftM2 plus fm fn) fs')
-                                                 end
+                       | cons fn fxs =>
+                         fxs >>= fun xs =>
+                                   match xs with
+                                   | nil => @undefined StackP
+                                   | cons fm fs' => fops >>= exec' (Cons (liftM2 plus fm fn) fs')
+                                   end
                        end
           end
       end.
@@ -1151,48 +1490,33 @@ Module Razor.
     Definition exec2 (fs : FreeP StackP) (fc : FreeP CodeP) : FreeP StackP :=
       fc >>= fun c => fs >>= fun s => exec2' s c.
 
+    Fixpoint exec3' (fs : FreeP StackP) (c : CodeP) : FreeP StackP :=
+      match c with
+      | nil          => fs
+      | cons fc fops => fc >>= fun c =>
+          match c with
+          | push_ fn => fs >>= fun s => fops >>= exec3' (Cons fn (pure s))
+          | add_     => fs >>= fun s =>
+              match s with
+              | nil => @undefined StackP
+              | cons fn fxs => fxs >>= fun xs =>
+                  match xs with
+                  | nil => @undefined StackP
+                  | cons fm fs' => fops >>= exec3' (Cons (liftM2 plus fm fn) fs')
+                  end
+              end
+          end
+      end.
+
+    Definition exec3 (fs : FreeP StackP) (fc : FreeP CodeP) : FreeP StackP :=
+      fc >>= exec3' fs.
+
+
   End Partial_Definitions.
 
   Section Propositions.
 
-    Inductive ListEffectFree (Sh : Type) (Ps : Sh -> Type) (A : Type) (P__A : Free Sh Ps A -> Prop)
-      : Free Sh Ps (List Sh Ps A) -> Prop :=
-    | free_nil : ListEffectFree P__A (pure nil)
-    | free_cons : forall fx fxs, P__A fx -> ListEffectFree P__A fxs -> ListEffectFree P__A (pure (cons fx fxs)).
-    
-    Lemma append_effectFree :
-      forall (A : Type) (Sh : Type) (Ps : Sh -> Type) (P__A : Free Sh Ps A -> Prop)
-        (fxs fys : Free Sh Ps (List Sh Ps A)),
-        ListEffectFree P__A fxs -> ListEffectFree P__A fys -> ListEffectFree P__A (fxs +++ fys).
-    Proof.
-      intros A Sh Ps P__A fxs fys Hxs Hys.
-      inductFree Hxs as [ | fz fzs IH ]; eauto; try econstructor; try assumption.
-    Qed.
-
-    Lemma append_effectFree_and :
-      forall (A : Type) (Sh : Type) (Ps : Sh -> Type) (P__A : Free Sh Ps A -> Prop)
-        (fxs fys : Free Sh Ps (List Sh Ps A)),
-        ListEffectFree P__A (fxs +++ fys) ->
-        ListEffectFree P__A fxs /\ ListEffectFree P__A fys.
-    Proof.
-      intros A Sh Ps P__A fxs fys Hfree.
-      split.
-      - inductFree fxs as [ xs | fz fzs IH ].
-        + induction xs as [ | fx fxs IH ];
-            try econstructor; simpl in *;
-              inversion Hfree; clear Hfree; subst;
-                try assumption.
-          induction IH; simpl in *.
-          * apply H. apply H2.
-          * inversion H2.
-        + inversion Hfree.
-      - inductFree fxs as [ xs | fz fzs IH ].
-        + induction xs as [ | fx fxs IH ]; try assumption.
-          induction IH; simpl in *; inversion Hfree; clear Hfree; subst.
-          * apply H. apply H3.
-          * inversion H4.
-        + inversion Hfree.
-    Qed.
+    Import ListEffectFree.
 
     Inductive OpEffectFree (Sh : Type) (Ps : Sh -> Type) : Free Sh Ps (Op Ps) -> Prop :=
     | free_push_ : forall fn, OpEffectFree (pure (push_ fn))
@@ -1204,41 +1528,10 @@ Module Razor.
     | free_add : forall fx fy, ExpEffectFree fx -> ExpEffectFree fy ->
                           ExpEffectFree (pure (add fx fy)).
 
-    Definition IdProp {A : Type} (x : A) : Prop := True.
-
-    Lemma elemProp_to_idProp :
-      forall (A : Type) (Sh : Type) (Ps : Sh -> Type) (P__A : Free Sh Ps A -> Prop)
-        (fxs : Free Sh Ps (List Sh Ps A)),
-        ListEffectFree P__A fxs -> ListEffectFree IdProp fxs.
-    Proof.
-      intros A Sh Ps P__A fxs Hfree.
-      inductFree Hfree as [ | fz fzs IH ]; eauto;
-        try econstructor; try assumption; try constructor.
-    Qed.
-
     Axiom exec_strict : forall fxs, exec (@undefined StackP) fxs = (@undefined StackP).
 
-    Ltac find_pure_effectfree :=
-      match goal with
-      | [ Hcons4 : ListEffectFree ?P2 (?Cons ?xs) |- ListEffectFree ?P2 (Cons _ ?xs) ] =>
-        inversion Hcons4 as [| ? ? Hhead Htail]; subst; clear Hcons4;
-        try constructor; try (apply Htail); try constructor; try assumption
-      | [ Hcons3 : ListEffectFree ?P2 ?xs |- ListEffectFree ?P2 (Cons ?x ?xs) ] =>
-        try constructor; try (apply Hcons3); try constructor; try assumption
-      | [ Hcons2 : ListEffectFree ?P2 (Cons _ (pure ?xs)) |- ListEffectFree ?P2 (pure ?xs) ] =>
-        inversion Hcons2 as [| ? ? Hhead Htail]; clear Hcons2; subst;
-        apply Htail
-      | [ Hcons1 : ?P1 ?P2 (Cons (pure ?x) _) |- ?P2 (pure ?x) ] =>
-        inversion Hcons1 as [| ? ? Hhead Htail]; clear Hcons1; subst;
-        apply Hhead
-      | [ Hexp : ExpEffectFree ?arg |- ?P (pure ?x) ] => inversion Hexp; subst; try assumption
-      end.
-
-    Ltac inversion_impure :=
-      match goal with
-      | [ Himp   : context [ ?f (impure _ _) ] |- _ ] => inversion Himp; subst; inversion_impure
-      end.
-
+    Ltac inversionImpure elemTac := try inversion_impure idtac; try inversion_impure elemTac.
+    
     Lemma exec_distr :
       forall fxs,
         ListEffectFree (@OpEffectFree One__S One__P) fxs ->
@@ -1247,31 +1540,76 @@ Module Razor.
           forall fs,
             ListEffectFree IdProp fs ->
             exec fs (fxs +++ fys) = exec (exec fs fxs) fys.
-    Proof with (simpl; try inversion_impure).
-      inductFree fxs as [ xs | [] pf IH ]; intros HxsFree...
-      induction xs as [ | fx fxs IH ]; simpl.
+    Proof with (simpl; try inversionImpure OpEffectFree; try find_pure_listEffectFree idtac).
+      inductFreeList fxs as [ | fx fxs IH ]; simpl; intros HxsFree...
       - reflexivity.
       - intros fys HysFree fs HfsFree.
         inductFree fx as [ x | [] pf IH2]...
         + destruct x; simpl.
           * inductFree IH as [ xs IH | [] pf IH ]...
             fold (exec (Cons f fs) (append' xs fys)).
-            rewrite IH; try reflexivity; try assumption;
-              find_pure_effectfree.
-          * inductFree fs as [ st | [] pf IH2 ]...
-            induction st as [ | fs fsts IH2 ]; simpl.
+            rewrite IH; try reflexivity; try assumption...
+          * inductFreeList fs as [ | fs fsts IH2 ]; simpl...
             -- rewrite exec_strict; reflexivity.
-            -- inductFree IH2 as [sts IH2 | s pf IH2]...
-               destruct sts; simpl.
-               ++ apply IH2; find_pure_effectfree.
+            -- inductFree IH2 as [sts IH2 |]...
+               destruct sts...
+               ++ apply IH2...
                ++ inductFree fxs as [ xs | s pf IH3 ]...
                   fold (exec (Cons (liftM2 Nat.add f fs) f0) (append' xs fys)).
-                  rewrite IH; try reflexivity; try assumption;
-                    try find_pure_effectfree; try (repeat constructor).
-                    inversion HxsFree; inversion HfsFree; try assumption;
+                  rewrite IH; try reflexivity; try assumption...
+                  inversion HxsFree; inversion HfsFree; try assumption;
                       inversion H6; try constructor; try assumption.
     Qed.
 
+    Lemma exec3_strict : forall fops s pf,
+        exec3 (impure s pf) fops = impure s pf.
+    Proof.
+      intros fops [] pf.
+      inductFreeList fops as [ | fop fops IH ]; simpl.
+      - reflexivity.
+      - inductFree fop as [ op IHop | [] pfop ]; simpl.
+        + destruct op as [ fn | ]; simpl;
+            f_equal; extensionality x; destruct x.      
+        + f_equal; extensionality x; destruct x.
+      - destruct s; f_equal; extensionality x; destruct x.
+    Qed.
+    
+    Lemma exec3_distr :
+      forall fxs fys fs,
+        exec3 fs (fxs +++ fys) = exec3 (exec3 fs fxs) fys.
+    Proof with (simpl; try (unfold undefined; simpl);
+                  try (intros; rewrite exec3_strict; f_equal; extensionality x; contradiction)).
+      inductFreeList fxs as [ | fc fops1 IHops]...
+      - reflexivity. 
+      - intros fys fs.
+        inductFree fc as [ [ n | ] | s pf ]...
+        + inductFreeList fs as [ | fn fns IHfn];
+            inductFree fops1 as [ops1' | s1 pf1]; eauto...
+        + inductFreeList fs as [ | fn' fns' ]...
+          clear H; inductFreeList fns' as [ | fn'' fns'' ]...
+          clear H; inductFree fops1 as [ ops1' | s pf]; eauto...
+    Qed.
+
+    Ltac pure_exp :=
+      match goal with
+      | [ Hexp : context G [ pure ?x ] |- ExpEffectFree (pure ?x) ] =>
+        match type of Hexp with
+        | ExpEffectFree ?t => inversion Hexp; subst; try assumption
+        | _ => fail
+        end
+      end.
+
+    Ltac impure_exp :=
+      match goal with
+      | [ Hexp : context G [ impure ?s ?pf ] |- _ ] =>
+        match type of Hexp with
+        | ExpEffectFree ?t => inversion Hexp; subst; try impure_exp
+        | _ => fail
+        end
+      end.
+
+    Ltac findPure := repeat (find_pure_listEffectFree idtac || find_pure_listEffectFree pure_exp).
+    
     (* `fe` needs to be pure;
         restrictions on `fs` and `comp fe` come from the usage of `exec_distr` *)
     Lemma correctness : forall fe fs,
@@ -1279,25 +1617,50 @@ Module Razor.
         ListEffectFree IdProp fs ->
         ListEffectFree (@OpEffectFree One__S One__P) (comp fe) ->
         exec fs (comp fe) = Cons (eval fe) fs.
-    Proof with (simpl; try inversion_impure).
+    Proof with (simpl; try findPure; try inversion_impure impure_exp).
       intros fe.
       inductFree fe as [exp | s pf IH]; intros fs Hfe Hfs Hcomp...
       generalize dependent fs.
       induction exp as [ fn | fx fy ]; simpl.
-        + reflexivity.
-        + intros fs Hfs.
-          apply append_effectFree_and in Hcomp;
-            destruct Hcomp as [ Hfx Hrest ].
-          rewrite exec_distr; try assumption; try (apply elemProp_to_idProp in Hrest; assumption).
-          inductFree fx as [ x | s pf IHx ]...
-          rewrite IH; try assumption; try constructor; try find_pure_effectfree.
-          -- clear IH.
-             apply append_effectFree_and in Hrest;
-               destruct Hrest as [ Hfy Hsingle ].
-             rewrite exec_distr; repeat (try constructor; try assumption).
-             fold (comp fy).
-             inductFree fy as [ y | s pf IHy ]...
-             rewrite IH; try reflexivity; try assumption; try find_pure_effectfree.
+      - reflexivity.
+      - intros fs Hfs.
+        apply append_effectFree_and in Hcomp;
+          destruct Hcomp as [ Hfx Hrest ].
+        rewrite exec_distr; try assumption; try (apply elemProp_to_idProp in Hrest; assumption).
+        inductFree fx as [ x | s pf IHx ]...
+        rewrite IH; try assumption; try constructor...
+        clear IH.
+        apply append_effectFree_and in Hrest;
+          destruct Hrest as [ Hfy Hsingle ].
+        rewrite exec_distr; repeat (try constructor; try assumption).
+        fold (comp fy).
+        inductFree fy as [ y | s pf IHy ]...
+        rewrite IH; try reflexivity; try assumption...
+    Qed.
+
+    Lemma correctness_strict : forall fe fs,
+        ExpEffectFree fe ->
+        exec3 fs (comp fe) = fs >>= fun s => Cons (eval fe) (pure s).
+    Proof with (simpl; try findPure; try inversion_impure impure_exp).
+      intros fe.
+      inductFree fe as [exp | s pf IH]; intros fs Hfe...
+      generalize dependent fs.
+      induction exp as [ fn | fx fy ]; simpl.
+      - reflexivity.
+      - intros fs.
+        (* apply append_effectFree_and in Hcomp; *)
+        (*   destruct Hcomp as [ Hfx Hrest ]. *)
+        rewrite exec3_distr; try assumption; try (apply elemProp_to_idProp in Hrest; assumption).
+        inductFree fx as [ x | s pf IHx ]...
+        rewrite IH; try assumption; try constructor...
+        clear IH.
+        (* apply append_effectFree_and in Hrest; *)
+        (*   destruct Hrest as [ Hfy Hsingle ]. *)
+        rewrite exec3_distr; repeat (try constructor; try assumption).
+        fold (comp fy).
+        inductFree fy as [ y | s pf IHy ]...
+        rewrite IH; try assumption...
+        inductFree fs as [ | s pf IHs ]; try reflexivity...
     Qed.
 
     Lemma exec_singleton : forall fe,
@@ -1307,6 +1670,14 @@ Module Razor.
     Proof.
       intros fe Hfe HfreeList.
       apply correctness; try assumption; try constructor.
+    Qed.
+
+    Lemma exec3_singleton : forall fe,
+        ExpEffectFree fe ->
+        exec3 Nil (comp fe) = singleton (eval fe).
+    Proof.
+      intros fe Hfe.
+      apply correctness_strict; try assumption; try constructor.
     Qed.
 
   End Propositions.
@@ -1393,23 +1764,26 @@ Module Nondeterminism.
 
   Arguments failed {_}.
 
-  Definition ND__S := bool.
+  Inductive ND__S :=
+  | ch : ND__S
+  | fl : ND__S.
+
   Definition ND__P (s : ND__S) :=
     match s with
-    | true  => bool
-    | false => Empty
+    | ch => bool
+    | fl => Empty
     end.
 
   Definition from_ND A (nd : ND A) : Ext ND__S ND__P A :=
     match nd with
-    | choice x y => ext true (fun (p : ND__P true) => if p then x else y)
-    | failed     => ext false (fun (p : ND__P false) => match p with end)
+    | choice x y => ext ch (fun (p : ND__P ch) => if p then x else y)
+    | failed     => ext fl (fun (p : ND__P fl) => match p with end)
     end.
 
   Definition to_ND A (e : Ext ND__S ND__P A) : ND A :=
     match e with
-    | ext true  pf => choice (pf true) (pf false)
-    | ext false pf => failed
+    | ext ch pf => choice (pf true) (pf false)
+    | ext fl pf => failed
     end.
 
   Arguments from_ND / _ _ .
@@ -1438,9 +1812,9 @@ Module Nondeterminism.
 
   Fixpoint to_tree A (fx : Free ND__S ND__P A) : tree A :=
     match fx with
-    | pure x          => leaf x
-    | impure true  pf => branch (to_tree (pf true)) (to_tree (pf false))
-    | impure false pf => empty
+    | pure x       => leaf x
+    | impure ch pf => branch (to_tree (pf true)) (to_tree (pf false))
+    | impure fl pf => empty
     end.
 
   Fixpoint from_tree A (t : tree A) : Free ND__S ND__P A :=
@@ -1557,20 +1931,21 @@ Module NDSharing.
   Definition ShareND__S := Comb__S ND__S Sharing__S.
   Definition ShareND__P := Comb__P ND__P Sharing__P.
   Definition Ext__Comb A := Ext ShareND__S ShareND__P A.
+  Definition NDS__Comb := Comb ND Sharing.
 
-  Definition to_ShareND (A : Type) (e : Ext__Comb A) : Comb ND Sharing A :=
+  Definition to_ShareND (A : Type) (e : Ext__Comb A) : NDS__Comb A :=
     match e with
     | ext (inl s) pf => Inl (to_ND (ext s pf))
     | ext (inr s) pf => Inr (to_Sharing (ext s pf))
     end.
 
-  Definition from_ShareND (A : Type) (z : Comb ND Sharing A) : Ext__Comb A :=
+  Definition from_ShareND (A : Type) (z : NDS__Comb A) : Ext__Comb A :=
     match z with
     | Inl x => let '(ext s pf) := from_ND x in ext (inl s) pf
     | Inr x => let '(ext s pf) := from_Sharing x in ext (inr s) pf
     end.
 
-  Lemma to_from__Comb : forall A (cx : Comb ND Sharing A), to_ShareND (from_ShareND cx) = cx.
+  Lemma to_from__Comb : forall A (cx : NDS__Comb A), to_ShareND (from_ShareND cx) = cx.
   Proof.
     intros A cx.
     destruct cx as [ [ ] | [ ] ]; reflexivity.
@@ -1587,20 +1962,149 @@ Module NDSharing.
 
 End NDSharing.
 
+Module BESharing.
+
+  Import Container.
+  Export NDSharing.
+
+  Inductive Sharing (A : Type) :=
+  | bshare : nat -> A -> Sharing A
+  | eshare : A -> Sharing A.
+
+  Inductive Sharing__S :=
+  | bshareS : nat -> Sharing__S
+  | eshareS : Sharing__S.
+
+  Definition Sharing__P (s : Sharing__S) := unit.
+
+  Definition from_Sharing A (sh : Sharing A) : Ext Sharing__S Sharing__P A :=
+    match sh with
+    | bshare n x => ext (bshareS n) (fun (p : Sharing__P (bshareS n)) => x)
+    | eshare x   => ext eshareS (fun (p : Sharing__P eshareS) => x)
+    end.
+
+  Definition to_BESharing A (e : Ext Sharing__S Sharing__P A) : Sharing A :=
+    match e with
+    | ext (bshareS n)  pf => bshare n (pf tt)
+    | ext eShareS      pf => eshare (pf tt)
+    end.
+
+  Import Combination.
+
+  Definition ShareND__S := Comb__S ND__S Sharing__S.
+  Definition ShareND__P := Comb__P ND__P Sharing__P.
+  Definition Ext__Comb := Ext ShareND__S ShareND__P.
+  Definition NDS__Comb := Comb ND Sharing.
+
+  Definition to_ShareND (A : Type) (e : Ext__Comb A) : NDS__Comb A :=
+    match e with
+    | ext (inl s) pf => Inl (to_ND (ext s pf))
+    | ext (inr s) pf => Inr (to_BESharing (ext s pf))
+    end.
+
+  Definition from_ShareND (A : Type) (z : NDS__Comb A) : Ext__Comb A :=
+    match z with
+    | Inl x => let '(ext s pf) := from_ND x in ext (inl s) pf
+    | Inr x => let '(ext s pf) := from_Sharing x in ext (inr s) pf
+    end.
+
+  Lemma to_from__Comb : forall A (cx : Comb ND Sharing A), to_ShareND (from_ShareND cx) = cx.
+  Proof.
+    intros A cx.
+    destruct cx as [ [ ] | [ ] ]; reflexivity.
+  Qed.
+
+  Lemma from_to__Comb : forall A (e : Ext__Comb A), from_ShareND (to_ShareND e) = e.
+  Proof.
+    intros A [s pf].
+    destruct s as [ [ n | ] | [ n | ] ]; simpl;
+      unfold ShareND__S, Comb__S;
+      f_equal; extensionality p;
+        destruct p; reflexivity.
+  Qed.
+
+End BESharing.
+
+Module InFreeNDProperties.
+
+  Export Free.
+  Import Nondeterminism.
+
+  Definition FreeND := Free ND__S ND__P.
+
+  Inductive InFreeND (A : Type) (InA : A -> A -> Prop) : FreeND A -> FreeND A -> Prop :=
+  | inRefl        : forall x, InFreeND InA (pure x) (pure x)
+  | inPure        : forall x y, InA x y -> InFreeND InA (pure x) (pure y)
+  | inImpureLeft  : forall x pf, InFreeND InA (pure x) (pf true)  -> InFreeND InA (pure x) (impure ch pf)
+  | inImpureRight : forall x pf, InFreeND InA (pure x) (pf false) -> InFreeND InA (pure x) (impure ch pf).
+
+  Lemma ifIntroFreeND :
+    forall (A : Type) (eqA : A -> A -> Prop) (x y : A) (nx : FreeND A),
+      InFreeND eqA (pure x) nx -> InFreeND eqA (pure y) nx ->
+      forall (c : bool), InFreeND eqA (if c then (pure x) else (pure y)) nx.
+  Proof.
+    intros A eqA fx fy nx Hx Hy c.
+    destruct nx as [ x | [] pf ]; simpl;
+      try destruct c; assumption.
+  Qed.
+
+  Module InFreeNDListProperties.
+
+    Export FreeList.
+
+    Definition ListND := List ND__S ND__P.
+
+    Inductive InListND (A : Type) : ListND A -> ListND A -> Prop :=
+    | inNilND  : InListND nil nil
+    | inConsND : forall fx fxs fys, InFreeND InListND fxs fys -> InListND (cons fx fxs) (cons fx fys).
+
+    Inductive InFreeListND (A : Type) (InA : ListND A -> ListND A -> Prop) : FreeND (ListND A) -> FreeND (ListND A) -> Prop :=
+    | inLRefl        : forall xs   , InFreeListND InA (pure xs) (pure xs)
+    | inLPure        : forall xs ys, InA xs ys -> InFreeListND InA (pure xs) (pure ys)
+    | inLCons        : forall x xs fys,
+        InFreeListND InA (pure xs) fys -> InFreeListND InA (Cons (pure x) (pure xs)) (Cons (pure x) fys)
+    | inLImpureLeft  : forall fxs pf, InFreeListND InA fxs (pf true)  -> InFreeListND InA fxs (impure ch pf)
+    | inLImpureRight : forall fxs pf, InFreeListND InA fxs (pf false) -> InFreeListND InA fxs (impure ch pf).
+
+    Lemma inFreeND_Cons :
+      forall (A : Type) (fxs ndx: FreeND (ListND A)) (fx : FreeND A),
+        InFreeND (@InListND A) fxs ndx -> InFreeND (@InListND A) (Cons fx fxs) (Cons fx ndx).
+    Proof.
+      intros A fxs ndx fx HIn.
+      induction HIn; try (repeat constructor; assumption).
+    Qed.
+
+    Lemma ifIntroFreeListND :
+      forall (A : Type) (eqA : ListND A -> ListND A -> Prop) (x y : ListND A) (nx : FreeND (ListND A)),
+        InFreeListND eqA (pure x) nx -> InFreeListND eqA (pure y) nx ->
+        forall (c : bool), InFreeListND eqA (if c then (pure x) else (pure y)) nx.
+    Proof.
+      intros A eqA fx fy nx Hx Hy c.
+      destruct nx as [ x | [] pf ]; simpl;
+        destruct c; try assumption.
+    Qed.
+
+    Definition AllND (A : Type) (P : FreeND A -> Prop) (fx : FreeND A) : Prop :=
+      ForFree (fun x => P (pure x)) fx.
+    (* Inductive AllND (A : Type) (P : FreeND A -> Prop) : FreeND A -> Prop := *)
+    (* | allPure       : forall x, P (pure x) -> AllND P (pure x) *)
+    (* | inImpure      : forall pf, (forall p, P (pf p)) -> AllND P (impure true pf). *)
+
+  End InFreeNDListProperties.
+
+End InFreeNDProperties.
 
 Module ND_Examples.
 
-  Import LtacGoodies.
   Import Nondeterminism.
-  Import Free.
   Import FreeList.
   Import Primitives.
 
   Definition FreeND := Free ND__S ND__P.
   Definition ListND := List ND__S ND__P.
 
-  Definition Failed (A : Type) : FreeND A := impure false (fun (p : ND__P false) => match p with end).
-  Notation "x ? y" := (impure true (fun (p : ND__P true) => if p then x else y)) (at level 28, right associativity).
+  Definition Failed (A : Type) : FreeND A := impure fl (fun (p : ND__P fl) => match p with end).
+  Notation "x ? y" := (impure ch (fun (p : ND__P ch) => if p then x else y)) (at level 28, right associativity).
 
   Arguments Failed / {_}.
   
@@ -1610,7 +2114,7 @@ Module ND_Examples.
   Definition oneOrTwo : FreeND nat :=
     pure 1 ? pure 2.
   
-  Section Generic.
+  Section GenericDefinitions.
 
     Variable Sh : Type.
     Variable Pos : Sh -> Type.
@@ -1685,10 +2189,9 @@ Module ND_Examples.
 
     End Normalform.
 
-  End Generic.
+  End GenericDefinitions.
 
-
-  Section ND_specific.
+  Section NDSpecificDefinitions.
 
     Fixpoint ndInsert' (A : Type) (fx : FreeND A) (xs : ListND A)
       : FreeND (ListND A) :=
@@ -1720,17 +2223,21 @@ Module ND_Examples.
     Definition replicateND (A : Type) (fn : FreeND nat) (fx : FreeND A) : FreeND A :=
       fn >>= fun n => replicateND' n fx.
 
+  End NDSpecificDefinitions.
 
-  End ND_specific.
   Section Examples.
+
+    Import LtacGoodies.
+    Import ListLtacGoodies.
+
+    Import ListEffectFree.
+    Import InFreeNDProperties.
+    Import InFreeNDListProperties.
 
     Lemma hInFreeNDCoin : InFreeND eq TTrue coin.
     Proof.
       repeat constructor.
     Qed.
-
-    Import Primitives.
-    Import ListEffectFree.
 
     Lemma even_coin' :
       even (liftM2 mult oneOrTwo (pure 2)) = TTrue ? TTrue.
@@ -1798,7 +2305,7 @@ Module ND_Examples.
 
     Lemma ndInsert_inc :
       AllND (fun fxs => length fxs = pure 3)
-            (ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil))).
+            (ndInsert (pure 1) (Cons (pure 2) (Cons (pure 3) Nil))).
     Proof.
       simpl. apply forImpure.
       intros p; destruct p.
@@ -1812,7 +2319,8 @@ Module ND_Examples.
     Abort.
     
     Lemma ndInsert_inc :
-      AllND (fun fxs => length fxs = pure 3) (nfList (fun x => x) (ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)))).
+      AllND (fun fxs => length fxs = pure 3)
+            (nfList (fun x => x) (ndInsert (pure 1) (Cons (pure 1) (Cons (pure 2) Nil)))).
     Proof with (simpl).
       simpl; constructor.
       intros p; destruct p...
@@ -1822,6 +2330,192 @@ Module ND_Examples.
         + constructor; reflexivity.
         + constructor; reflexivity.
     Qed.
+
+    Inductive EffectFree (A : Type) (Sh : Type) (Pos : Sh -> Type) : Free Sh Pos A -> Prop :=
+    | isPure : forall (x : A), EffectFree (pure x).
+
+    Lemma nfList_effectFree :
+      forall (A : Type) (Sh : Type) (Pos : Sh -> Type) (fxs : Free Sh Pos (List Sh Pos A)),
+        ListEffectFree (EffectFree (Pos := Pos)) fxs ->
+        nfList (fun x => x) fxs = fxs.
+    Proof with (simpl in *; try find_pure_listEffectFree idtac; try inversion_impure idtac).
+      intros A Sh Pos fxs Hfxs.
+      inductFree fxs as [ xs |]...
+      induction xs as [ | fx fxs IHxs ]...
+      - reflexivity.
+      - inductFree fx as [ x |]...
+        inductFree fxs as [ xs |]...
+        rewrite IH; try reflexivity...
+    Qed.
+      
+    Lemma nfList_Cons :
+      forall (A : Type) (Sh : Type) (Pos : Sh -> Type) (fxs : Free Sh Pos (List Sh Pos A)) (fx : Free Sh Pos A),
+        nfList (fun x => x) (Cons fx fxs) = fx >>= fun x' => nfList (fun x => x) fxs >>= fun xs' => Cons (pure x') (pure xs').
+    Proof with (simpl).
+      intros A Sh Pos fxs fx...
+      inductFree fx as [ x |]...
+      inductFree fxs as [ xs |]; reflexivity...
+    Qed.
+      
+    Lemma ndInsert_inc_generic :
+      forall (A : Type) (fxs : FreeND (ListND A)) (x : A),
+        ListEffectFree (EffectFree (Pos := ND__P)) fxs ->
+        AllND (fun fys => length fys = length fxs >>= fun n => pure (S n)) (nfList (fun x => x) (ndInsert (pure x) fxs)).
+    Proof with (simpl in *; try find_pure_listEffectFree idtac; try inversion_impure idtac).
+      intros A fxs fx Hfxs.
+      inductFree fxs as [ xs | ]...
+      induction xs as [ | fz fzs IHzs ]...
+      - constructor; reflexivity.
+      - constructor.
+        intros p; destruct p.
+        + rewrite nfList_effectFree...
+          constructor; reflexivity.
+        + rewrite nfList_Cons.
+          inductFree fz as [ z |]...
+          inductFree fzs as [ zs |]...
+          inversion Hfxs as [| fz fzs Hz Hzs]; subst; clear Hfxs.
+          specialize (IH Hzs).
+          induction IH...
+          * constructor; simpl.
+            rewrite H; reflexivity.
+          * constructor; assumption.
+    Qed.
+
+    Lemma perm_length : forall (A : Type) (fxs : FreeND (ListND A)),
+        ListEffectFree IdProp fxs ->
+        ForFree (fun xs => length' xs = length fxs) (perm fxs).
+    Proof with (simpl; try find_pure_listEffectFree idtac; try inversion_impure idtac).
+      intros A fxs Hfxs.
+      inductFree fxs as [ xs | s pf IHxs ]...
+      induction xs as [ | fx fxs IHxs ]; simpl.
+      - repeat constructor.
+      - admit.
+    Admitted.
+    
+    Section EffectFree.
+      
+      Inductive NatEffectFree (Sh : Type) (Pos : Sh -> Type) : Free Sh Pos nat -> Prop :=
+      | isPureNat : forall (n : nat), NatEffectFree (pure n).
+
+    End EffectFree.
+
+    Ltac impure_nat :=
+        match goal with
+        | [ Hexp : NatEffectFree (impure ?s ?pf ) |- _ ] => inversion Hexp
+        end.
+
+    Ltac inversionImpure := try (inversion_impure impure_nat); try (inversion_impure idtac).
+
+    Section FromAgdaPaper.
+
+      Lemma insert_ndinsert : forall (y : nat) (fxs : FreeND (ListND nat)),
+          ListEffectFree (@NatEffectFree _ ND__P) fxs ->
+          InFreeND (@InListND nat) (insert (pure y) fxs) (ndInsert (pure y) fxs).
+      Proof with (simpl; try find_pure_listEffectFree idtac; try inversionImpure).
+        intros y fxs Hfxs.
+        inductFree fxs as [ ys | s pf IH ]; simpl...
+        induction ys as [ | fz fzs IH ]; simpl in *.
+        - repeat constructor.
+        - inductFree fz as [ z | sz pfz IHz ]; simpl in *...
+          apply ifIntroFreeND.
+          + apply inImpureLeft. constructor.
+          + apply inImpureRight. apply inFreeND_Cons.
+            inductFree fzs as [ zs | szs pfzs IHzs ]; simpl in *...
+            eapply IH...
+      Qed.
+
+      Lemma insert_ndinsert1 : forall (z : nat) (fxs fys : FreeND (ListND nat)),
+          ListEffectFree (@NatEffectFree _ ND__P) fxs ->
+          InFreeListND eq fxs fys ->
+          InFreeListND eq (insert (pure z) fxs) (ndInsert (pure z) fys).
+      Proof with (simpl; try find_pure_listEffectFree idtac; try inversionImpure).
+        intros z fxs fys Hfxs.
+        inductFree fxs as [ xs |]...
+        inductFree fys as [ ys |]...
+        assert (forall ys, ListEffectFree (@NatEffectFree _ ND__P) (pure ys) ->
+                      InFreeListND eq (insert' (pure z) ys) (ndInsert' (pure z) ys))
+          as Hassert.
+        - intros ys0 HFree; induction ys0 as [ | fy fys IHx ]; simpl.
+          + constructor.
+          + inductFree fy as [ y |]...
+            apply ifIntroFreeListND.
+            * apply inLImpureLeft. constructor.
+            * apply inLImpureRight.
+              inductFree fys as [ ys0 |]...
+              enough (exists zs, pure zs = insert' (pure z) ys0) as Hzs.
+              -- destruct Hzs as [ zs Heq ]; rewrite <- Heq in *...
+                 apply inLCons...
+                 eapply IH...
+              -- inversion HFree; subst; clear HFree.
+                 clear IH y H1 Hfxs.
+                 induction ys0 as [ | fy fys IHys ]...
+                 ++ exists (cons (pure z) Nil); reflexivity.
+                 ++  inductFree fy as [ y0 |]...
+                     destruct (Nat.leb z y0); eauto...
+        - intros HIn.
+          dependent induction HIn...
+          + apply Hassert; assumption.
+          + apply Hassert; assumption.
+          + specialize (IHHIn Hassert); clear Hassert.
+            apply ifIntroFreeListND.
+            -- apply inLImpureLeft. repeat constructor; assumption.
+            -- apply inLImpureRight.
+               admit.
+      Abort.
+
+      Lemma insert_ndinsert2 : forall (z : nat) (fxs fys : FreeND (ListND nat)),
+          ListEffectFree (@NatEffectFree _ ND__P) fxs ->
+          InFreeND (@InListND nat) fxs fys ->
+          InFreeND (@InListND nat) (insert (pure z) fxs) (ndInsert (pure z) fys).
+      Proof with (simpl; try find_pure_listEffectFree idtac; try inversionImpure).
+        intros z fxs fys Hfxs.
+        inductFree fxs as [ xs |]...
+        inductFree fys as [ ys |]...
+        assert (forall ys, ListEffectFree (@NatEffectFree _ ND__P) (pure ys) ->
+                      InFreeND (InListND (A:=nat)) (insert' (pure z) ys) (ndInsert' (pure z) ys))
+          as Hassert.
+        - intros ys0 HFree; induction ys0 as [ | fy fys IHx ]; simpl.
+          + constructor.
+          + inductFree fy as [ y |]...
+            apply ifIntroFreeND.
+            * apply inImpureLeft. constructor.
+            * apply inImpureRight. apply inFreeND_Cons.
+              inductFree fys as [ ys0 |]...
+              eapply IH...
+        - intros HIn. dependent induction HIn...
+          + apply Hassert; assumption.
+          + admit.
+      Abort.
+      
+      Lemma sort_Perm : forall (fxs : FreeND (ListND nat)),
+          ListEffectFree (@NatEffectFree _ ND__P) fxs ->
+          InFreeND (@InListND nat) (sort fxs) (perm fxs).
+      Proof with (simpl; try find_pure_listEffectFree; try inversion_impure idtac).
+        intros fxs Hfxs.
+        inductFree fxs as [ xs |]...
+        induction xs as [ | fx fxs IH ]...
+        - constructor.
+        - inductFree IH as [ xs |]...
+          inversion Hfxs as [ | ? ? Hfx Hxs ]; clear Hfxs; subst.
+          inversion Hfx; subst.
+          admit.
+      Admitted.
+
+      Lemma sort_Perm1 : forall (fxs : FreeND (ListND nat)),
+          ListEffectFree (@NatEffectFree _ ND__P) fxs ->
+          InFreeListND eq (sort fxs) (perm fxs).
+      Proof with (simpl; try find_pure_listEffectFree; try inversion_impure idtac).
+        intros fxs Hfxs.
+        inductFree fxs as [ xs |]...
+        induction xs as [ | fx fxs IH ]...
+        - constructor.
+        - inductFree IH as [ xs |]...
+          inversion Hfxs as [ | ? ? Hfx Hxs ]; clear Hfxs; subst.
+          inversion Hfx; subst.
+          admit.
+      Admitted.
+
+    End FromAgdaPaper.
 
     Section CallTimeChoice.
 
@@ -2066,6 +2760,7 @@ Module NDShare.
   Definition doubleSharePlus2 (fn : FreeShare nat) : FreeShare nat :=
     Share2 1 fn >>= fun n' => liftM2 plus (pure n') (pure n').
 
+
   Fixpoint numberChoices' (A : Type) (n : nat) (t : FreeShare A) : FreeND A :=
     match t with
     | impure (inl (choiceS _)) pf => impure (choiceS (Some n)) (fun p => numberChoices' (n+1) (pf p))
@@ -2139,8 +2834,8 @@ Module NDShare.
   
   Lemma addShare1Coin_fails :
     (Share1 1 coinShareND >>= fun fn => liftM2 plus (liftM2 plus fn coinShareND)
-                                           (liftM2 plus fn coinShareND)) <>
-    pure 4 ? pure 5.
+                                            (liftM2 plus fn coinShareND)) <>
+    (pure 3 ? pure 4) ? (pure 5 ? pure 6).
   Proof.
     simpl.
   Abort.
@@ -2193,7 +2888,7 @@ Module NDShare.
     reflexivity.
   Qed.
 
-  Lemma add2Share1Twice :
+  Lemma add2Share1Twice_correct :
     dfs (numberChoices (Share1 1 coinShareND >>= fun fn1 =>
                         liftM2 plus (liftM2 plus fn1 fn1) (Share1 2 coinShareND >>= fun fn2 => liftM2 plus fn2 fn2)))
     = [4;6;6;8].
@@ -2201,10 +2896,27 @@ Module NDShare.
     reflexivity.
   Qed.
 
-  Lemma add2Share2Twice_fails :
+  Lemma add2Share2Twice_correct :
     dfs (numberChoices (Share2 1 coinShareND >>= fun n1 =>
-                        liftM2 plus (liftM2 plus (pure n1) (pure n1)) (Share2 1 coinShareND >>= fun n2 => liftM2 plus (pure n2) (pure n2))))
-    <> [4;6;6;8].
+                        liftM2 plus (liftM2 plus (pure n1) (pure n1)) (Share2 2 coinShareND >>= fun n2 => liftM2 plus (pure n2) (pure n2))))
+    = [4;6;6;8].
+  Proof.
+    reflexivity.
+  Qed.
+
+  Definition const (A B : Type) (fx : FreeShare A) (fy : FreeShare B) : FreeShare A :=
+    fx.
+  
+  Lemma constShare1_correct :
+    dfs (numberChoices (Share1 1 coinShareND >>= fun fn => const (pure 42) fn))
+    = [42].
+  Proof.
+    reflexivity.
+  Qed.
+
+  Lemma constShare2_fails :
+    dfs (numberChoices (Share2 1 coinShareND >>= fun n => const (pure 42) (pure n)))
+    <> [42].
   Proof.
     unfold dfs; simpl.
     discriminate.
@@ -2285,7 +2997,7 @@ Module BEShare.
   Definition dfs (A : Type) (t : FreeND A) : list A :=
     dfs' (fun n => None) t.
 
-    Require Import List.
+  Require Import List.
   Import ListNotations.
 
   Lemma doubleSharePlus_eq_fails :

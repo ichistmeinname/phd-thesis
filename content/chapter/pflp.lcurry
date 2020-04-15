@@ -1386,7 +1386,7 @@ These examples focus on properties of random strings and their probabilities.
 In the third casy study we model the famous secret santa problem in three different versions using our library.
 Furthermore, we show benchmarks of these examples and compare them with the probabilistic languages ProbLog and WebPPL.
 These comparisons confirm the advantages of non\--strict non\--determinism with respect to performance.
-In \autoref{sec:appendix:ppl} we provide the code written in ProbLog and WebPPL that corresponds to the Curry code we discuss in the following sections.
+In \appref{sec:appendix:ppl} we provide the code written in ProbLog and WebPPL that corresponds to the Curry code we discuss in the following sections.
 
 \subsection{Bayesian Network}
 
