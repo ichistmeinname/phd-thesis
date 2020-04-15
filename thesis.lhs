@@ -31,6 +31,7 @@
 %include greek.fmt
 
 %format not = "not"
+%format /= = "\neq"
 %format ?* = "\mathbin{?_1}"
 %format ? = "\mathbin{?}"
 %format ^ = "\mathbin{^}"
@@ -42,7 +43,7 @@
 %format (frac x y) = "\frac{"x"}{"y"}"
 %format repl = "\lambda\mkern-3mu"
 %format replHS = "\lambda_{hs}\mkern-3mu"
-%format =? = "\stackrel{?}{\equiv}"
+%format =? = "\stackrel{?}{=}"
 %format tau1
 %format tau2
 %format tau3
