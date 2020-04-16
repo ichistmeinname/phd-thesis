@@ -69,6 +69,7 @@
   \renewcommand{\subparagraphautorefname}{Section}
 }
 
+
 % Overwrite rule for parindent
 \setlength{\parindent}{1em}
 \setlength{\mathindent}{0.15cm}
@@ -84,10 +85,10 @@
 \pagestyle{plain}				% display just page numbers
 \input{content/abstract}
 \cleardoublepage
-%
-%\input{content/acknowledgement}
+
+\input{content/acknowledgement}
 \cleardoublepage
-%
+
 \setcounter{tocdepth}{2}		% define depth of toc
 \tableofcontents				% display table of contents
 \cleardoublepage
@@ -135,12 +136,11 @@
 \renewcommand{\bibfont}{\normalfont\small}
 \setlength{\biblabelsep}{0pt}
 \setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
-\printbibliography
 \printbibliography[omitnumbers=true]
 }
 \cleardoublepage
 
-\appendix\cleardoublepage
+\appendix \cleardoublepage
 \input{content/appendix}
 
 \input{content/statement}
