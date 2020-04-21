@@ -481,9 +481,9 @@ Using the types as underlying effect, we get the identity monad using \hinl{Free
 Description & Monadic Representation & Free Representation \\
 \toprule
 Totality        & \hinl{data Identity a = Identity a}            & \hinl{Free Zero a}\\[0.25em]
-Partiality      & \hinl{data Maybe a = Just a || Nothing}    & \hinl{Free One a}\\[0.25em]
+Partiality      & \hinl{data Maybe a = Just a || Nothing}  & \hinl{Free One a}\\[0.25em]
 Error           & \hinl{data Either b a = Right a || Left b}    & \hinl{Free (Const b) a}\\[0.25em]
-Non\--det. & \hinl{data Tree a = Leaf a || Branch (Tree a) (Tree a)} & \hinl{Free Choice a}\\
+Non\--det. & \hinl{data Tree a = Lf a || Nd (Tree a) (Tree a)} & \hinl{Free Choice a}\\
 \bottomrule
 \end{tabular}
 \caption{Overview of monads and the corresponding representation using \hinl{Free} and the associated functor}

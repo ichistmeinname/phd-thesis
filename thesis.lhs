@@ -77,28 +77,28 @@
 % --------------------------
 % Front matter
 % --------------------------
-\pagenumbering{roman}			% roman page numbing (invisible for empty page style)
-\pagestyle{empty}				% no header or footers
+\pagenumbering{roman}                   % roman page numbing (invisible for empty page style)
+\pagestyle{empty}                       % no header or footers
 \input{content/frontpage}
 \cleardoublepage
 
-\pagestyle{plain}				% display just page numbers
+\pagestyle{plain}                       % display just page numbers
 \input{content/abstract}
 \cleardoublepage
 
 \input{content/acknowledgement}
 \cleardoublepage
 
-\setcounter{tocdepth}{2}		% define depth of toc
-\tableofcontents				% display table of contents
+\setcounter{tocdepth}{2}                % define depth of toc
+\tableofcontents                        % display table of contents
 \cleardoublepage
 
 % --------------------------
 % Body matter
 % --------------------------
-\pagenumbering{arabic}			% arabic page numbering
-\setcounter{page}{1}			% set page counter
-\pagestyle{maincontentstyle} 	% fancy header and footer
+\pagenumbering{arabic}                  % arabic page numbering
+\setcounter{page}{1}                    % set page counter
+\pagestyle{maincontentstyle} 	        % fancy header and footer
 
 \chapter{Introduction}
 \label{ch:intro}

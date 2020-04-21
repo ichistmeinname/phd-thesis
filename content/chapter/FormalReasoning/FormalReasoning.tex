@@ -932,7 +932,7 @@ In case of a pure value, we have the following goal and assumptions.
 
 Now we can proceed as if we were working with ordinary lists: we proceed by induction on the \cinl{List} argument \cinl{xs}.
 
-\begin{cproof1}{induction xs as [ | fx fxs IH ]; simpl.}{0.15}{0.85}
+\begin{cproof2}{induction xs as [ | fx fxs IH ]; simpl.}{0.85}
   
   ...
   fys, fzs : Free Zero\(\sb{\text{S}}\) Zero\(\sb{\text{P}}\) (List Zero\(\sb{\text{S}}\) Zero\(\sb{\text{P}}\) A)
@@ -945,14 +945,14 @@ Now we can proceed as if we were working with ordinary lists: we proceed by indu
   ============================
   Cons fx (fxs >>= (fun zs => append' zs (append fys fzs))) =
   Cons fx (fxs >>= append (fun zs => append' zs fys) fys)
-\end{cproof1}
+\end{cproof2}
 
 We then need to prove the proposition for \cinl{nil} and \cinl{cons}.
 The former is trivial as both sides of the terms are already equal.
 For the latter case, we proceed by stripping away the \cinl{Cons}\--constructor and take another look at \cinl{fxs} by destructing the induction hypothesis \cinl{IH}, which produces two cases: one for \cinl{pure} and one for \cinl{impure}.
 Note that we will discuss the induction hypotheses \cinl{IH} that makes use of a custom proposition \cinl{ForFree} in detail later.
 
-\begin{cproof1}{do 2 f_equal. destruct IH as [ xs H | ]; simpl.}{0.15}{0.85}
+\begin{cproof2}{do 2 f_equal. destruct IH as [ xs H | ]; simpl.}{0.85}
   
   ...
   H : append' xs (append fys fzs) = append (append' xs fys) fzs
@@ -963,7 +963,7 @@ Note that we will discuss the induction hypotheses \cinl{IH} that makes use of a
   s : Zero\(\sb{\text{S}}\)
   ============================
   ...
-\end{cproof1}
+\end{cproof2}
 
 In the former case, the induction hypothesis brings our current goal in the right form such that we can finish the subproof easily by rewriting the hypothesis \cinl{H} and applying \cinl{reflexivity}.
 For the latter case we only need to focus on one of the assumptions, namely, \cinl{s : Zero!$_\text{S}$!}.
@@ -1184,7 +1184,8 @@ In case of data types that contain arguments of type \cinl{Free} due to the lift
 Consider, for example, the induction principle Coq generates for the \cinl{List} data type defined in \autoref{subsec:freeAndContainers}.
 
 \begin{coqcode}
-List_ind : !$\forall$! (Sh : Type) (Pos : Sh -> Type) (A : Type) (P : List A -> Prop),
+List_ind : !$\forall$! (Sh : Type) (Pos : Sh -> Type) (A : Type)
+      (P : List A -> Prop),
       P nil ->
       (!$\forall$! (fx : Free A) (fxs : Free (List A)), P (cons fx fxs)) ->
       !$\forall$! l : List Pos A, P l
@@ -1262,7 +1263,7 @@ Due to the declared hypothesis, the goal and associated assumptions look as foll
 
 In order to show that the predicate \cinl{P} holds for the list \cinl{xs}, we make a case distinction that leads to the following two subgoals.
 
-\begin{cproof1}{destruct xs as [ | fy fys ].}{0.25}{0.75}
+\begin{cproof2}{destruct xs as [ | fy fys ].}{0.7}
 
   ...
   nilP : P nil
@@ -1276,13 +1277,13 @@ In order to show that the predicate \cinl{P} holds for the list \cinl{xs}, we ma
   fys : Free  (List A)
   ============================
   P (cons fy fys)
-\end{cproof1}
+\end{cproof2}
 
 \noindent We finish the first subgoal by applying the hypothesis \cinl{nilP}; for the second goal we proceed by applying the hypothesis \cinl{consP}.
 The new subgoal is the precondition of the hypothesis \cinl{consP} instantiated with \cinl{fy} and \cinl{fys} for the quantified variables \cinl{fx} and \cinl{fxs}, namely \cinl{ForFree P fys}.
 We proceed by induction on \cinl{fys} since the proposition \cinl{ForFree} is an inductively defined proposition with constructors in case of \cinl{pure} and \cinl{impure} values.
 
-\begin{cproof}{induction fys as [ ys | s pf IH ].}
+\begin{cproof1}{induction fys as [ ys | s pf IH ].}{0.46}{0.51}
   ...
   List_ind : \(\forall\) xs : List A, P xs
   ys : List A
@@ -1293,7 +1294,7 @@ We proceed by induction on \cinl{fys} since the proposition \cinl{ForFree} is an
   IH : \(\forall\) (p : Pos s), ForFree P (pf p)
   ============================
   ForFree P (impure s pf)
-\end{cproof}
+\end{cproof1}
 
 In both cases we apply the corresponding constructor of the proposition \cinl{ForFree}, namely, \cinl{forPure} and \cinl{forImpure}.
 
@@ -1582,7 +1583,7 @@ After simplifying the expression, that is, evaluating the expression
 \end{coqcode}
 the goal looks as follows.
 
-\begin{cproof1}{simpl.}{0.15}{0.85}
+\begin{cproof1}{simpl.}{0.1}{0.83}
   ============================
   AllND (fun fxs => length fxs = pure 3)
         (Cons (pure 1) (Cons (pure 2) (Cons (pure 3) Nil))
@@ -1594,7 +1595,7 @@ As \cinl{AllND} is defined via \cinl{ForFree}, we can use the second rule of the
 Based on the decision for the non\--deterministic choice, we get the first resulting list for the left branch and the recursive call for the right branch.
 We make a case distinction on that decision to proceed, which results in two subgoals.
 
-\begin{cproof1}{apply forImpure. intros p; destruct p.}{0.15}{0.85}
+\begin{cproof2}{apply forImpure. intros p; destruct p.}{0.85}
 
   ============================
   ForFree (fun x => length' x = pure 3)
@@ -1603,7 +1604,7 @@ We make a case distinction on that decision to proceed, which results in two sub
   ForFree (fun x => length' x = pure 3)
           (Cons (pure 2) (Cons (pure 1) (Cons (pure 3) Nil)
                          ? Cons (pure 3) (Cons (pure 1) Nil)))
-\end{cproof1}
+\end{cproof2}
 
 For the first subgoal, we use the first rule of the \cinl{ForFree}\--proposition to handle the pure list constructor and then only need to show that the list has indeed \cinl{pure 3} elements.
 
@@ -1613,13 +1614,13 @@ For the first subgoal, we use the first rule of the \cinl{ForFree}\--proposition
 
 In the second subgal the outermost constructor is the pure list constructor \cinl{Cons}, that is, we use the first rule of the \cinl{ForFree}\--proposition again to process the goal.
 
-\begin{cproof1}{- apply forPure.}{0.2}{0.7}
+\begin{cproof2}{- apply forPure.}{0.85}
 
   ============================
   length (Cons (pure 2) (Cons (pure 1) (Cons (pure 3) Nil)
                         ? Cons (pure 3) (Cons (pure 1) Nil)))
   = pure 3
-\end{cproof1}
+\end{cproof2}
 
 When restructuring the left\--hand side of the goal, we can unroll the definition of \cinl{length} once\footnote{This unrolling is a simplified illustration for the reader and not exactly the expression that Coq yields when using the tactic \cinl{simpl} here. We can, however, define a lemma proving that this simplification is valid.}, yielding the following expression.
 
@@ -1633,11 +1634,11 @@ Fortunately, we know from the preceding examples that a strict function applied 
 That is, we can rewrite the above equation as follows.
 Note that we prove the hypothesis about the strictness of the applied function \cinl{liftM1 (fun n => S n) . length} by induction on the argument of type \cinl{FreeND (ListND nat)}.
 
-\begin{cproof1}{rewrite pulltab_f_strict with (f := fun fxs => inc (length fxs)); simpl.}{0.5}{0.5}
+\begin{cproof2}{rewrite pulltab_f_strict with (f := fun fxs => inc (length fxs)); simpl.}{0.45}
 
   ============================
   pure 3 ? pure 3 = pure 3
-\end{cproof1}
+\end{cproof2}
 
 We finally realise that we have a non\--deterministic choice on the left\--hand side, while we have a pure value on the right\--hand side.
 That is, we cannot prove this property.

@@ -137,6 +137,12 @@ Applications and Formal Reasoning}
 \hyphenation{de-ter-mi-nis-tic}
 \hyphenation{non-de-ter-mi-nism}
 \hyphenation{non-de-ter-mi-nis-tic}
+\hyphenation{Non-de-ter-mi-nism}
+\hyphenation{Non-de-ter-mi-nis-tic}
+
+% make additional pass for linebreaks
+\emergencystretch=1em
+
 
 % minted-related definitions
 \newminted{haskell}{mathescape=true,escapeinside=<>}
@@ -218,7 +224,7 @@ Applications and Formal Reasoning}
   \begin{minipage}[t]{0.45\textwidth}%
     \mintinline{coq}{#1}%
   \end{minipage}%s
-  \minipage[t]{0.55\textwidth}%
+  \minipage[t]{0.50\textwidth}%
   \begin{alltt}%
 }
 {%
@@ -234,6 +240,21 @@ Applications and Formal Reasoning}
     \mintinline{coq}{#1}%
   \end{minipage}%
   \minipage[t]{#3\textwidth}%
+  \begin{alltt}%
+}
+{%
+ \end{alltt}%
+  \endminipage%
+  \vspace{0.25cm}%
+}
+
+\newenvironment{cproof2}[2]
+{%
+  \vspace{0.25cm}%
+  \mintinline{coq}{#1}
+
+  \hfill%
+  \minipage{#2\textwidth}%
   \begin{alltt}%
 }
 {%
