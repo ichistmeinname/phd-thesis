@@ -1524,7 +1524,7 @@ Lemma pulltab_inc : !$\forall$! (fx fy : FreeND nat),
   inc (fx ? fy) = inc fx ? inc fy.
 \end{coqcode}
 
-We can generalise this property of Curry's evaluation, often referred to as \emph{pull\--tabbing}, for any strict function.
+We can generalise this property of Curry's evaluation, often referred to as \emph{pull\--tabbing}, for any strict function.\footnote{In a setting with arbitrary effects, \citet{filinski2007inductive} call Curry's strictness property we describe here rigid.}
 The strictness property states that applying the function to an argument is equivalent to evaluating its argument to head normal form first and applying the function to the pure value.
 
 \begin{coqcode}
