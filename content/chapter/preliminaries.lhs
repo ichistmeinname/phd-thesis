@@ -8,9 +8,9 @@ A pure programming language does not have any side effects like mutable state, t
 In this thesis, all declarative programming languages we consider are pure and also statically typed.
 That is, every expression has a type, which is checked at compile time and does not change within the course of evaluating the overall program.
 
-In this thesis we work with three different languages: Haskell \citep{jones2002haskell} as representative for a functional language, Curry \citep{hanus1995curry} for functional logic programming, and Coq \citep{barras1997coq} as dependently typed language and representative for interactive theorem provers.
+In this thesis we work with three different languages: Haskell \citep{jones2002haskell} as representative for a functional language, Curry \citep{hanus1995curry} for functional logic programming, and Coq \citep{barras1997coq} as dependently typed language and representative for interactive proof assistants.
 We expect the reader to be familiar with the basics of Haskell in order to directly start with more advanced features in the next section.
 Topics we cover include Haskell's demand\--driven evaluation strategy and monadic abstractions.
 We then move over to the integration of logic features that is Curry; here, the combination of non\--determinism and laziness is especially interesting.
-Lastly, we will take a look at a richer type system for functional programming using the example of the interactive theorem prover Coq.
+Lastly, we will take a look at a richer type system for functional programming using the example of the interactive proof assistant Coq.
 After a quick introduction to its syntax, we will discuss how to use the dependent type system to state and prove properties about functional programs.

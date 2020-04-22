@@ -15,13 +15,14 @@ Features associated with logic programming, like non\--determinism, free variabl
 One part of this thesis illustrates the advantages of a functional logic programming language, which combines both of these paradigms, over encoding logic features in a functional language.
 These advantages we discuss in this thesis are specific to non\--strict non\--determinism.
 The first application considers permutation enumeration functions.
-More precisely, the permutation functions arise from sorting functions that are parametrised by a comparison function.
-The trick is to apply such sorting functions with a non\--deterministic comparison function that produces all possible rearrangements of the input list, leading to a permutation enumeration function.
+More precisely, these enumeration functions arise from sorting functions that are parametrised by a comparison function.
+The trick is to apply such sorting functions to a non\--deterministic comparison function that produces all possible rearrangements of the input list, leading to a permutation enumeration function.
 The advantages of the functional logic programming language become apparent when comparing the implementation against an implementation in a functional language that uses lists to model the non\--determinism.
 The second application is an implementation of a library for probabilistic programming.
 The key ingredient of probabilistic programs are distributions that are most commonly modeled as pairs of events and their corresponding probabilities.
-Users of probabilistic programming languages then want to query these distributions in order to get the probability of a subset of the events.
-An implementation that represents distributions using non\--strict non\--determinism can have advantages with respect to these queries that are already known from property\--based testing \citep{christiansen2008easycheck,runciman2008smallcheck}.
+Users of probabilistic programming languages query these distributions in order to get the probability of a subset of the events.
+An implementation that represents distributions using non\--strict non\--determinism can have advantages with respect to these queries.
+These advandates with respect to non-strict non-determinism are already known from property\--based testing \citep{christiansen2008easycheck,runciman2008smallcheck}.
 
 Moreover, pure functional programming languages are said to be particularly well\--suited for equational reasoning.
 Most equational reasoning efforts do not bother about disruptive properties like partiality that may occur in programs we want to prove properties about.
@@ -37,5 +38,5 @@ The advantages of non\--strict non\--determinism are illustrated using the examp
 We then switch the focus from applications to formal reasoning and present a framework to model non\--strict functional programs that come with effects like partiality and non\--determinism as well as prove exemplary properties about programs using the framework (\autoref{ch:reasoning}).
 Finally, we give a summary of the presented work (\autoref{ch:conclusion}) and collect additional source code in the appendix.
 
-As some contributions presented in this thesis have been already published, the related chapters (Chapter 3--5) each inform about the previously published work as well.
+As some contributions presented in this thesis have been already published, the corresponding chapters (Chapter 3--5) end with information about the previously published work.
 Furthermore, we highlight the changes and additions with respect to the published version, and present related work as well as a summary for each chapter individually.
