@@ -89,7 +89,7 @@ In the following all of our examples use lists of integers, more particular, we 
 These integers are only meant to be placeholders for concrete values and represent the position of the element within the original list.
 That is, when we produce permutations of the input list, we can deduce the behaviour for a variety of input lists of other types, because we know where elements end up in the result based on their position in the input list.
 Moreover, when we describe how a function produces its results, we say that a value is \emph{less than or equal} to another value with respect to the comparison function in question.
-Considering that \cyinl{coinCmp} is a comparision function that does not have the usual property of order relations, not every usage of \emph{less than or equal} refers to the natural order on integer values (that is, the relation $\leq$).
+Considering that \cyinl{coinCmp} is a comparison function that does not have the usual property of order relations, not every usage of \emph{less than or equal} refers to the natural order on integer values (that is, the relation $\leq$).
 More particular, we will use the same terminology when describing the behaviour of the non\--deterministic predicate \cyinl{coinCmp}.
 We think, however, these descriptions are easier to read when we use \emph{less than or equal} in this overloaded manner.
 
@@ -142,7 +142,7 @@ The following example sorts a list of integers in ascending order.
 
 As the definition of \cyinl{insertionSort} is parametric over the comparison function, we can apply different orderings using the same function.
 Besides a deterministic order specified by \cyinl{(<=)} or \cyinl{(>=)}, there is nothing that stops us from using a non\--deterministic comparison function instead.
-Consider the following example, where we apply \cyinl{insertionSort} to the non\--deterministic comparison function \cyinl{coinCmp}.\footnote{If the result of an evaluated expression in the REPL yields more than four results, we will display the results side\--by\--side to ease readibility.}
+Consider the following example, where we apply \cyinl{insertionSort} to the non\--deterministic comparison function \cyinl{coinCmp}.\footnote{If the result of an evaluated expression in the REPL yields more than four results, we will display the results side\--by\--side to ease readability.}
 
 \begin{cyrepl}
 \curryrepl insertionSort coinCmp [1,2,3]

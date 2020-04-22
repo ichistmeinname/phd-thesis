@@ -239,7 +239,7 @@ det x = [x]
 \end{haskellcode}
 
 The former function yields a singleton list whereas the latter corresponds to the concatenation of the two lists.
-Using this representation of non\--determinism and these convience functions, we define the function \hinl{insertND} that non\--deterministically inserts a given element at all possible positions of a list.
+Using this representation of non\--determinism and these convenience functions, we define the function \hinl{insertND} that non\--deterministically inserts a given element at all possible positions of a list.
 
 %if False
 
@@ -450,7 +450,7 @@ Totality                         & \hinl{Zero}                     & \hinl{Ident
                                  &                                 & \hinl{Branch t1 t2} & \hinl{Impure (Choice t1' t2')}\\
 \bottomrule
 \end{tabular}
-\caption{Overview of values represented using the direct interpretion as monad and using \hinl{Free} with the corresponding functor}
+\caption{Overview of values represented using the direct interpretation as monad and using \hinl{Free} with the corresponding functor}
 \label{tab:valueOverview}
 \end{table*}
 

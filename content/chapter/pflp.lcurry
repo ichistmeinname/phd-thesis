@@ -1,5 +1,5 @@
 This chapter presents \emph{PFLP}, a library providing a domain specific language for probabilistic programming in the functional logic programming language Curry.
-Key applications of the probabilistic programming paradim are probabilistic processes and other applications based on probability distributions.
+Key applications of the probabilistic programming paradigm are probabilistic processes and other applications based on probability distributions.
 PFLP makes heavy use of functional logic programming concepts and shows that this paradigm is well\--suited for implementing a library for probabilistic programming.
 In fact, there is a close connection between probabilistic programming and functional logic programming.
 For example, non\--deterministic choice and probabilistic choice are similar concepts.
@@ -586,7 +586,7 @@ Similarly,~\citet{antoy2005evaluation} observes that you need run\--time choice 
 Then again, probabilistic languages need a concept like memoisation in order to use a single value drawn from a distribution multiple times.
 
 \subsection{Non\--strict Non\--determinism}
-\label{ssec:nonstrict}
+\label{subsec:nonstrict}
 
 This section illustrates the benefits of the combination of non\--strictness and non\--determinism with respect to performance.
 More precisely, in a setting that uses Curry\--like non\--determinism, non\--strictness can prevent non\--determinism from being \enquote{spawned}.
@@ -1383,7 +1383,7 @@ for probabilistic logic programming by
 the expressiveness of probabilistic logic programming and its cost
 with respect to performance.
 These examples focus on properties of random strings and their probabilities.
-In the third casy study we model the famous secret santa problem in three different versions using our library.
+In the third case study we model the famous secret santa problem in three different versions using our library.
 Furthermore, we show benchmarks of these examples and compare them with the probabilistic languages ProbLog and WebPPL.
 These comparisons confirm the advantages of non\--strict non\--determinism with respect to performance.
 In \appref{sec:appendix:ppl} we provide the code written in ProbLog and WebPPL that corresponds to the Curry code we discuss in the following sections.
@@ -2054,7 +2054,7 @@ pickAndCheckRound xs@@(_:_) = pickRound' xs xs []
 \end{cyrepl}
 
 We can take this idea one step further and repeat the process until we end up with a valid pick.
-However, as we can only model discrete and not continous distributions, we need to set a limit for the number of retries we do.
+However, as we can only model discrete and not continuous distributions, we need to set a limit for the number of retries we do.
 
 %if False
 
@@ -2129,7 +2129,7 @@ For WebPPL, we used \textit{node.js} to run the JavaScript program as a terminal
 All of the following running times are the mean of $1000$ runs as calculated by the Haskell tool
 bench\footnote{\url{https://hackage.haskell.org/package/bench}} that we use to run the benchmarks.
 
-We compare the running times based on the dice rolling example presented in \autoref{ssec:nonstrict} and all examples from the previous section.
+We compare the running times based on the dice rolling example presented in \autoref{subsec:nonstrict} and all examples from the previous section.
 
 \paragraph{Dice Rolling}
 As discussed before, non\--strict non\--determinism performs pretty well for the dice rolling example, as a great deal of the search space is pruned early.
@@ -2191,7 +2191,7 @@ The second visual comparison, \autoref{fig:santaBar2}, shows the running times f
 
 The search space grows a bit slower, such that we can perform the query for a greater number of players as before.
 However, the our library still performs bad in comparison to ProbLog and WebPPL.
-In order to show that the bad performance is not specific to our library, but to KiCS2's performance when a non\--trivial amount of non\--determinism is involved, we present the performance of PAKCS for the santa problems in comparision to ProbLog and WebPPL in \autoref{fig:santaBarP}.
+In order to show that the bad performance is not specific to our library, but to KiCS2's performance when a non\--trivial amount of non\--determinism is involved, we present the performance of PAKCS for the santa problems in comparison to ProbLog and WebPPL in \autoref{fig:santaBarP}.
 We observe that PAKCS (orange with patterns) has a performance overhead in comparison to KiCS2 when we run our examples for a small number of players.
 That is, the less non\--determinism is used within the program, the better the performance of KiCS2 in comparison to PAKCS and vice versa.
 Nevertheless, PAKCS shows a better performance for a greater number of players.
@@ -2278,7 +2278,7 @@ Considering these restrictions, we showed that the library obeys the expected mo
 
 The basis of this chapter has been published previously.
 The general introduction of the library and its implementation ideas have been published in the Proceedings of the 20th International Symposium on Practical Aspects of Declarative Languages \citep{dylus2018probabilistic}.
-An extended version includes reasoning about the monad laws, a small case study containing the random string examples as well as performance results for these examples with comparisions to WebPPL and ProbLog.
+An extended version includes reasoning about the monad laws, a small case study containing the random string examples as well as performance results for these examples with comparisons to WebPPL and ProbLog.
 This extended version was published in Theory and Practice of Logic Programming~\citep{dylus2020implementing}.
 The chapter at hand contains additional material.
 First, the case study contains three part: the aforementioned random string examples, a Bayesian network example, and the development of several ways to model the secret santa problem.

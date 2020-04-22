@@ -448,7 +448,7 @@ Inductive Ext (Sh : Type) (Pos : Sh -> Type) A :=
 A container extension \cinl{Ext S P} is then isomorphic to a functor
 \cinl{F}.
 Using the following definition of \cinl{fmap} for \cinl{Ext}, we show
-in \appref{subsec:appendix:extFunctor} that \cinl{Ext} fulfills the functor
+in \appref{subsec:appendix:extFunctor} that \cinl{Ext} fulfils the functor
 laws.
 
 \begin{coqcode}
@@ -1217,7 +1217,7 @@ pure and effectful lists.
 The needed property is similar to stating that a predicate of type \cinl{A -> Prop} should hold for all elements of a list\--like structure.
 In our case the list\--like structure is the \cinl{Free} wrapper with its two constructors \cinl{pure} and \cinl{impure}.
 We define an auxiliary proposition \cinl{ForFree} that states if a predicate of type \cinl{A -> Prop} holds for all elements occurring in a value wrapped using \cinl{Free}.
-Rememner that propositions in Coq are data type declarations that yield a value of type `Prop` instead of `Type`.
+Remember that propositions in Coq are data type declarations that yield a value of type `Prop` instead of `Type`.
 
 \begin{coqcode}
 Inductive ForFree (P : A -> Prop) : Free A -> Prop :=
@@ -2027,7 +2027,7 @@ These two layers for the resulting value of the sharing function is necessary to
 The first monadic layer additionally performs bookkeeping when sharing non\--deterministic computations.
 In order to track the decisions of shared non\--deterministic computations during evaluation, \citeauthor{fischer2009purely} use an untyped heap that stores computations corresponding to variable references.
 That is, their implementation is a realisation of the heap used in the operational call\--by\--need semantics as introduced by \citet{launchbury1993natural}.
-The main contribution of an implementation for Curry's call\--time choice in Coq using \cinl{Free} in contrast to the implementation of \citeauthor{fischer2009purely} is to avoid unpure features.
+The main contribution of an implementation for Curry's call\--time choice in Coq using \cinl{Free} in contrast to the implementation of \citeauthor{fischer2009purely} is to avoid impure features.
 This avoidance originates in our usage of Coq, that does not allow such features, but is also of interest for an implementation in Haskell as well.
 As future work, we plan to investigate if a Haskell implementation that tracks the decisions of choices instead of references to computations can compete with respect to performance.
 
