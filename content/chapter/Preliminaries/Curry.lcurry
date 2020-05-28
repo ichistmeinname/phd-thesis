@@ -13,7 +13,6 @@ On top of these functional features, Curry adds non\--determinism as a built\--i
 There are two maintained implementations of Curry: KiCS2 \citep{hanus2014kics2} and PAKCS \citep{hanus2017pakcs}.
 In the remainder of this thesis, we use KiCS2 to compile and run all Curry programs presented here if not specifically mentioned otherwise.\footnote{More precisely, all source code was tested with version \verb+2.0.0-b14+ of KiCS2.}
 All interactions with KiCS2's REPL are displayed as verbatim environment with a turnstile --- ~\curryrepl~ --- prompt.
-In order to simplify the distinction between Haskell and Curry code, we use framed code snippets for Haskell as seen in the preceding section and code snippets without framing for Curry.
 
 \subsection{Non\--determinism}
 \label{subsec:non-determinism}
@@ -400,7 +399,7 @@ That way we do not need to use labeled choices as the following equation in \aut
 The implementation of \cyinl{insert} is a nice example for a straightforward realisation of the algorithm's specification due to the usage of non\--determinism.
 When we use such non\--deterministic functions in our code basis, we cannot regain a pure, deterministic function anymore.
 Luckily, there exists a mechanism in Curry to encapsulate the non\--determinism of computations.
-Curry provides one implementation of strong encapsulation \citep{brassel2004encapsulating} with the primitive function \cyinl{allValues :: a -> { a }} that operates on a polymorphic --- and potentially non\--deterministic --- value and yields a multiset of values.
+Curry provides one implementation of strong encapsulation \citep{brassel2004encapsulating} with the primitive function \cyinl{allValues :: a -> { a }} that operates on a polymorphic --- and potentially non\--deterministic --- computation and yields a multiset of values.
 For presentation purposes, we use an abstract view of the result of an encapsulation to emphasise that the order of encapsulated results does not matter.
 In order to work with encapsulated values, Curry furthermore provides the following two functions to fold and map the resulting multiset.
 

@@ -219,7 +219,7 @@ We already introduced the option to draw the decision tree for a non\--determini
 Recall that we do not display labels for the branches if the evaluated expression does not make use of sharing.
 Moreover, all branches in this decision tree correspond to non\--determinism spawned by \cyinl{coinCmp}.
 
-An interesting insight that we, unfortunately, do not gain from the decision tree is \emph{how} exactly the permutations are computed on the way.
+An interesting insight that we, unfortunately, do not gain from the decision tree is \emph{how} exactly the permutations are computed.
 In order to make the computation more transparent, we adjust the above decision tree and annotate each branch point with the comparison that takes place.
 That is, as each branch corresponds to an application of \cyinl{coinCmp} to arguments, we can annotate the branches with these arguments.
 The right tree of \autoref{fig:dtInsert} displays the modified decision tree.
@@ -959,10 +959,10 @@ We then compared these Curry implementations to their Haskell counterparts.
 In order to mimic the non\--deterministic component that Curry brings along out of the box, we use a monadic lifting to define potentially effectful computations in Haskell.
 In the end, the Haskell implementations use a monadic lifting of the ordinary, pure sorting function in order to use a non\--deterministic comparison function and compute non\--deterministic results.
 One particularly interesting observation was that whereas the Curry version of selection sort computes only the permutations, the Haskell version does not.
-This difference was the main reason we investigated the difference of both implementations in the first place.
+This observation was the main reason we investigated the difference of both implementations in the first place.
 The other sorting functions compute the same non\--deterministic results: insertion sort, merge sort, and quicksort using \cyinl{partition} do not compute duplicate results and bubble sort computes duplicates in Curry as well as in Haskell.
 Although we did not find other differences with respect to the computed permutations, we observed that the Curry version of these implementations can exploit non\--strictness better than their Haskell counterparts.
-As an example, we demanded the head elements of all permutations and counted the number of non\--deterministic choices that were triggered in to compute the result.
+As an example, we demanded the head elements of all permutations and counted the number of non\--deterministic choices that were triggered to compute the result.
 The most impressive sorting functions for this example were selection sort and bubble sort implemented in Curry as they only demanded $n$ non\--deterministic choices for a list of length $n$.
 On top of that, none of the Curry implementations need to trigger all $n!$ non\--deterministic computations for a list of length $n$, whereas the Haskell implementations trigger at least $n!$ computations.
 This property for the Curry implementation feels impressive since $n!$ non\--deterministic computations corresponds to evaluating all non\--deterministic computations that occur for an implementation that yields exactly all permutations.
@@ -985,5 +985,5 @@ The main insight of this comparison is the advantage of Curry's built\--in non\-
 This monadic lifting in Haskell mimics flat non\--determinism, whereas Curry's non\--determinism can occur deep in arguments of constructors.
 Curry's deep non\--determinism can have advantages with respect to non\--strictness in comparison to this naive monadic lifting in Haskell.
 A more advanced representation for non\--determinism that mimics Curry's behaviour more closely is presented by \citet{fischer2009purely}.
-The representation cannot, however, reuse ordinary data structures from Haskell.
+The representation, however, cannot reuse ordinary data structures from Haskell.
 While we lift the resulting type of functions to model flat non\--determinism, all arguments of constructors as well as functions need to take monadically lifted arguments when we want to model Curry's deep non\--determinism.

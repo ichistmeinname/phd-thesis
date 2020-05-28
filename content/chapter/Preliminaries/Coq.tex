@@ -73,7 +73,7 @@ If we want to define such a recursive function that does not follow Coq's restri
 In this thesis, we will not use capabilities like \cinl{Program Fixpoint} to define recursive functions that do not obey Coq's restrictions, so we abstain from going into more details concerning proving termination of recursive functions.
 
 Moving on with our definitions on Peano numbers above, we can introduce a \cinl{Notation} that allows us to write more natural expressions like \cinl{p1 + p2} for the expression \cinl{(add p1 p2)}.
-We also provide an associativity for the newly introduced operator syntax as well as a fixity level.
+We declare the newly introduced operator syntax as left associative a give the syntax a fixity level.
 
 \begin{coqcode}
 Notation "p1 + p2" := (add p1 p2) (left associativity, at level 50).
@@ -98,7 +98,7 @@ Inductive list (A : Type) : Type :=
 \end{coqcode}
 
 As a code convention we use upper\--case letters for type variables.
-In case of polymorphic functions, including constructors of datas types, we need to pass the instantiation of the type arguments explicitly.
+In case of polymorphic functions, including constructors of data types, we need to pass the instantiation of the type arguments explicitly.
 For example, when we try to compute the following expression to normal form, Coq yields an error message.
 
 \begin{crepl}
@@ -203,7 +203,7 @@ We can then use constructs of the tactic language to manipulate hypotheses and t
 As we proceed with the proof, we will use \cinl{...} to indicate that we do not list all hypotheses, e.g., we will leave out types of identifiers, variables and hypotheses that we not explicitly use in the current goal.
 
 Taking a look at the goal, we realise that we cannot simplify neither the left\--hand side of the equation nor the right\--hand side, because the definition of \cinl{length} distinguishes between the \cinl{nil} and \cinl{cons} case.
-In order to argue about these two different cases separately, we start by doing an induction on \cinl{xs}.
+In order to argue about these two different cases separately, we start with an induction on \cinl{xs}.
 Using the \cinl{induction}\--tactic on a list generates two new goals: one for \cinl{nil} and one for \cinl{cons}.
 
 \begin{cproof}{induction xs as [ | y ys H ].}
@@ -227,6 +227,7 @@ More generally, the vertical bar is a separator for the resulting
 subgoals and we introduce new names depending on the arguments of the
 corresponding subgoal.
 Coq generates names for all arguments that are not explicitly introduced by the pattern.
+
 In case of \cinl{nil}, we can simplify both sides of the equation using the definition of \cinl{length} and \cinl{map} by applying the tactic \cinl{simpl}.
 
 \begin{cproof}{- simpl.}
@@ -437,7 +438,7 @@ Lemma from_to_One : !$\forall$! (A : Type) (e : Ext One!$_\text{S}$! One!$_\text
   ext tt (fun p => match p with end) = e
 \end{cproof1}
 
-In contrast to the definition of \cinl{map_length}, we introduce all variables on the right\--hand side of the type signature.
+First, we introduce all variables on the right\--hand side of the type signature.
 After introducing these quantified variables as hypotheses, we simplify the function applications of \cinl{from_One} and \cinl{to_One} as they disregard the given argument.
 Next, we observe that the argument \cinl{e} on the right\--hand side of the equation is of type \cinl{Ext}: it must be constructed using \cinl{ext} as well.
 More precisely, we even know that the first component, the shape, is of type \cinl{One!$_\text{S}$!}, and, hence, the only valid value is \cinl{tt}.

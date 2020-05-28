@@ -5,8 +5,9 @@
 This chapter moves the focus from applications using effects like non\--determinism to an approach to model effectful programs in order to apply equational reasoning using a proof assistant.
 Equational reasoning is a popular and common tool to prove properties about effectful functional programs and, thus, prominently used by Haskell enthusiasts \citep{jeuring2012testing, gibbons2011just, hutton2008reasoning}.
 In particular, \citet{danielsson2006fast} argue that reasoning about total programs only and expecting the result to carry over to partial programs is \textit{morally correct}.
-Nevertheless, since we are interested in proving properties about partial or other effectful programs more explicitly, we cannot apply equational reasoning as it is and need a model to represent such  effects.
-In this chapter we present an approach to model effectful non\--strict functional programs in the proof assistant Coq and prove exemplary properties about functions used in functional languages.
+Nevertheless, since we are interested in proving properties about partial or other effectful programs more explicitly, we cannot apply equational reasoning as it is and need a model to represent such effects.
+
+In this chapter we present an approach to model effectful non\--strict functional programs in the proof assistant Coq and prove exemplary properties about functions used in functional and functional logic languages.
 Our running example is often used as a finger exercise for proofs in a total setting.
 The main insight of our approach is that a lot of these properties carry over to partial languages: these properties still hold if partial values or non\--deterministic computations are at play.
 Our approach allows to reason about a whole class of effects, and not only about a concrete effect like partiality or non\--determinism.
@@ -30,7 +31,7 @@ In summary, this chapter makes the following contributions.
 \item In order to define a valid representation of effectful programs, we take the reader on an introductory tour of Coq's intricacies.
 \item We implement a model of effectful data structures that pleases Coq's termination checker.
 \item We argue that our approach is especially beneficial when it comes to effect\--generic properties: instead of individually proving a property for each new effect of interest, we can prove such a property for a variety of effects once and for all.
-\item We present first ideas on modelling Curry's non\--determinism and discuss arising obstacles when trying to model call\--time\--choice.
+\item We present first ideas on modelling Curry's non\--determinism and discuss arising obstacles when trying to model call\--time choice.
 \item In the light of these obstacles, we discuss that our current framework works well for call\--by\--name semantics, but does not work for call\--by\--need semantics out\--of\--the box.
 \item Moreover, we show some examples that illustrate why this distinction comes up when modelling Curry's non\--determinism but not for partiality.
 \end{itemize}
@@ -106,7 +107,7 @@ Since we want to construct a list of type \cinl{list A}, the head element needs 
 As Haskell is a non\--strict language, it is crucial that we allow partial values at top\--level as well as within the components of data structures, that is, within arguments of constructors, in order to model Haskell's partiality correctly.
 Due to non\--strictness, it is possible that an undefined value is never demanded during evaluation.
 The Haskell expression \hinl{head (1 : undefined)}, for example, does not trigger the \hinl{undefined} value in the tail of the list, because \hinl{head} only demands the first list constructor and ignores the second argument.
-In order to have a aptronym for the representation of partial values, we define a new data type \cinl{partial} that captures the notion that a value can be undefined or defined more clearly than the predefined type \cinl{option} like we have already seen for Haskell in \autoref{code:partial_haskell}.
+In order to have an aptronym for the representation of partial values, we define a new data type \cinl{partial} that captures the notion that a value can be undefined or defined more clearly than the predefined type \cinl{option} like we have already seen for Haskell in \autoref{code:partial_haskell}.
 
 \begin{coqcode}
 Inductive partial (A : Type) :=
@@ -325,11 +326,11 @@ Consider once again the following exemplary type definitions in Coq.
 \end{enumerate}
 
 The inductive type \cinl{T} obeys the strict positivity requirement in (1) and (3), and violates it in (2) and (4).
-In (1) we need to check the following arguments of the constructor \cinl{con}: both arguments of type \cinl{T} and both types are strictly positive.
+In (1) we need to check the following arguments of the constructor \cinl{con}: both arguments are of type \cinl{T} and both types are strictly positive.
 The argument in question for (3) is \cinl{nat -> T}, where \cinl{T} does not occur to the left of an arrow, thus, the type is strictly positive as well.
 In (2) we need to inspect the type \cinl{T -> T}; here, \cinl{T} occurs to the left of an arrow, thus, in a negative position.
 The overall definition, then, does not fulfil the requirement.
-The inductive type in (4) is a combination of (2) and (3), thus, the type of the first argument of \cinl{con} fulfils the requirement, whereas the second arguments violates it again.
+The inductive type in (4) is a combination of (2) and (3), thus, the type of the first argument of \cinl{con} fulfils the requirement, whereas the second argument violates it again.
 \end{excursus}
 
 Let us think again about the definition of \cinl{NonStrictlyPos}.
@@ -394,7 +395,7 @@ Fail Inductive List (M : Type -> Type) (A : Type) :=
 | cons : M A -> M (List M A) -> List M A.
 \end{coqcode}
 
-The type \cinl{List} does not appear to the left of an arrow in the argument types of its constructor \cinl{cons}, but Coq still rejects the definition because of the type \cinl{M (List M A)}.
+The type \cinl{List} does not appear to the left of an arrow in the argument types of its constructor \cinl{cons}, but Coq still rejects the definition because of the usage of the type \cinl{M (List M A)}.
 However, Coq is of course on the right track rejecting such a definition.
 While a concrete instantiation using \cinl{partial} instead of the type parameter \cinl{M} is accepted, since \cinl{List} does not appear to the left of an arrow, we cannot guarantee that all usages of \cinl{List} obey this requirement.
 For example, consider the following definition that we might use to instantiate the type parameter with.
@@ -1217,7 +1218,7 @@ pure and effectful lists.
 The needed property is similar to stating that a predicate of type \cinl{A -> Prop} should hold for all elements of a list\--like structure.
 In our case the list\--like structure is the \cinl{Free} wrapper with its two constructors \cinl{pure} and \cinl{impure}.
 We define an auxiliary proposition \cinl{ForFree} that states if a predicate of type \cinl{A -> Prop} holds for all elements occurring in a value wrapped using \cinl{Free}.
-Remember that propositions in Coq are data type declarations that yield a value of type `Prop` instead of `Type`.
+Remember that propositions in Coq are data type declarations that yield a value of type \cinl{Prop} instead of \cinl{Type}.
 
 \begin{coqcode}
 Inductive ForFree (P : A -> Prop) : Free A -> Prop :=
@@ -1349,7 +1350,7 @@ Fixpoint List_ind (xs : List A) : P xs :=
 
 Note that the preceding sections used this definition of \cinl{List_ind} whenever we used the tactic \cinl{induction} on list
 values.
-Hence, the arguments in an introduction pattern like \cinl{[ | fy fys IH ]} correspond to the arguments of the \cinl{cons} constructor and the induction hypothesis of type \cinl{ForFree}.
+Hence, the arguments in an introduction pattern like \cinl{[ | fy fys IH ]} correspond to the arguments of the \cinl{consP} constructor and the induction hypothesis of type \cinl{ForFree}.
 
 \section{First Ideas to Model Curry Programs}
 
@@ -1995,7 +1996,7 @@ In contrast to this explicit modelling of Haskell's partiality, \citet{spector-z
 The advantage of focussing on the total subset of Haskell is that they can translate functions one\--to\--one to Coq.
 In case of a partial function, like \emph{head}, their translation scheme uses, however, an additional axiom that can be understood as a representation of the polymorphic value \emph{undefined}.
 As they state, this axiom makes their model unsound and is only meant as a temporarily solution.
-That is, the common work\--flow suggests that the user can start proving properties about partial functions right away and totalise these functions later.
+That is, the common workflow suggests that the user can start proving properties about partial functions right away and totalise these functions later.
 Most recently, \citet{breitner2018ready} present a more rigorous case study of this approach that proves properties about real world Haskell libraries.
 For this publication the approach concerning partial functions was slightly adapted.
 They still use an additional axiom for partial functions, but define it in such a way that prevents Coq from unfolding the definition.
@@ -2027,6 +2028,7 @@ These two layers for the resulting value of the sharing function is necessary to
 The first monadic layer additionally performs bookkeeping when sharing non\--deterministic computations.
 In order to track the decisions of shared non\--deterministic computations during evaluation, \citeauthor{fischer2009purely} use an untyped heap that stores computations corresponding to variable references.
 That is, their implementation is a realisation of the heap used in the operational call\--by\--need semantics as introduced by \citet{launchbury1993natural}.
+\citet{petricek2012evaluation} presents a generalisation of the \hinl{share} operator namend \hinl{malias :: Monad m => m a -> m (m a)} that can be used to model call-by-value and call-by-name semantics for any monad \hinl{m} as well as to model call-by-need semantics for certain kind of monads.
 The main contribution of an implementation for Curry's call\--time choice in Coq using \cinl{Free} in contrast to the implementation of \citeauthor{fischer2009purely} is to avoid impure features.
 This avoidance originates in our usage of Coq, that does not allow such features, but is also of interest for an implementation in Haskell as well.
 As future work, we plan to investigate if a Haskell implementation that tracks the decisions of choices instead of references to computations can compete with respect to performance.
@@ -2062,7 +2064,7 @@ First experiments revealed that Agda accepts a slightly adjusted definition of t
 Hence, it might be worthwhile to reimplement the model for call\--time choice in Agda to try out first proofs about Curry programs for the higher\--order approach.
 A fairly long\--term goal is to show that our model using \cinl{Free} correctly models Curry's call\--time choice.
 Thanks to the implementation in Coq, we can use the model to prove the equivalence with an operational or denotational model of Curry.
-The implementation of the operational or denotation of Curry is an interesting line of work itself that is useful for a wide range of questions and issues.
+The implementation of the operational or denotational model of Curry is an interesting line of work itself that is useful for a wide range of questions and issues.
 
 \section{Future Work}
 
@@ -2205,9 +2207,9 @@ A first idea to model the relation in the setting of partiality using the \cinl{
 \begin{coqcode}
 Inductive le_Free_Partial A (leA : A -> A -> Prop)
   : Free A -> Free A -> Prop :=
-| le_pure : !$\forall$! x y, leA x y -> le_Free_Partial leA (pure x) (pure y)
+| le_pure        : !$\forall$! x y, leA x y -> le_Free_Partial leA (pure x) (pure y)
 | le_impure_pure : !$\forall$! e x, le_Free_Partial leA (impure e) (pure x)
-| le_impure : !$\forall$! e1 e2, le_Free_Partial leA (impure e1) (impure e2).
+| le_impure      : !$\forall$! e1 e2, le_Free_Partial leA (impure e1) (impure e2).
 \end{coqcode}
 
 In a similar manner, we can define a specialised version for an effect like \hinl{error}.
@@ -2217,12 +2219,12 @@ For example, an attempt to generalise the definition for the partiality and erro
 \begin{coqcode}
 Inductive le_Free_Hoare (A : Type) (leS : Sh -> Sh -> Prop)
     (leA : A -> A -> Prop) : Free C A -> Free C A -> Prop :=
-| le_pure_Hoare : !$\forall$! x y,
+| le_pure_Hoare        : !$\forall$! x y,
     leA x y -> le_Free_Hoare leS leA (pure x) (pure y)
 | le_impure_pure_Hoare : !$\forall$! s pf x,
     (!$\forall$! p, le_Free_Hoare leS leA (pf p) (pure x)) ->
       le_Free_Hoare leS leA (impure (ext s pf)) (pure x)
-| le_impure_Hoare : !$\forall$! s1 pf1 s2 pf2,
+| le_impure_Hoare      : !$\forall$! s1 pf1 s2 pf2,
     (!$\forall$! p1, exists p2, le_Free_Hoare leS leA (pf1 p1) (pf2 p2)) ->
     leS s1 s2 ->
     le_Free_Hoare leS leA (impure (ext s1 pf1)) (impure (ext s2 pf2))

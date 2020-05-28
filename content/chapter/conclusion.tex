@@ -34,7 +34,7 @@ Besides modelling distributions, users of probabilistic programming are interest
 The presented implementation provides non\--strict probabilistic combinators in order to avoid spawning unnecessary non\--deterministic computations when modelling distributions and performing queries.
 On the one hand, these non\--strict combinators have benefits in terms of performance due to early pruning when performing queries.
 Using combinators that are too strict, on the other hand, leads to a loss of these performance benefits.
-Fortunately, the user does not have to worry about strictness as long as she only uses the provided combinators.
+Fortunately, the user does not have to worry about strictness as long as they only use the provided combinators.
 On top of that, we showed that the library operations that correspond to a monadic interface obey the expected monad laws, if the user meets two restrictions concerning their usage.
 
 \section{Modelling Effectful Programs in Coq}

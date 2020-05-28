@@ -105,14 +105,16 @@ Proof.
   apply IsCons.
 Qed.
 
-Example IsTrivalCounter :
-  IsTrivialList (concat (map (fun x : bool => if x then cons 1 nil else nil) list1)).
+Example IsTrivialCounter :
+  IsTrivialList
+    (concat (map (fun x : bool => if x then cons 1 nil else nil) list1)).
 Proof.
   simpl. apply IsTList.
 Qed.
 
-Example IsTrivalCounter2 :
-  not (IsNonTrivialList (concat (map (fun x : bool => if x then cons 1 nil else nil) list1))).
+Example IsTrivialCounter2 :
+  not (IsNonTrivialList
+    (concat (map (fun x : bool => if x then cons 1 nil else nil) list1))).
 Proof.
   simpl. intro IsNonTriv. inversion IsNonTriv.
 Qed.

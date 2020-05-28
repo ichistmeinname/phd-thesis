@@ -120,7 +120,7 @@ This transformation, which computes the non\--deterministic computation \hinl{fi
 \end{hrepl}
 
 We must be aware, however, that the transformation is only valid because we use the result of \hinl{filterM p xs} in both branches of the if\--then\--else\--expression.
-In the next paragraph we discuss an example that yields different results before and after the transformation.
+In the next paragraph we discuss an example that yields different results before and after such a transformation.
 
 \paragraph{Example: Non\--deterministic application of insert}
 Consider the following two monadic versions of the function \cyinl{insert} we defined in Curry.
@@ -268,7 +268,7 @@ Note that we need to evaluate \hinl{filterM' (coinCmpND 42) [1,2,3]} and all rec
 
 Thanks to the generic implementation using a monadic interface, we are free to use whatever instance fits our purpose to actually run the sorting functions.
 For example, we can generate decision trees like in Curry by using a monad that keeps track of all operations and pretty\--prints the non\--deterministic parts of our computation.
-As first step to define such a pretty\--printing function, we generalise the comparison function \hinl{coinCmpND} to \hinl{MonadPlus}, which is an extension of the \hinl{Monad} type class that introduces an additional function \hinl{mplus} to combine monadic computations and \hinl{mzero} as neutral element for the function \hinl{mplus}.
+As first step to define such a pretty\--printing function, we generalise the comparison function \hinl{coinCmpND} to \hinl{MonadPlus}, which is an extension of the \hinl{Monad} type class that introduces an additional function \hinl{mplus} to combine monadic computations, and \hinl{mzero} as neutral element for the function \hinl{mplus}.
 
 \begin{haskellcode}
 class Monad m => MonadPlus m where
@@ -648,7 +648,7 @@ That is, the number of duplicate results increases with the length of the list.
 65536,131072,262144,524288]
 \end{hrepl}
 
-More precisely, \hinl{pickMinM coinCmpND xs} yields $2^{\text{length xs}}$ results, while the Curry version only yields $\text{length xs}$ results.
+More precisely, \hinl{pickMinM coinCmpND xs} yields $2^{\text{length xs}}$ results, while the Curry version only yields $\emph{length xs}$ results.
 Note that the Curry version is what we expect in the first place: picking a minimum with a non\--deterministic predicate is basically a function that non\--deterministically yields each element of the list.
 
 In the end, \hinl{pickMinM} and \cyinl{pickMin}, respectively, are the functions used to implement the selection sort algorithm and, thus, determine the number of permutations.
@@ -660,7 +660,7 @@ The remaining sorting algorithms discussed in \autoref{sec:NDCurry} --- bubble s
  However, we observe similar effects as with \hinl{insertionSortM} in \autoref{par:insert} concerning non\--strictness.
 When we demand only the head elements of all permutations, the monadic Haskell versions need to trigger more non\--determinism than is necessary in the Curry version.
 \autoref{fig:strictSort} visualises the number of triggered non\--deterministic computations that are necessary to compute only the head element of all permutations.
-We observe that all Curry implementations (visualised by the completely coloured bars) compute less non\--deterministic computations than all Haskell implementations.
+We observe that all Curry implementations (visualised by the colour-filled bars) compute less non\--deterministic computations than all Haskell implementations.
 One interesting contrast is the behaviour of bubble sort: the Curry version only needs to trigger one non\--deterministic computation for each element of the list.
 That is, the number of non\--deterministic computations is linear in the length of the list, whereas the Haskell version triggers $n!$ non\--deterministic computations for an input list of length $n$.
 Note that the evaluation of all permutations for bubble sort needs to trigger $n!$ non\--deterministic computations as well, that is, in this case demanding only the head of each permutations is as strict as evaluating all list elements for each permutation.

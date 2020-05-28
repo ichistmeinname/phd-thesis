@@ -147,14 +147,13 @@ Applications and Formal Reasoning}
 % minted-related definitions
 \newminted{haskell}{mathescape=true,escapeinside=<>}
 \newminted{coq}{mathescape=true,escapeinside=!!}
-\newminted[curry]{haskell}{mathescape=true,escapeinside=<>}
+\newminted[curry]{haskell}{style=friendly,mathescape=true,escapeinside=<>}
 \newmintinline[cyinl]{haskell}{style=bw}
 \newmintinline[hinl]{haskell}{style=bw}
 \newmintinline[cinl]{coq}{escapeinside=!!,mathescape=true,style=bw}
 
-% \usemintedstyle[curry]{friendly}
-% \usemintedstyle[haskell]{trac}
-% \usemintedstyle[coq]{tango}
+\usemintedstyle[haskell]{trac}
+\usemintedstyle[coq]{tango}
 
 \newenvironment{excursus}[1]
 {\vspace{0.5cm}
