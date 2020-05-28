@@ -1,0 +1,71 @@
+* using last in Haskell
+
+λ> map (\n -> lengthND (insertionSortM coinCmpList [1..n] >>= return . last)) [5..10]
+[120,720,5040,40320,362880,3628800]
+ 
+λ> map (\n -> lengthND (selectionSortM coinCmpList [1..n] >>= return . last)) [5..10]
+[1024,32768,2097152,*** Exception: stack overflow
+
+λ> map (\n -> lengthND (bubbleSortM coinCmpList [1..n] >>= return . last)) [5..10]
+[1024,32768,2097152,*** Exception: stack overflow
+
+* using head in Haskell
+
+λ> map (\n -> lengthND (insertionSortM coinCmpList [1..n] >>= return . head)) [5..10]
+[1,2,6,24,120,720,5040,40320,362880,3628800]
+
+λ> map (\n -> lengthND (selectionSortM coinCmpList [1..n] >>= return . head)) [5..10]
+[1,2,8,64,1024,32768,2097152,*** Exception: stack overflow
+
+λ> map (\n -> lengthND (bubbleSortM coinCmpList [1..n] >>= return . head)) [1..10]
+[1,2,8,64,1024,32768,2097152,*** Exception: stack overflow
+
+λ> map (\n -> lengthND (quickSortM coinCmpList [1..n] >>= return . head)) [5..10]
+[1,2,6,24,120,720,5040,40320,362880,3628800]
+
+λ> map (\n -> lengthND (mergeSortM coinCmpList [1..n] >>= return . head)) [5..10]
+[1,2,6,24,120,720,5040,40320,362880,3628800]
+
+λ> map (\n -> lengthND (quickSortFilterM coinCmpList [1..n] >>= return . head)) [1..5]
+[1,4,49,4225, *** Exception: stack overflow
+
+* using last in Curry
+
+Evaluating expression: let last xs = case xs of [x] -> x; _:ys -> last ys in map (\n -> length (allValues (last (insertionSort coinCmp [1..n])))) [5..10]
+[120,720,5040,40320,362880,3628800]
+
+Evaluating expression: let last xs = case xs of [x] -> x; _:ys -> last ys in map (\n -> length (allValues (last (selectionSort coinCmp [1..n])))) [5..10]
+[120,720,5040,40320,362880,3628800]
+
+Evaluating expression: let last xs = case xs of [x] -> x; _:ys -> last ys in map (\n -> length (allValues (last (bubbleSort coinCmp [1..n])))) [5..10]
+[1024,32768,2097152,...
+
+Evaluating expression: let last xs = case xs of [x] -> x; _:ys -> last ys in map (\n -> length (allValues (last (quickSort coinCmp [1..n])))) [1..5]
+[1,4,49,4225,...
+
+Evaluating expression: let last xs = case xs of [x] -> x; _:ys -> last ys in map (\n -> length (allValues (last (quickSortSplit coinCmp [1..n])))) [5..10]
+[120,720,5040,40320,362880,3628800]
+
+Evaluating expression: let last xs = case xs of [x] -> x; _:ys -> last ys in map (\n -> length (allValues (last (mergeSort coinCmp [1..n])))) [5..10]
+[120,720,5040,40320,362880,3628800]
+
+
+* using head in Curry
+
+Evaluating expression: map (\n -> length (allValues (head (insertionSort coinCmp [1..n])))) [5..10]
+[16,32,64,128,256,512]
+
+Evaluating expression: map (\n -> length (allValues (head (selectionSort coinCmp [1..n])))) [5..10]
+[5,6,7,8,9,10]
+
+Evaluating expression: map (\n -> length (allValues (head (bubbleSort coinCmp [1..n])))) [5..10]
+[5,6,7,8,9,10]
+
+Evaluating expression: map (\n -> length (allValues (head (quickSort coinCmp [1..n])))) [5..10]
+[52,203,877,4140,21147,115975]
+
+Evaluating expression: map (\n -> length (allValues (head (quickSortSplit coinCmp [1..n])))) [5..10]
+[52,203,877,4140,21147,115975]
+
+Evaluating expression: map (\n -> length (allValues (head (mergeSort coinCmp [1..n])))) [5..10]
+[16,32,64,128,256,512]
